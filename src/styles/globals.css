@@ -84,3 +84,29 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-elevated);
 }
+
+/* Sonner toast type overrides */
+[data-sonner-toast][data-type="success"] {
+  background: color-mix(in srgb, var(--color-success) 12%, var(--color-elevated)) !important;
+  border-color: color-mix(in srgb, var(--color-success) 25%, transparent) !important;
+  color: var(--color-success) !important;
+}
+
+[data-sonner-toast][data-type="error"] {
+  background: color-mix(in srgb, var(--color-error) 12%, var(--color-elevated)) !important;
+  border-color: color-mix(in srgb, var(--color-error) 25%, transparent) !important;
+  color: var(--color-error) !important;
+}
+
+[data-sonner-toast][data-type="warning"] {
+  background: color-mix(in srgb, var(--color-warning) 12%, var(--color-elevated)) !important;
+  border-color: color-mix(in srgb, var(--color-warning) 25%, transparent) !important;
+  color: var(--color-warning) !important;
+}
+
+[data-sonner-toast][data-type="loading"] [data-icon],
+[data-sonner-toast][data-type="success"] [data-icon],
+[data-sonner-toast][data-type="error"] [data-icon],
+[data-sonner-toast][data-type="warning"] [data-icon] {
+  color: inherit !important;
+}
