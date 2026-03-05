@@ -4,6 +4,7 @@
 @import "./themes/ocean.css";
 @import "./themes/ember.css";
 @import "./themes/forest.css";
+@import "./themes/crimson.css";
 
 @custom-variant dark (&:is(.dark *));
 

@@ -14,8 +14,11 @@ import {
   Zap,
   ChevronDown,
   Check,
+  Copy,
+  CheckCheck,
 } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +28,8 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { ShineBorder } from "@/components/ui/shine-border";
+import { buildBranchName } from "@/utils/formatters";
+import { mapWorkItemType } from "@/utils/mappers";
 import { useWorkItemDetail } from "./use-work-item-detail";
 import type { WorkItemDetailDialogProps, PriorityLabel, DisplayDetail, DetailFieldProps } from "./types";
 
@@ -178,6 +183,11 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
                 </div>
               </div>
 
+              <BranchField
+                id={itemId!}
+                type={detail.type}
+              />
+
               {detail.description && (
                 <div className="space-y-1.5">
                   <span className="text-[11px] text-fg-muted">Description</span>
@@ -291,6 +301,42 @@ function StatusField(props: StatusFieldProps) {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+interface BranchFieldProps {
+  id: number;
+  type: string;
+}
+
+function BranchField(props: BranchFieldProps) {
+  const { id, type } = props;
+  const [copied, setCopied] = useState(false);
+  const branch = buildBranchName(id, mapWorkItemType(type));
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(branch);
+    setCopied(true);
+    toast.success("Branch name copied");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const CopyIcon = copied ? CheckCheck : Copy;
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+        <GitBranch size={11} />
+        Branch
+      </div>
+      <button
+        onClick={handleCopy}
+        className="flex w-full cursor-pointer items-center gap-2 rounded-md bg-elevated px-3 py-2 text-left transition-colors hover:bg-border"
+      >
+        <code className="flex-1 truncate text-[12px] text-fg-secondary">{branch}</code>
+        <CopyIcon size={12} className={cn("shrink-0", copied ? "text-success" : "text-fg-muted")} />
+      </button>
     </div>
   );
 }

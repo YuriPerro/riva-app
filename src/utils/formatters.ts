@@ -69,3 +69,8 @@ export function parseTags(tags?: string): string[] {
 export function stripRefs(ref: string): string {
   return ref.replace("refs/heads/", "");
 }
+
+export function buildBranchName(id: number, type: string): string {
+  const prefix = type === "bug" ? "bug" : "feat";
+  return `${prefix}/${type}-${id}`;
+}

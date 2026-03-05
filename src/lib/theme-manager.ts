@@ -8,6 +8,7 @@ const PRESETS: ThemePresetConfig[] = [
   { id: ThemePreset.Ocean,    label: "Ocean",    font: "Inter",           accent: "#3b82f6", base: "#0b1120", surface: "#111827" },
   { id: ThemePreset.Ember,    label: "Ember",    font: "JetBrains Mono",  accent: "#f97316", base: "#120a0a", surface: "#1a1010" },
   { id: ThemePreset.Forest,   label: "Forest",   font: "IBM Plex Sans",   accent: "#22c55e", base: "#0a100a", surface: "#111a11" },
+  { id: ThemePreset.Crimson,  label: "Crimson",  font: "Inter",           accent: "#ff4632", base: "#1d1d1d", surface: "#1d1d1d" },
 ];
 
 class ThemeManager {

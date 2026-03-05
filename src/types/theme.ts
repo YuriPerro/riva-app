@@ -3,6 +3,7 @@ export enum ThemePreset {
   Ocean = "ocean",
   Ember = "ember",
   Forest = "forest",
+  Crimson = "crimson",
 }
 
 export interface ThemePresetConfig {
