@@ -25,14 +25,13 @@ export interface PipelineRunItem {
 }
 
 function mapRun(raw: PipelineRun): PipelineRunItem {
-  console.log("[DEBUG pipeline raw]", JSON.stringify(raw, null, 2));
   return {
     id: raw.id,
     buildNumber: raw.buildNumber,
     definitionId: raw.definition.id,
     definitionName: raw.definition.name,
     branch: stripRefs(raw.sourceBranch),
-    title: raw.triggerInfo?.["pr.title"] ?? null,
+    title: raw.triggerInfo?.["ci.message"] ?? null,
     status: mapPipelineStatus(raw),
     duration: formatDuration(raw.queueTime, raw.finishTime),
     ago: formatAgo(raw.finishTime ?? raw.queueTime),
