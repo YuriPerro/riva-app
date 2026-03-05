@@ -1,6 +1,5 @@
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import { NavLink } from "react-router-dom";
-
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/store/sidebar";
@@ -14,7 +13,6 @@ import { LayersIcon, type LayersIconHandle } from "@/components/ui/layers";
 import { ZapIcon, type ZapHandle } from "@/components/ui/zap";
 import { GitPullRequestIcon, type GitPullRequestIconHandle } from "@/components/ui/git-pull-request";
 import { SettingsIcon, type SettingsIconHandle } from "@/components/ui/settings";
-
 import type { NavItemProps } from "./types";
 
 const STAGGER_MS = 60;
@@ -76,7 +74,7 @@ function NavItem(props: NavItemProps) {
   return link;
 }
 
-export function Sidebar() {
+export const Sidebar = memo(function Sidebar() {
   const collapsed = useSidebarStore((s) => s.collapsed);
   const toggle = useSidebarStore((s) => s.toggle);
 
@@ -85,31 +83,6 @@ export function Sidebar() {
   const zapRef = useRef<ZapHandle>(null);
   const prRef = useRef<GitPullRequestIconHandle>(null);
   const settingsRef = useRef<SettingsIconHandle>(null);
-  const settingsLink = (
-    <NavLink
-      to="/settings"
-      onMouseEnter={() => settingsRef.current?.startAnimation()}
-      onMouseLeave={() => settingsRef.current?.stopAnimation()}
-      className={({ isActive }) =>
-        cn(
-          "flex cursor-pointer items-center rounded-md py-2 transition-colors",
-          collapsed ? "justify-center px-2" : "gap-2.5 px-3 text-[13px]",
-          isActive
-            ? "bg-elevated text-fg"
-            : "text-fg-secondary hover:bg-elevated hover:text-fg"
-        )
-      }
-    >
-      {({ isActive }) => (
-        <>
-          <span className={cn("shrink-0", isActive ? "text-fg" : "text-fg-muted")}>
-            <SettingsIcon ref={settingsRef} size={15} />
-          </span>
-          <SidebarLabel collapsed={collapsed} delay={4 * STAGGER_MS}>Settings</SidebarLabel>
-        </>
-      )}
-    </NavLink>
-  );
 
   return (
     <aside
@@ -140,16 +113,7 @@ export function Sidebar() {
       </nav>
 
       <div className="flex flex-col gap-0.5 px-2 pt-2">
-        {collapsed ? (
-          <Tooltip>
-            <TooltipTrigger asChild>{settingsLink}</TooltipTrigger>
-            <TooltipContent side="right" className="border-border bg-elevated text-[12px] text-fg">
-              Settings
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          settingsLink
-        )}
+        <NavItem to="/settings" label="Settings" collapsed={collapsed} index={4} iconRef={settingsRef} icon={<SettingsIcon ref={settingsRef} size={15} />} />
 
         <button
           onClick={toggle}
@@ -166,4 +130,4 @@ export function Sidebar() {
       </div>
     </aside>
   );
-}
+});

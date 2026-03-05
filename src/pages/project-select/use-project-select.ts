@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { azure, type Project } from "@/lib/tauri";
+import { useSessionStore } from "@/store/session";
 
 export const useProjectSelect = () => {
+  const navigate = useNavigate();
+  const setProject = useSessionStore((s) => s.setProject);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,9 +18,8 @@ export const useProjectSelect = () => {
   }, []);
 
   const selectProject = (name: string) => {
-    localStorage.setItem("forge_project", name);
-    localStorage.removeItem("forge_team"); // clear stale team from previous project
-    window.location.href = "/team-select";
+    setProject(name);
+    navigate("/team-select", { replace: true });
   };
 
   return { projects, isLoading, error, selectProject };

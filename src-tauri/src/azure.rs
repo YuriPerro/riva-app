@@ -75,12 +75,17 @@ pub struct WorkItemFields {
     pub state: String,
     #[serde(rename = "System.AssignedTo", default)]
     pub assigned_to: Option<serde_json::Value>,
+    #[serde(rename = "System.IterationPath", default)]
+    pub iteration_path: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WorkItem {
     pub id: u64,
     pub fields: WorkItemFields,
+    /// Web browser URL for this work item — computed after deserialization.
+    #[serde(rename = "webUrl", default, skip_deserializing)]
+    pub web_url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -102,6 +107,63 @@ pub struct PipelineRun {
     #[serde(rename = "queueTime")]
     pub queue_time: Option<String>,
     pub definition: PipelineDefinition,
+    /// Web browser URL for this build — computed after deserialization.
+    #[serde(rename = "webUrl", default, skip_deserializing)]
+    pub web_url: String,
+}
+
+// ─── Pull Request types ───────────────────────────────────────────────────────
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PullRequestIdentity {
+    #[serde(rename = "displayName")]
+    pub display_name: String,
+    #[serde(rename = "uniqueName", default)]
+    pub unique_name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PullRequestReviewer {
+    #[serde(rename = "displayName")]
+    pub display_name: String,
+    pub vote: i32,
+    #[serde(rename = "isRequired", default)]
+    pub is_required: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PullRequestRepository {
+    pub id: String,
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PullRequest {
+    #[serde(rename = "pullRequestId")]
+    pub pull_request_id: u64,
+    pub title: String,
+    #[serde(rename = "sourceRefName")]
+    pub source_ref_name: String,
+    #[serde(rename = "targetRefName")]
+    pub target_ref_name: String,
+    #[serde(rename = "createdBy")]
+    pub created_by: PullRequestIdentity,
+    #[serde(rename = "creationDate")]
+    pub creation_date: String,
+    pub status: String,
+    pub repository: PullRequestRepository,
+    #[serde(rename = "isDraft", default)]
+    pub is_draft: bool,
+    #[serde(default)]
+    pub reviewers: Vec<PullRequestReviewer>,
+    /// Web browser URL — computed after deserialization.
+    #[serde(rename = "webUrl", default, skip_deserializing)]
+    pub web_url: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct PullRequestsResponse {
+    pub value: Vec<PullRequest>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -190,7 +252,7 @@ pub async fn get_my_work_items(
                   ORDER BY [System.ChangedDate] DESC"
     });
 
-    let wiql_url = format!("{}/{}/_apis/wit/wiql?api-version=7.1&$top=20", base, project);
+    let wiql_url = format!("{}/{}/_apis/wit/wiql?api-version=7.1&$top=100", base, project);
     let wiql_resp = client
         .post(&wiql_url)
         .json(&wiql)
@@ -208,10 +270,10 @@ pub async fn get_my_work_items(
         return Ok(vec![]);
     }
 
-    // Batch fetch work item details
-    let ids: Vec<String> = refs.work_items.iter().take(10).map(|w| w.id.to_string()).collect();
+    // Batch fetch work item details (up to 50 items)
+    let ids: Vec<String> = refs.work_items.iter().take(50).map(|w| w.id.to_string()).collect();
     let ids_str = ids.join(",");
-    let fields = "System.Title,System.WorkItemType,System.State,System.AssignedTo";
+    let fields = "System.Title,System.WorkItemType,System.State,System.AssignedTo,System.IterationPath";
     let batch_url = format!(
         "{}/{}/_apis/wit/workitems?ids={}&fields={}&api-version=7.1",
         base, project, ids_str, fields
@@ -223,11 +285,17 @@ pub async fn get_my_work_items(
         .await
         .map_err(|e| e.to_string())?;
 
-    batch_resp
+    let mut items = batch_resp
         .json::<WorkItemsBatchResponse>()
         .await
         .map(|r| r.value)
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+
+    // Attach web URLs
+    for item in &mut items {
+        item.web_url = format!("{}/{}/_workitems/edit/{}", base, project, item.id);
+    }
+    Ok(items)
 }
 
 /// Get the most recent pipeline runs for a project
@@ -237,10 +305,10 @@ pub async fn get_recent_pipelines(
     project: &str,
 ) -> Result<Vec<PipelineRun>, String> {
     let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
     let url = format!(
-        "{}/{}/_apis/build/builds?$top=10&queryOrder=queueTimeDescending&api-version=7.1",
-        org_url.trim_end_matches('/'),
-        project
+        "{}/{}/_apis/build/builds?$top=50&queryOrder=queueTimeDescending&api-version=7.1",
+        base, project
     );
 
     let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
@@ -249,10 +317,55 @@ pub async fn get_recent_pipelines(
         return Err(format!("Builds API returned {}", resp.status()));
     }
 
-    resp.json::<BuildsResponse>()
+    let mut runs = resp
+        .json::<BuildsResponse>()
         .await
         .map(|r| r.value)
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+
+    // Attach web URLs
+    for run in &mut runs {
+        run.web_url = format!(
+            "{}/{}/_build/results?buildId={}&view=results",
+            base, project, run.id
+        );
+    }
+    Ok(runs)
+}
+
+/// Get active pull requests for a project
+pub async fn get_pull_requests(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+) -> Result<Vec<PullRequest>, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/pullrequests?searchCriteria.status=active&$top=50&api-version=7.1",
+        base, project
+    );
+
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(format!("Pull Requests API returned {}", resp.status()));
+    }
+
+    let mut prs = resp
+        .json::<PullRequestsResponse>()
+        .await
+        .map(|r| r.value)
+        .map_err(|e| e.to_string())?;
+
+    // Attach web URLs
+    for pr in &mut prs {
+        pr.web_url = format!(
+            "{}/{}/_git/{}/pullrequest/{}",
+            base, project, pr.repository.name, pr.pull_request_id
+        );
+    }
+    Ok(prs)
 }
 
 /// Get all teams for a project.

@@ -1,6 +1,6 @@
 mod azure;
 
-use azure::{PipelineRun, Project, SprintIteration, Team, WorkItem};
+use azure::{PipelineRun, Project, PullRequest, SprintIteration, Team, WorkItem};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
@@ -144,6 +144,15 @@ async fn get_teams(
 }
 
 #[tauri::command]
+async fn get_pull_requests(
+    state: State<'_, AppState>,
+    project: String,
+) -> Result<Vec<PullRequest>, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::get_pull_requests(&org_url, &pat, &project).await
+}
+
+#[tauri::command]
 async fn get_current_sprint(
     state: State<'_, AppState>,
     project: String,
@@ -174,6 +183,7 @@ pub fn run() {
             get_teams,
             get_my_work_items,
             get_recent_pipelines,
+            get_pull_requests,
             get_current_sprint,
         ])
         .run(tauri::generate_context!())

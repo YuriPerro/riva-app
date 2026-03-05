@@ -1,4 +1,6 @@
 import { CheckCircle2, XCircle, Loader2, MinusCircle, ArrowRight } from "lucide-react";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { PipelineStatus } from "../../types";
 import type { PipelinesListProps } from "./types";
@@ -12,6 +14,7 @@ const statusConfig: Record<PipelineStatus, { icon: React.ElementType; className:
 
 export function PipelinesList(props: PipelinesListProps) {
   const { pipelines } = props;
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col">
@@ -19,7 +22,10 @@ export function PipelinesList(props: PipelinesListProps) {
         <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
           Pipelines
         </span>
-        <button className="flex cursor-pointer items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary">
+        <button
+          onClick={() => navigate("/pipelines")}
+          className="flex cursor-pointer items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary"
+        >
           View all <ArrowRight size={10} />
         </button>
       </div>
@@ -31,6 +37,7 @@ export function PipelinesList(props: PipelinesListProps) {
           return (
             <div
               key={pipeline.id}
+              onClick={() => pipeline.url && openUrl(pipeline.url)}
               className={cn(
                 "group flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors",
                 "hover:bg-elevated cursor-pointer"

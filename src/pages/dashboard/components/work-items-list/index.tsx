@@ -1,4 +1,6 @@
 import { CheckSquare, Bug, Layers, Zap, ArrowRight } from "lucide-react";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { WorkItemStatus, WorkItemType } from "../../types";
 import type { WorkItemsListProps } from "./types";
@@ -19,6 +21,7 @@ const statusConfig: Record<WorkItemStatus, { label: string; className: string }>
 
 export function WorkItemsList(props: WorkItemsListProps) {
   const { items } = props;
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col">
@@ -26,7 +29,10 @@ export function WorkItemsList(props: WorkItemsListProps) {
         <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
           My Work Items
         </span>
-        <button className="flex cursor-pointer items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary">
+        <button
+          onClick={() => navigate("/my-work")}
+          className="flex cursor-pointer items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary"
+        >
           View all <ArrowRight size={10} />
         </button>
       </div>
@@ -39,6 +45,7 @@ export function WorkItemsList(props: WorkItemsListProps) {
           return (
             <div
               key={item.id}
+              onClick={() => item.url && openUrl(item.url)}
               className={cn(
                 "group flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors",
                 "hover:bg-elevated cursor-pointer"

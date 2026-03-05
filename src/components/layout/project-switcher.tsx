@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Search, Check, Loader2 } from "lucide-react";
-import { azure, type Team } from "@/lib/tauri";
+import { azure, type Project } from "@/lib/tauri";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session";
 
-function teamInitials(name: string) {
+function projectInitials(name: string) {
   return name
     .split(/[\s_-]/)
     .map((w) => w[0])
@@ -19,51 +19,50 @@ function sameCharSet(a: string, b: string): boolean {
   return a.split("").sort().join("") === b.split("").sort().join("");
 }
 
-function teamMatchesSearch(query: string, teamName: string): boolean {
+function projectMatchesSearch(query: string, projectName: string): boolean {
   const q = query.toLowerCase().trim();
-  const t = teamName.toLowerCase().trim();
+  const p = projectName.toLowerCase().trim();
 
   if (!q) return true;
+  if (p.includes(q)) return true;
 
-  if (t.includes(q)) return true;
-
-  const acronym = t.split(/[\s_-]+/).map((w) => w[0] ?? "").join("");
+  const acronym = p.split(/[\s_-]+/).map((w) => w[0] ?? "").join("");
   if (acronym.startsWith(q) || acronym.includes(q)) return true;
 
   const qWords = q.split(/\s+/).filter(Boolean);
-  const tWords = t.split(/[\s_-]+/).filter(Boolean);
+  const pWords = p.split(/[\s_-]+/).filter(Boolean);
 
   return qWords.every((qw) =>
-    tWords.some(
-      (tw) =>
-        tw.includes(qw) ||
-        qw.includes(tw) ||
-        sameCharSet(qw, tw)
+    pWords.some(
+      (pw) =>
+        pw.includes(qw) ||
+        qw.includes(pw) ||
+        sameCharSet(qw, pw)
     )
   );
 }
 
-export function TeamSwitcher() {
-  const project = useSessionStore((s) => s.project);
-  const currentTeam = useSessionStore((s) => s.team);
-  const setTeam = useSessionStore((s) => s.setTeam);
+export function ProjectSwitcher() {
+  const currentProject = useSessionStore((s) => s.project);
+  const setProject = useSessionStore((s) => s.setProject);
   const queryClient = useQueryClient();
 
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  // Fetch projects once when dropdown first opens
   useEffect(() => {
-    if (!open || teams.length > 0 || !project) return;
+    if (!open || projects.length > 0) return;
     setLoading(true);
     azure
-      .getTeams(project)
-      .then(setTeams)
+      .getProjects()
+      .then(setProjects)
       .finally(() => setLoading(false));
-  }, [open, project, teams.length]);
+  }, [open, projects.length]);
 
   useEffect(() => {
     if (open) {
@@ -91,20 +90,23 @@ export function TeamSwitcher() {
     return () => document.removeEventListener("keydown", handler);
   }, [open]);
 
-  const selectTeam = (name: string) => {
-    setTeam(name);
+  const selectProject = (name: string) => {
+    if (name === currentProject) {
+      setOpen(false);
+      return;
+    }
+    // setProject also clears team in the store
+    setProject(name);
     queryClient.invalidateQueries();
     setOpen(false);
   };
 
   const filtered = useMemo(() =>
     search
-      ? teams.filter((t) => teamMatchesSearch(search, t.name))
-      : teams,
-    [search, teams]
+      ? projects.filter((p) => projectMatchesSearch(search, p.name))
+      : projects,
+    [search, projects]
   );
-
-  if (!project) return null;
 
   return (
     <div ref={containerRef} className="relative">
@@ -120,13 +122,13 @@ export function TeamSwitcher() {
         <span
           className={cn(
             "flex h-4 w-4 shrink-0 items-center justify-center rounded text-[9px] font-bold",
-            "bg-accent/20 text-accent"
+            "bg-fg-muted/15 text-fg-muted"
           )}
         >
-          {currentTeam ? teamInitials(currentTeam) : "?"}
+          {currentProject ? projectInitials(currentProject) : "?"}
         </span>
-        <span className="max-w-[112px] truncate">
-          {currentTeam || "Select team"}
+        <span className="max-w-[100px] truncate">
+          {currentProject || "Select project"}
         </span>
         <ChevronDown
           size={11}
@@ -150,7 +152,7 @@ export function TeamSwitcher() {
               ref={searchRef}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search teams..."
+              placeholder="Search projects..."
               className="w-full bg-transparent text-[12px] text-fg placeholder:text-fg-disabled outline-none"
             />
           </div>
@@ -162,15 +164,15 @@ export function TeamSwitcher() {
               </div>
             ) : filtered.length === 0 ? (
               <p className="py-4 text-center text-[12px] text-fg-disabled">
-                No teams found
+                No projects found
               </p>
             ) : (
-              filtered.map((team) => {
-                const active = team.name === currentTeam;
+              filtered.map((project) => {
+                const active = project.name === currentProject;
                 return (
                   <button
-                    key={team.id}
-                    onClick={() => selectTeam(team.name)}
+                    key={project.id}
+                    onClick={() => selectProject(project.name)}
                     className={cn(
                       "flex w-full items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors",
                       active
@@ -186,9 +188,9 @@ export function TeamSwitcher() {
                           : "bg-base text-fg-muted"
                       )}
                     >
-                      {teamInitials(team.name)}
+                      {projectInitials(project.name)}
                     </span>
-                    <span className="flex-1 truncate">{team.name}</span>
+                    <span className="flex-1 truncate">{project.name}</span>
                     {active && (
                       <Check size={11} className="shrink-0 text-accent" />
                     )}

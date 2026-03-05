@@ -11,10 +11,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { ProjectSwitcher } from "@/components/layout/project-switcher";
+import { useSessionStore } from "@/store/session";
 import { useSettings } from "./use-settings";
 
 export function SettingsPage() {
   const { isSigningOut, handleSignOut } = useSettings();
+  const currentProject = useSessionStore((s) => s.project);
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -24,6 +27,21 @@ export function SettingsPage() {
       </div>
 
       <div className="flex flex-col gap-4">
+
+        {/* Project */}
+        <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-fg">Project</span>
+            <span className="text-sm text-fg-muted">
+              {currentProject
+                ? <>Currently working on <span className="text-fg">{currentProject}</span></>
+                : "No project selected"}
+            </span>
+          </div>
+          <ProjectSwitcher />
+        </div>
+
+        {/* Sign out */}
         <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-4">
           <div className="flex flex-col gap-1">
             <span className="text-sm font-medium text-fg">Sign out</span>
@@ -60,6 +78,7 @@ export function SettingsPage() {
             </AlertDialogContent>
           </AlertDialog>
         </div>
+
       </div>
     </div>
   );

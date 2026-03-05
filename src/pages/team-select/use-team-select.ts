@@ -1,15 +1,19 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { azure, type Team } from "@/lib/tauri";
+import { useSessionStore } from "@/store/session";
 
 export const useTeamSelect = () => {
-  const project = localStorage.getItem("forge_project") ?? "";
+  const navigate = useNavigate();
+  const project = useSessionStore((s) => s.project);
+  const setTeam = useSessionStore((s) => s.setTeam);
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!project) {
-      window.location.href = "/project-select";
+      navigate("/project-select", { replace: true });
       return;
     }
 
@@ -17,12 +21,12 @@ export const useTeamSelect = () => {
       .then(setTeams)
       .catch((e) => setError(typeof e === "string" ? e : "Failed to load teams"))
       .finally(() => setIsLoading(false));
-  }, [project]);
+  }, [project, navigate]);
 
   const selectTeam = (name: string) => {
-    localStorage.setItem("forge_team", name);
-    window.location.href = "/";
+    setTeam(name);
+    navigate("/", { replace: true });
   };
 
-  return { project, teams, isLoading, error, selectTeam };
+  return { project: project ?? "", teams, isLoading, error, selectTeam };
 };

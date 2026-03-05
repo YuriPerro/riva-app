@@ -12,6 +12,10 @@ export type {
   PipelineRun,
   SprintAttributes,
   SprintIteration,
+  PullRequestIdentity,
+  PullRequestReviewer,
+  PullRequestRepository,
+  PullRequest,
 } from "@/types/azure";
 
 import type {
@@ -20,6 +24,7 @@ import type {
   WorkItem,
   PipelineRun,
   SprintIteration,
+  PullRequest,
 } from "@/types/azure";
 
 // ─── Credentials ──────────────────────────────────────────────────────────────
@@ -79,6 +84,9 @@ export const azure = {
 
   getRecentPipelines: (project: string) =>
     invoke<PipelineRun[]>(TauriCommand.GetRecentPipelines, { project }),
+
+  getPullRequests: (project: string) =>
+    invoke<PullRequest[]>(TauriCommand.GetPullRequests, { project }),
 
   getCurrentSprint: (project: string, team?: string) =>
     invoke<SprintIteration | null>(TauriCommand.GetCurrentSprint, { project, team: team ?? null }),

@@ -14,11 +14,13 @@ export interface WorkItemFields {
   "System.WorkItemType": string;
   "System.State": string;
   "System.AssignedTo"?: { displayName: string; uniqueName: string } | null;
+  "System.IterationPath"?: string;
 }
 
 export interface WorkItem {
   id: number;
   fields: WorkItemFields;
+  webUrl: string;
 }
 
 export interface PipelineDefinition {
@@ -35,6 +37,7 @@ export interface PipelineRun {
   finishTime?: string;
   queueTime?: string;
   definition: PipelineDefinition;
+  webUrl: string;
 }
 
 export interface SprintAttributes {
@@ -48,4 +51,36 @@ export interface SprintIteration {
   name: string;
   path: string;
   attributes: SprintAttributes;
+}
+
+// ─── Pull Requests ────────────────────────────────────────────────────────────
+
+export interface PullRequestIdentity {
+  displayName: string;
+  uniqueName: string;
+}
+
+export interface PullRequestReviewer {
+  displayName: string;
+  vote: number;
+  isRequired: boolean;
+}
+
+export interface PullRequestRepository {
+  id: string;
+  name: string;
+}
+
+export interface PullRequest {
+  pullRequestId: number;
+  title: string;
+  sourceRefName: string;
+  targetRefName: string;
+  createdBy: PullRequestIdentity;
+  creationDate: string;
+  status: string;
+  repository: PullRequestRepository;
+  isDraft: boolean;
+  reviewers: PullRequestReviewer[];
+  webUrl: string;
 }

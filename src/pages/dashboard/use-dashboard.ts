@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { azure, type PipelineRun, type WorkItem as ApiWorkItem } from "@/lib/tauri";
+import { useSessionStore } from "@/store/session";
 import type { WorkItem, Pipeline, SprintInfo, DashboardData } from "./types";
-
-// ─── Data mappers ────────────────────────────────────────────────────────────
 
 function mapWorkItemType(type: string): WorkItem["type"] {
   const t = type.toLowerCase();
@@ -64,100 +65,79 @@ function getInitials(assignedTo?: ApiWorkItem["fields"]["System.AssignedTo"]): s
   return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "?";
 }
 
-// ─── Hook ────────────────────────────────────────────────────────────────────
+async function fetchDashboardData(project: string, team: string) {
+  const [sprintData, rawItems, rawPipelines] = await Promise.all([
+    azure.getCurrentSprint(project, team),
+    azure.getMyWorkItems(project),
+    azure.getRecentPipelines(project),
+  ]);
+
+  const sprint: SprintInfo | null = sprintData
+    ? (() => {
+        const days = sprintDaysRemaining(sprintData.attributes.finishDate);
+        return { name: sprintData.name, daysRemaining: days, status: mapSprintStatus(days) };
+      })()
+    : null;
+
+  const workItems: WorkItem[] = rawItems.map((w) => ({
+    id: w.id,
+    title: w.fields["System.Title"],
+    type: mapWorkItemType(w.fields["System.WorkItemType"]),
+    status: mapWorkItemStatus(w.fields["System.State"]),
+    assigneeInitials: getInitials(w.fields["System.AssignedTo"]),
+    iterationPath: w.fields["System.IterationPath"],
+    url: w.webUrl,
+  }));
+
+  const pipelines: Pipeline[] = rawPipelines.map((p) => ({
+    id: p.id,
+    name: p.definition.name,
+    branch: p.sourceBranch.replace("refs/heads/", ""),
+    target: p.sourceBranch.includes("main") || p.sourceBranch.includes("master")
+      ? "production" : "staging",
+    status: mapPipelineStatus(p),
+    duration: formatDuration(p.queueTime, p.finishTime),
+    ago: formatAgo(p.finishTime ?? p.queueTime),
+    url: p.webUrl,
+  }));
+
+  return { sprint, workItems, pipelines };
+}
 
 export const useDashboard = (): DashboardData => {
-  const [project] = useState<string | null>(
-    localStorage.getItem("forge_project")
-  );
-  const [team, setTeam] = useState<string | null>(
-    localStorage.getItem("forge_team")
-  );
-  const [sprint, setSprint] = useState<SprintInfo | null>(null);
-  const [workItems, setWorkItems] = useState<WorkItem[]>([]);
-  const [pipelines, setPipelines] = useState<Pipeline[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const project = useSessionStore((s) => s.project);
+  const team = useSessionStore((s) => s.team);
 
-  // React to team changes triggered by the TeamSwitcher in the header
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const { team: newTeam } = (e as CustomEvent<{ team: string }>).detail;
-      setTeam(newTeam);
-    };
-    window.addEventListener("forge:team-changed", handler);
-    return () => window.removeEventListener("forge:team-changed", handler);
-  }, []);
-
-  // Guard: both project and team must be set before loading the dashboard
   useEffect(() => {
     if (!project) {
-      window.location.href = "/project-select";
+      navigate("/project-select", { replace: true });
     } else if (!team) {
-      window.location.href = "/team-select";
+      navigate("/team-select", { replace: true });
     }
-  }, [project, team]);
+  }, [project, team, navigate]);
 
-  // Fetch dashboard data once project and team are known
-  useEffect(() => {
-    if (!project || !team) return;
-    setIsLoading(true);
-    setError(null);
-    setSprint(null);
+  const enabled = !!project && !!team;
 
-    Promise.all([
-      azure.getCurrentSprint(project, team),
-      azure.getMyWorkItems(project),
-      azure.getRecentPipelines(project),
-    ])
-      .then(([sprintData, rawItems, rawPipelines]) => {
-        // Sprint
-        if (sprintData) {
-          const days = sprintDaysRemaining(sprintData.attributes.finishDate);
-          setSprint({
-            name: sprintData.name,
-            daysRemaining: days,
-            status: mapSprintStatus(days),
-          });
-        }
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["dashboard", project, team],
+    queryFn: () => fetchDashboardData(project!, team!),
+    enabled,
+  });
 
-        // Work items
-        const mapped: WorkItem[] = rawItems.map((w) => ({
-          id: w.id,
-          title: w.fields["System.Title"],
-          type: mapWorkItemType(w.fields["System.WorkItemType"]),
-          status: mapWorkItemStatus(w.fields["System.State"]),
-          assigneeInitials: getInitials(w.fields["System.AssignedTo"]),
-        }));
-        setWorkItems(mapped);
-
-        // Pipelines
-        const mappedPipelines: Pipeline[] = rawPipelines.map((p) => ({
-          id: p.id,
-          name: p.definition.name,
-          branch: p.sourceBranch.replace("refs/heads/", ""),
-          target: p.sourceBranch.includes("main") || p.sourceBranch.includes("master")
-            ? "production" : "staging",
-          status: mapPipelineStatus(p),
-          duration: formatDuration(p.queueTime, p.finishTime),
-          ago: formatAgo(p.finishTime ?? p.queueTime),
-        }));
-        setPipelines(mappedPipelines);
-      })
-      .catch((e) => setError(typeof e === "string" ? e : "Failed to load dashboard data"))
-      .finally(() => setIsLoading(false));
-  }, [project, team]);
-
-  const inReview = workItems.filter((w) => w.status === "in-review").length;
-  const pipelinesRunning = pipelines.filter((p) => p.status === "running").length;
+  const stats = useMemo(() => ({
+    myTasks: data?.workItems.length ?? 0,
+    inReview: data?.workItems.filter((w) => w.status === "in-review").length ?? 0,
+    pipelinesRunning: data?.pipelines.filter((p) => p.status === "running").length ?? 0,
+  }), [data?.workItems, data?.pipelines]);
 
   return {
     project,
-    sprint,
-    stats: { myTasks: workItems.length, inReview, pipelinesRunning },
-    workItems,
-    pipelines,
-    isLoading,
-    error,
+    sprint: data?.sprint ?? null,
+    stats,
+    workItems: data?.workItems ?? [],
+    pipelines: data?.pipelines ?? [],
+    isLoading: enabled && isLoading,
+    error: error ? (typeof error === "string" ? error : "Failed to load dashboard data") : null,
   };
 };

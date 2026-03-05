@@ -8,6 +8,8 @@ export type WorkItem = {
   type: WorkItemType;
   status: WorkItemStatus;
   assigneeInitials: string;
+  iterationPath?: string;
+  url: string;
 };
 
 export type Pipeline = {
@@ -18,6 +20,7 @@ export type Pipeline = {
   status: PipelineStatus;
   duration: string;
   ago: string;
+  url: string;
 };
 
 export type SprintInfo = {
