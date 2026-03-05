@@ -1,4 +1,4 @@
-import { CheckSquare, Bug, Layers, Zap, ArrowRight } from "lucide-react";
+import { CheckSquare, Bug, Layers, Zap, ArrowRight, ExternalLink } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -20,7 +20,7 @@ const statusConfig: Record<WorkItemStatus, { label: string; className: string }>
 };
 
 export function WorkItemsList(props: WorkItemsListProps) {
-  const { items } = props;
+  const { items, onSelect } = props;
   const navigate = useNavigate();
 
   return (
@@ -45,7 +45,7 @@ export function WorkItemsList(props: WorkItemsListProps) {
           return (
             <div
               key={item.id}
-              onClick={() => item.url && openUrl(item.url)}
+              onClick={() => onSelect(item.id)}
               className={cn(
                 "group flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors",
                 "hover:bg-elevated cursor-pointer"
@@ -64,6 +64,15 @@ export function WorkItemsList(props: WorkItemsListProps) {
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-elevated text-[9px] font-medium text-fg-muted">
                   {item.assigneeInitials}
                 </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openUrl(item.url);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 text-fg-disabled hover:text-fg-secondary transition-all"
+                >
+                  <ExternalLink size={12} />
+                </button>
               </div>
             </div>
           );

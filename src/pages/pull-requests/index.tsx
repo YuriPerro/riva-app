@@ -193,28 +193,18 @@ export function PullRequestsPage() {
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       {/* Header */}
-      <div>
-        <h2 className="text-[15px] font-semibold text-fg">Pull Requests</h2>
-        <p className="mt-0.5 text-[12px] text-fg-muted">
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-[18px] font-bold text-fg">Pull Requests</h2>
+        <span className="text-[12px] text-fg-disabled">·</span>
+        <p className="text-[12px] text-fg-muted">
           {isLoading
             ? "Loading…"
             : `${prs.length} active pull request${prs.length !== 1 ? "s" : ""}`}
         </p>
       </div>
 
-      {/* Repo selector */}
-      {!isLoading && repos.length > 1 && (
-        <FilterSelector
-          options={repos}
-          selected={repoFilters}
-          onAdd={addRepoFilter}
-          onRemove={removeRepoFilter}
-          placeholder="Repo"
-        />
-      )}
-
-      {/* Status filters */}
-      <div className="flex gap-1.5">
+      {/* Status filters + repo selector */}
+      <div className="flex flex-wrap items-center gap-1.5">
         {FILTERS.map(({ value, label }) => (
           <FilterPill
             key={value}
@@ -234,6 +224,20 @@ export function PullRequestsPage() {
             </span>
           </FilterPill>
         ))}
+
+        {/* Divider + repo selector */}
+        {!isLoading && repos.length > 1 && (
+          <>
+            <span className="h-4 w-px bg-border" />
+            <FilterSelector
+              options={repos}
+              selected={repoFilters}
+              onAdd={addRepoFilter}
+              onRemove={removeRepoFilter}
+              placeholder="Repo"
+            />
+          </>
+        )}
       </div>
 
       {/* Content */}

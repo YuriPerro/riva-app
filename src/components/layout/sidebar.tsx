@@ -7,7 +7,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/animate-ui/components/animate/tooltip";
 import { HomeIcon, type HomeIconHandle } from "@/components/ui/home";
 import { LayersIcon, type LayersIconHandle } from "@/components/ui/layers";
 import { ZapIcon, type ZapHandle } from "@/components/ui/zap";
@@ -62,9 +62,9 @@ function NavItem(props: NavItemProps) {
 
   if (collapsed) {
     return (
-      <Tooltip>
+      <Tooltip side="right">
         <TooltipTrigger asChild>{link}</TooltipTrigger>
-        <TooltipContent side="right" className="border-border bg-elevated text-[12px] text-fg">
+        <TooltipContent>
           {label}
         </TooltipContent>
       </Tooltip>
@@ -105,15 +105,15 @@ export const Sidebar = memo(function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-0.5 px-2">
-        <NavItem to="/" end label="Dashboard" collapsed={collapsed} index={0} iconRef={homeRef} icon={<HomeIcon ref={homeRef} size={15} />} />
-        <NavItem to="/my-work" label="My Work" collapsed={collapsed} index={1} iconRef={layersRef} icon={<LayersIcon ref={layersRef} size={15} />} />
-        <NavItem to="/pipelines" label="Pipelines" collapsed={collapsed} index={2} iconRef={zapRef} icon={<ZapIcon ref={zapRef} size={15} />} />
-        <NavItem to="/pull-requests" label="Pull Requests" collapsed={collapsed} index={3} iconRef={prRef} icon={<GitPullRequestIcon ref={prRef} size={15} />} />
+      <nav className={cn("flex flex-1 flex-col px-2", collapsed ? "gap-5" : "gap-1")}>
+        <NavItem to="/" end label="Dashboard" collapsed={collapsed} index={0} iconRef={homeRef} icon={<HomeIcon ref={homeRef} size={18} />} />
+        <NavItem to="/my-work" label="My Work" collapsed={collapsed} index={1} iconRef={layersRef} icon={<LayersIcon ref={layersRef} size={18} />} />
+        <NavItem to="/pipelines" label="Pipelines" collapsed={collapsed} index={2} iconRef={zapRef} icon={<ZapIcon ref={zapRef} size={18} />} />
+        <NavItem to="/pull-requests" label="Pull Requests" collapsed={collapsed} index={3} iconRef={prRef} icon={<GitPullRequestIcon ref={prRef} size={18} />} />
       </nav>
 
-      <div className="flex flex-col gap-0.5 px-2 pt-2">
-        <NavItem to="/settings" label="Settings" collapsed={collapsed} index={4} iconRef={settingsRef} icon={<SettingsIcon ref={settingsRef} size={15} />} />
+      <div className={cn("flex flex-col px-2 pt-2", collapsed ? "gap-5" : "gap-1")}>
+        <NavItem to="/settings" label="Settings" collapsed={collapsed} index={4} iconRef={settingsRef} icon={<SettingsIcon ref={settingsRef} size={18} />} />
 
         <button
           onClick={toggle}
@@ -123,7 +123,7 @@ export const Sidebar = memo(function Sidebar() {
           )}
         >
           <span className="shrink-0">
-            {collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
+            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
           </span>
           <SidebarLabel collapsed={collapsed} delay={5 * STAGGER_MS}>Collapse</SidebarLabel>
         </button>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { azure, type PipelineRun, type WorkItem as ApiWorkItem, type PullRequest as ApiPullRequest } from "@/lib/tauri";
@@ -157,6 +157,9 @@ export const useDashboard = (): DashboardData => {
 
   const enabled = !!project && !!team;
 
+  const [selectedWorkItemId, setSelectedWorkItemId] = useState<number | null>(null);
+  const selectWorkItem = useCallback((id: number | null) => setSelectedWorkItemId(id), []);
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["dashboard", project, team, teamId],
     queryFn: () => fetchDashboardData(project!, team!, teamId ?? ""),
@@ -179,5 +182,7 @@ export const useDashboard = (): DashboardData => {
     pullRequests: data?.pullRequests ?? [],
     isLoading: enabled && isLoading,
     error: error ? (typeof error === "string" ? error : "Failed to load dashboard data") : null,
+    selectedWorkItemId,
+    selectWorkItem,
   };
 };

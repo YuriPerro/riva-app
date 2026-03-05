@@ -8,6 +8,8 @@ export type {
   Team,
   WorkItem,
   WorkItemFields,
+  WorkItemDetail,
+  WorkItemDetailFields,
   PipelineDefinition,
   PipelineRun,
   SprintAttributes,
@@ -22,6 +24,7 @@ import type {
   Project,
   Team,
   WorkItem,
+  WorkItemDetail,
   PipelineRun,
   SprintIteration,
   PullRequest,
@@ -90,4 +93,7 @@ export const azure = {
 
   getCurrentSprint: (project: string, team?: string) =>
     invoke<SprintIteration | null>(TauriCommand.GetCurrentSprint, { project, team: team ?? null }),
+
+  getWorkItemDetail: (project: string, id: number) =>
+    invoke<WorkItemDetail>(TauriCommand.GetWorkItemDetail, { project, id }),
 };

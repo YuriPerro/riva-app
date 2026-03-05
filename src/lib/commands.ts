@@ -21,4 +21,5 @@ export enum TauriCommand {
   GetRecentPipelines    = "get_recent_pipelines",
   GetPullRequests       = "get_pull_requests",
   GetCurrentSprint      = "get_current_sprint",
+  GetWorkItemDetail     = "get_work_item_detail",
 }

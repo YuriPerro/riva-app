@@ -211,6 +211,40 @@ struct TeamsListResponse {
     pub value: Vec<Team>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct WorkItemDetailFields {
+    #[serde(rename = "System.Title")]
+    pub title: String,
+    #[serde(rename = "System.WorkItemType")]
+    pub work_item_type: String,
+    #[serde(rename = "System.State")]
+    pub state: String,
+    #[serde(rename = "System.AssignedTo", default)]
+    pub assigned_to: Option<serde_json::Value>,
+    #[serde(rename = "System.IterationPath", default)]
+    pub iteration_path: Option<String>,
+    #[serde(rename = "System.Description", default)]
+    pub description: Option<String>,
+    #[serde(rename = "System.CreatedDate", default)]
+    pub created_date: Option<String>,
+    #[serde(rename = "System.ChangedDate", default)]
+    pub changed_date: Option<String>,
+    #[serde(rename = "System.CreatedBy", default)]
+    pub created_by: Option<serde_json::Value>,
+    #[serde(rename = "System.Tags", default)]
+    pub tags: Option<String>,
+    #[serde(rename = "Microsoft.VSTS.Common.Priority", default)]
+    pub priority: Option<u32>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WorkItemDetail {
+    pub id: u64,
+    pub fields: WorkItemDetailFields,
+    #[serde(rename = "webUrl", default, skip_deserializing)]
+    pub web_url: String,
+}
+
 // ─── API calls ───────────────────────────────────────────────────────────────
 
 /// Verify credentials and return the list of projects
@@ -517,4 +551,28 @@ pub async fn get_current_sprint(
     }
 
     Ok(None)
+}
+
+pub async fn get_work_item_detail(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    id: u64,
+) -> Result<WorkItemDetail, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/wit/workitems/{}?api-version=7.1",
+        base, project, id
+    );
+
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(format!("Work item detail API returned {}", resp.status()));
+    }
+
+    let mut item: WorkItemDetail = resp.json().await.map_err(|e| e.to_string())?;
+    item.web_url = format!("{}/{}/_workitems/edit/{}", base, project, item.id);
+    Ok(item)
 }

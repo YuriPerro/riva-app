@@ -137,28 +137,18 @@ export function PipelinesPage() {
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       {/* Header */}
-      <div>
-        <h2 className="text-[15px] font-semibold text-fg">Pipelines</h2>
-        <p className="mt-0.5 text-[12px] text-fg-muted">
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-[18px] font-bold text-fg">Pipelines</h2>
+        <span className="text-[12px] text-fg-disabled">·</span>
+        <p className="text-[12px] text-fg-muted">
           {isLoading
             ? "Loading…"
             : `${runs.length} recent run${runs.length !== 1 ? "s" : ""}`}
         </p>
       </div>
 
-      {/* Pipeline definition selector */}
-      {!isLoading && definitions.length > 1 && (
-        <FilterSelector
-          options={definitions}
-          selected={definitionFilters}
-          onAdd={addDefinitionFilter}
-          onRemove={removeDefinitionFilter}
-          placeholder="Pipeline"
-        />
-      )}
-
-      {/* Status filters */}
-      <div className="flex flex-wrap gap-1.5">
+      {/* Status filters + definition selector */}
+      <div className="flex flex-wrap items-center gap-1.5">
         {STATUS_FILTERS.map(({ value, label }) => (
           <FilterPill
             key={value}
@@ -178,6 +168,20 @@ export function PipelinesPage() {
             </span>
           </FilterPill>
         ))}
+
+        {/* Divider + definition selector */}
+        {!isLoading && definitions.length > 1 && (
+          <>
+            <span className="h-4 w-px bg-border" />
+            <FilterSelector
+              options={definitions}
+              selected={definitionFilters}
+              onAdd={addDefinitionFilter}
+              onRemove={removeDefinitionFilter}
+              placeholder="Pipeline"
+            />
+          </>
+        )}
       </div>
 
       {/* Content */}

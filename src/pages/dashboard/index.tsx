@@ -4,9 +4,20 @@ import { SprintHeader } from "./components/sprint-header";
 import { StatsBar } from "./components/stats-bar";
 import { WorkItemsList } from "./components/work-items-list";
 import { PipelinesList } from "./components/pipelines-list";
+import { WorkItemDetailDialog } from "./components/work-item-detail";
 
 export function DashboardPage() {
-  const { sprint, stats, workItems, pipelines, isLoading, error } = useDashboard();
+  const {
+    project,
+    sprint,
+    stats,
+    workItems,
+    pipelines,
+    isLoading,
+    error,
+    selectedWorkItemId,
+    selectWorkItem,
+  } = useDashboard();
 
   if (isLoading) {
     return (
@@ -33,9 +44,17 @@ export function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-6">
-        <WorkItemsList items={workItems} />
+        <WorkItemsList items={workItems} onSelect={selectWorkItem} />
         <PipelinesList pipelines={pipelines} />
       </div>
+
+      {project && (
+        <WorkItemDetailDialog
+          itemId={selectedWorkItemId}
+          project={project}
+          onClose={() => selectWorkItem(null)}
+        />
+      )}
     </div>
   );
 }

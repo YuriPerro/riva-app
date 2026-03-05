@@ -62,4 +62,6 @@ export interface DashboardData {
   isLoading: boolean;
   error: string | null;
   project: string | null;
+  selectedWorkItemId: number | null;
+  selectWorkItem: (id: number | null) => void;
 }

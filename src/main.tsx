@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/animate-ui/components/animate/tooltip";
 import { router } from "./routes";
 import "./styles/globals.css";
 
@@ -20,7 +20,7 @@ const queryClient = new QueryClient({
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-    <TooltipProvider delayDuration={300}>
+    <TooltipProvider openDelay={300}>
       <RouterProvider router={router} />
     <Toaster
       position="top-right"

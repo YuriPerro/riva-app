@@ -1,6 +1,6 @@
 mod azure;
 
-use azure::{PipelineRun, Project, PullRequest, SprintIteration, Team, WorkItem};
+use azure::{PipelineRun, Project, PullRequest, SprintIteration, Team, WorkItem, WorkItemDetail};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
@@ -164,6 +164,16 @@ async fn get_current_sprint(
     azure::get_current_sprint(&org_url, &pat, &project, team.as_deref()).await
 }
 
+#[tauri::command]
+async fn get_work_item_detail(
+    state: State<'_, AppState>,
+    project: String,
+    id: u64,
+) -> Result<WorkItemDetail, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::get_work_item_detail(&org_url, &pat, &project, id).await
+}
+
 // ─── App entry point ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -187,6 +197,7 @@ pub fn run() {
             get_recent_pipelines,
             get_pull_requests,
             get_current_sprint,
+            get_work_item_detail,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application")
