@@ -18,7 +18,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -76,6 +75,15 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-xl max-h-[80vh] flex flex-col overflow-hidden">
         <ShineBorder shineColor={theme.shineColors} borderWidth={1} duration={10} />
+        {detail && (
+          <button
+            onClick={() => openUrl(detail.webUrl)}
+            className="absolute right-14 top-4 flex cursor-pointer items-center gap-1 rounded-sm text-[11px] text-fg-muted opacity-70 transition-opacity hover:opacity-100"
+          >
+            View in DevOps
+            <ExternalLink size={11} />
+          </button>
+        )}
         {isLoading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={16} className="animate-spin text-fg-disabled" />
@@ -91,9 +99,9 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
 
         {detail && (
           <>
-            <DialogHeader>
-              <span className="text-[11px] text-fg-disabled">#{itemId}</span>
-              <DialogTitle className="text-[15px] leading-snug">
+            <DialogHeader className="mt-3">
+              <span className="text-[14px] text-fg-disabled">#{itemId}</span>
+              <DialogTitle className="text-[17px] leading-snug">
                 {detail.title}
               </DialogTitle>
               <DialogDescription className="sr-only">
@@ -174,21 +182,6 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
               )}
             </div>
 
-            <DialogFooter className="pt-2">
-              <button
-                onClick={onClose}
-                className="cursor-pointer rounded-md px-3 py-1.5 text-[13px] text-fg-muted transition-colors hover:bg-elevated hover:text-fg-secondary"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => openUrl(detail.webUrl)}
-                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[13px] text-accent-fg transition-colors hover:bg-accent/90"
-              >
-                View in DevOps
-                <ExternalLink size={12} />
-              </button>
-            </DialogFooter>
           </>
         )}
       </DialogContent>

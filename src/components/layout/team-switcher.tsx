@@ -105,7 +105,7 @@ export function TeamSwitcher() {
       {open && (
         <div
           className={cn(
-            "absolute right-0 top-full z-50 mt-1.5 w-56",
+            "absolute left-0 top-full z-50 mt-1.5 min-w-64",
             "rounded-lg border border-border bg-surface shadow-lg"
           )}
         >
