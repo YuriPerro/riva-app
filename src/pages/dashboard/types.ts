@@ -1,6 +1,7 @@
-export type WorkItemType = "task" | "bug" | "pbi" | "epic";
-export type WorkItemStatus = "todo" | "in-progress" | "in-review" | "done";
-export type PipelineStatus = "succeeded" | "failed" | "running" | "cancelled";
+import type { WorkItemType, WorkItemStatus } from "@/types/work-item";
+import type { PipelineStatus } from "@/types/pipeline";
+
+export type { WorkItemType, WorkItemStatus, PipelineStatus };
 
 export type WorkItem = {
   id: number;

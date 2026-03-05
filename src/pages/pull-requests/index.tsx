@@ -1,10 +1,13 @@
 import { AlertCircle, GitPullRequest, Loader2, GitBranch, Check, X, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/ui/page-header";
 import { FilterPill } from "@/components/ui/filter-pill";
 import { FilterSelector } from "@/components/ui/filter-selector";
 import { usePullRequests, type PR, type ReviewVote, type PRFilter } from "./use-pull-requests";
 
-// ─── Review vote badge ────────────────────────────────────────────────────────
+// ============================================================
+// Review vote badge
+// ============================================================
 
 const VOTE_CONFIG: Record<ReviewVote, { icon: React.ElementType; className: string; title: string }> = {
   approved: { icon: Check,  className: "text-success",  title: "Approved"  },
@@ -42,7 +45,9 @@ function ReviewerDot({ reviewer }: { reviewer: { initials: string; vote: ReviewV
   );
 }
 
-// ─── PR card ─────────────────────────────────────────────────────────────────
+// ============================================================
+// PR card
+// ============================================================
 
 function PRCard({ pr, onClick }: { pr: PR; onClick: () => void }) {
   const approved   = pr.reviewers.filter((r) => r.vote === "approved").length;
@@ -139,7 +144,9 @@ function PRCard({ pr, onClick }: { pr: PR; onClick: () => void }) {
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ============================================================
+// Page
+// ============================================================
 
 const FILTERS: { value: PRFilter; label: string }[] = [
   { value: "all",    label: "All"    },
@@ -167,16 +174,14 @@ export function PullRequestsPage() {
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
-      {/* Header */}
-      <div className="flex items-baseline gap-2">
-        <h2 className="text-[18px] font-bold text-fg">Pull Requests</h2>
-        <span className="text-[12px] text-fg-disabled">·</span>
-        <p className="text-[12px] text-fg-muted">
-          {isLoading
+      <PageHeader
+        title="Pull Requests"
+        subtitle={
+          isLoading
             ? "Loading…"
-            : `${prs.length} active pull request${prs.length !== 1 ? "s" : ""}`}
-        </p>
-      </div>
+            : `${prs.length} active pull request${prs.length !== 1 ? "s" : ""}`
+        }
+      />
 
       {/* Status filters + repo selector */}
       <div className="flex flex-wrap items-center gap-1.5">

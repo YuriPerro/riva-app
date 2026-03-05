@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { azure, type Project } from "@/lib/tauri";
+import { azure } from "@/lib/tauri";
+import type { Project } from "@/types/azure";
 import { useSessionStore } from "@/store/session";
 
 export const useProjectSelect = () => {

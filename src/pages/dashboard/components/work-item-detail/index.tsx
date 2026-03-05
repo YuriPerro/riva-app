@@ -132,13 +132,13 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
             <DialogFooter className="pt-2">
               <button
                 onClick={onClose}
-                className="rounded-md px-3 py-1.5 text-[13px] text-fg-muted transition-colors hover:bg-elevated hover:text-fg-secondary"
+                className="cursor-pointer rounded-md px-3 py-1.5 text-[13px] text-fg-muted transition-colors hover:bg-elevated hover:text-fg-secondary"
               >
                 Close
               </button>
               <button
                 onClick={() => openUrl(detail.webUrl)}
-                className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[13px] text-accent-fg transition-colors hover:bg-accent/90"
+                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[13px] text-accent-fg transition-colors hover:bg-accent/90"
               >
                 View in DevOps
                 <ExternalLink size={12} />
@@ -155,7 +155,7 @@ function DetailField(props: DetailFieldProps) {
   const { icon: Icon, label, value, valueClassName } = props;
 
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className="flex cursor-pointer flex-col gap-0.5 rounded-md px-2 py-1.5 transition-colors hover:bg-elevated">
       <div className="flex items-center gap-1.5 text-[11px] text-fg-muted">
         <Icon size={11} />
         {label}

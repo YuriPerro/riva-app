@@ -5,7 +5,9 @@ use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
 
-// ─── Session state ────────────────────────────────────────────────────────────
+// ============================================================
+// Session state
+// ============================================================
 
 struct Credentials {
     org_url: String,
@@ -16,9 +18,9 @@ pub struct AppState {
     credentials: Mutex<Option<Credentials>>,
 }
 
-// ─── File-based credential storage ───────────────────────────────────────────
-// Credentials are stored in ~/.forge/credentials.json with chmod 600.
-// Same pattern as AWS CLI, git, npm — file permissions are the security layer.
+// ============================================================
+// File-based credential storage
+// ============================================================
 
 #[derive(Serialize, Deserialize)]
 struct StoredCredentials {
@@ -69,7 +71,9 @@ fn clear_stored_credentials() -> Result<(), String> {
     Ok(())
 }
 
-// ─── Credential commands ──────────────────────────────────────────────────────
+// ============================================================
+// Credential commands
+// ============================================================
 
 /// Validate org URL + PAT against the Azure API (does NOT store anything).
 #[tauri::command]
@@ -102,7 +106,9 @@ fn clear_session(state: State<'_, AppState>) -> Result<(), String> {
     Ok(())
 }
 
-// ─── Azure DevOps commands ────────────────────────────────────────────────────
+// ============================================================
+// Azure DevOps commands
+// ============================================================
 
 fn session_creds(state: &State<'_, AppState>) -> Result<(String, String), String> {
     let creds = state.credentials.lock().map_err(|e| e.to_string())?;
@@ -174,7 +180,9 @@ async fn get_work_item_detail(
     azure::get_work_item_detail(&org_url, &pat, &project, id).await
 }
 
-// ─── App entry point ──────────────────────────────────────────────────────────
+// ============================================================
+// App entry point
+// ============================================================
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

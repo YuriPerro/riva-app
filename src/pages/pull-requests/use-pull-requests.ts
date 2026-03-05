@@ -1,8 +1,10 @@
 import { useState, useMemo } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useQuery } from "@tanstack/react-query";
-import { azure, type PullRequest } from "@/lib/tauri";
+import { azure } from "@/lib/tauri";
+import type { PullRequest } from "@/types/azure";
 import { useSessionStore } from "@/store/session";
+import { formatAgo, initials, stripRefs } from "@/utils/formatters";
 
 export type PRStatus = "active" | "draft";
 export type ReviewVote = "approved" | "rejected" | "waiting" | "none";
@@ -28,34 +30,11 @@ export interface PR {
   url: string;
 }
 
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((w) => w[0] ?? "")
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
-function formatAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}min ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
-
 function mapVote(vote: number): ReviewVote {
   if (vote === 10 || vote === 5) return "approved";
   if (vote === -10 || vote === -5) return "rejected";
   if (vote === 0) return "waiting";
   return "none";
-}
-
-function stripRefs(ref: string): string {
-  return ref.replace("refs/heads/", "");
 }
 
 function mapPR(raw: PullRequest): PR {

@@ -1,4 +1,5 @@
 import { Loader2, AlertCircle } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { useDashboard } from "./use-dashboard";
 import { SprintHeader } from "./components/sprint-header";
 import { StatsBar } from "./components/stats-bar";
@@ -39,16 +40,7 @@ export function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-baseline gap-2">
-        <h2 className="text-[18px] font-bold text-fg">Dashboard</h2>
-        {project && (
-          <>
-            <span className="text-[12px] text-fg-disabled">·</span>
-            <p className="text-[12px] text-fg-muted">{project}</p>
-          </>
-        )}
-      </div>
+      <PageHeader title="Dashboard" subtitle={project ?? undefined} />
 
       <div>
         <SprintHeader sprint={sprint} />

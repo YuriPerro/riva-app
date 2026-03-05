@@ -246,12 +246,67 @@ src/
 ├── pages/             # Page components (see page structure above)
 ├── routes/            # Route configuration
 ├── store/             # Zustand global state
-├── lib/               # Core utilities and Tauri invoke wrappers
-├── types/             # Global TypeScript types (e.g., azure.ts)
+├── lib/               # Core wrappers (Tauri invoke, utils) — NOT for business logic
+├── utils/             # Global reusable functions (formatters, mappers, search)
+├── types/             # Global TypeScript types (e.g., azure.ts, work-item.ts, pipeline.ts)
 └── styles/            # Global styles
 ```
 
 **Global only** — components, hooks, and utils in the root of their folder must be reused in 2+ places. Otherwise they belong inside the page/component that owns them.
+
+**DRY rule** — when 2+ components share the same UI pattern (e.g. filter pills, page headers), extract it into a shared component under `src/components/ui/` immediately. Never duplicate inline components across pages.
+
+---
+
+### Separation of Concerns — Strict Rule
+
+**Types NEVER live inside utility/function files.** Shared types belong in `src/types/`, shared functions belong in `src/utils/`. Never mix them.
+
+```typescript
+// ❌ Wrong — types defined inside a utility file
+// src/utils/mappers.ts
+export type WorkItemType = "task" | "bug" | "pbi";
+export function mapWorkItemType(type: string): WorkItemType { ... }
+
+// ✅ Correct — types in src/types/, functions in src/utils/
+// src/types/work-item.ts
+export type WorkItemType = "task" | "bug" | "pbi";
+
+// src/utils/mappers.ts
+import type { WorkItemType } from "@/types/work-item";
+export function mapWorkItemType(type: string): WorkItemType { ... }
+```
+
+**`src/lib/`** is strictly for core infrastructure wrappers (Tauri invoke, cn utility). Business logic utilities (formatters, mappers, search helpers) go in **`src/utils/`**.
+
+**`src/types/`** is the single source of truth for all shared types. When a type is used across 2+ pages or components, move it here immediately. Page-scoped types stay in `pages/[page]/types.ts`.
+
+**When creating a reusable function**, always check:
+1. Does a similar function already exist in `src/utils/`? → Reuse it.
+2. Is the type it returns defined in `src/types/`? → Import from there.
+3. Is the function used in 2+ places? → It belongs in `src/utils/`, not inline.
+
+---
+
+### No Re-exports — Strict Rule
+
+**NEVER** re-export types or values from another file. Every consumer must import directly from the source.
+
+```typescript
+// ❌ Wrong — re-exporting types from another module
+// src/lib/tauri.ts
+export type { Project, Team } from "@/types/azure";
+export { TauriCommand } from "@/types/commands";
+
+// ❌ Wrong — importing a type through a re-exporter
+import { azure, type Project } from "@/lib/tauri";
+
+// ✅ Correct — import each thing from its actual source
+import { azure } from "@/lib/tauri";
+import type { Project } from "@/types/azure";
+```
+
+Each file owns what it defines. If it didn't define it, it doesn't export it.
 
 ---
 
@@ -280,3 +335,17 @@ export const useUpdateWorkItem = createMutation<...>({...});
 **Files:** kebab-case (`pipeline-card/`, `use-pipelines.ts`)
 **Components:** PascalCase (`PipelineCard`, `WorkItemList`)
 **Hooks:** camelCase with `use` prefix (`usePipelines`, `useWorkItems`)
+
+---
+
+### Cursor Pointer — Strict Rule
+
+**ALWAYS** add `cursor-pointer` to every clickable element: buttons, links, icon buttons, close icons, interactive cards, and any element with an `onClick` handler. Never rely on browser defaults — Tauri's webview does not apply `cursor: pointer` to `<button>` elements automatically.
+
+```tsx
+// ❌ Wrong — missing cursor-pointer
+<button className="rounded-md px-3 py-1.5">Submit</button>
+
+// ✅ Correct
+<button className="cursor-pointer rounded-md px-3 py-1.5">Submit</button>
+```

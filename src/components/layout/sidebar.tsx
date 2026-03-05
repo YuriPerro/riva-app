@@ -88,7 +88,7 @@ export const Sidebar = memo(function Sidebar() {
     <aside
       data-tauri-drag-region
       className={cn(
-        "flex shrink-0 flex-col rounded-lg bg-surface py-3 transition-[width] duration-200",
+        "flex shrink-0 flex-col rounded-lg bg-surface noise-bg py-3 transition-[width] duration-200",
         collapsed ? "w-[52px]" : "w-[200px]"
       )}
     >

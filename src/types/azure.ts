@@ -68,7 +68,9 @@ export interface SprintIteration {
   attributes: SprintAttributes;
 }
 
-// ─── Pull Requests ────────────────────────────────────────────────────────────
+// ============================================================
+// Pull Requests
+// ============================================================
 
 export interface PullRequestIdentity {
   displayName: string;

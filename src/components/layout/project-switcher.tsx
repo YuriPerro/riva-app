@@ -1,46 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Search, Check, Loader2 } from "lucide-react";
-import { azure, type Project } from "@/lib/tauri";
+import { azure } from "@/lib/tauri";
+import type { Project } from "@/types/azure";
 import { cn } from "@/lib/utils";
+import { initials } from "@/utils/formatters";
+import { fuzzyMatch } from "@/utils/search";
 import { useSessionStore } from "@/store/session";
-
-function projectInitials(name: string) {
-  return name
-    .split(/[\s_-]/)
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
-function sameCharSet(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  return a.split("").sort().join("") === b.split("").sort().join("");
-}
-
-function projectMatchesSearch(query: string, projectName: string): boolean {
-  const q = query.toLowerCase().trim();
-  const p = projectName.toLowerCase().trim();
-
-  if (!q) return true;
-  if (p.includes(q)) return true;
-
-  const acronym = p.split(/[\s_-]+/).map((w) => w[0] ?? "").join("");
-  if (acronym.startsWith(q) || acronym.includes(q)) return true;
-
-  const qWords = q.split(/\s+/).filter(Boolean);
-  const pWords = p.split(/[\s_-]+/).filter(Boolean);
-
-  return qWords.every((qw) =>
-    pWords.some(
-      (pw) =>
-        pw.includes(qw) ||
-        qw.includes(pw) ||
-        sameCharSet(qw, pw)
-    )
-  );
-}
 
 export function ProjectSwitcher() {
   const currentProject = useSessionStore((s) => s.project);
@@ -103,7 +69,7 @@ export function ProjectSwitcher() {
 
   const filtered = useMemo(() =>
     search
-      ? projects.filter((p) => projectMatchesSearch(search, p.name))
+      ? projects.filter((p) => fuzzyMatch(search, p.name))
       : projects,
     [search, projects]
   );
@@ -125,7 +91,7 @@ export function ProjectSwitcher() {
             "bg-fg-muted/15 text-fg-muted"
           )}
         >
-          {currentProject ? projectInitials(currentProject) : "?"}
+          {currentProject ? initials(currentProject) : "?"}
         </span>
         <span className="max-w-[100px] truncate">
           {currentProject || "Select project"}
@@ -188,7 +154,7 @@ export function ProjectSwitcher() {
                           : "bg-base text-fg-muted"
                       )}
                     >
-                      {projectInitials(project.name)}
+                      {initials(project.name)}
                     </span>
                     <span className="flex-1 truncate">{project.name}</span>
                     {active && (

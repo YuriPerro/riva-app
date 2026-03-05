@@ -1,5 +1,6 @@
 import { AlertCircle, CheckCircle2, XCircle, Loader2, MinusCircle, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/ui/page-header";
 import { FilterPill } from "@/components/ui/filter-pill";
 import { FilterSelector } from "@/components/ui/filter-selector";
 import {
@@ -9,7 +10,9 @@ import {
   type StatusFilter,
 } from "./use-pipelines";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ============================================================
+// Constants
+// ============================================================
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all",       label: "All"       },
@@ -31,7 +34,9 @@ const STATUS_CONFIG: Record<PipelineStatus, {
   cancelled: { icon: MinusCircle,  className: "text-fg-muted",             dot: "bg-fg-muted" },
 };
 
-// ─── Run row ─────────────────────────────────────────────────────────────────
+// ============================================================
+// Run row
+// ============================================================
 
 function RunRow({ run, onClick }: { run: PipelineRunItem; onClick: () => void }) {
   const { icon: Icon, className, spin, dot } = STATUS_CONFIG[run.status];
@@ -78,7 +83,9 @@ function RunRow({ run, onClick }: { run: PipelineRunItem; onClick: () => void })
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ============================================================
+// Page
+// ============================================================
 
 export function PipelinesPage() {
   const {
@@ -111,16 +118,14 @@ export function PipelinesPage() {
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
-      {/* Header */}
-      <div className="flex items-baseline gap-2">
-        <h2 className="text-[18px] font-bold text-fg">Pipelines</h2>
-        <span className="text-[12px] text-fg-disabled">·</span>
-        <p className="text-[12px] text-fg-muted">
-          {isLoading
+      <PageHeader
+        title="Pipelines"
+        subtitle={
+          isLoading
             ? "Loading…"
-            : `${runs.length} recent run${runs.length !== 1 ? "s" : ""}`}
-        </p>
-      </div>
+            : `${runs.length} recent run${runs.length !== 1 ? "s" : ""}`
+        }
+      />
 
       {/* Status filters + definition selector */}
       <div className="flex flex-wrap items-center gap-1.5">

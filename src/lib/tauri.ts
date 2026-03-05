@@ -1,25 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { TauriCommand } from "./commands";
-
-export { TauriCommand } from "./commands";
-
-export type {
-  Project,
-  Team,
-  WorkItem,
-  WorkItemFields,
-  WorkItemDetail,
-  WorkItemDetailFields,
-  PipelineDefinition,
-  PipelineRun,
-  SprintAttributes,
-  SprintIteration,
-  PullRequestIdentity,
-  PullRequestReviewer,
-  PullRequestRepository,
-  PullRequest,
-} from "@/types/azure";
-
+import { TauriCommand } from "@/types/commands";
 import type {
   Project,
   Team,
@@ -30,7 +10,9 @@ import type {
   PullRequest,
 } from "@/types/azure";
 
-// ─── Credentials ──────────────────────────────────────────────────────────────
+// ============================================================
+// Credentials
+// ============================================================
 
 export const credentials = {
   save: (orgUrl: string, pat: string) =>
@@ -57,7 +39,9 @@ export const credentials = {
   },
 };
 
-// ─── Session ──────────────────────────────────────────────────────────────────
+// ============================================================
+// Session
+// ============================================================
 
 export const session = {
   validate: (orgUrl: string, pat: string) =>
@@ -73,7 +57,9 @@ export const session = {
     invoke<void>(TauriCommand.ClearSession),
 };
 
-// ─── Azure DevOps ─────────────────────────────────────────────────────────────
+// ============================================================
+// Azure DevOps
+// ============================================================
 
 export const azure = {
   getProjects: () =>

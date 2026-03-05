@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { azure, type Team } from "@/lib/tauri";
+import { azure } from "@/lib/tauri";
+import type { Team } from "@/types/azure";
 import { useSessionStore } from "@/store/session";
 
 export const useTeamSelect = () => {

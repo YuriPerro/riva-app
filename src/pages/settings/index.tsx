@@ -1,4 +1,5 @@
 import { LogOut } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,11 +21,7 @@ export function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-baseline gap-2">
-        <h2 className="text-[18px] font-bold text-fg">Settings</h2>
-        <span className="text-[12px] text-fg-disabled">·</span>
-        <p className="text-[12px] text-fg-muted">Manage your account and preferences</p>
-      </div>
+      <PageHeader title="Settings" subtitle="Manage your account and preferences" />
 
       <div className="flex flex-col gap-4">
 

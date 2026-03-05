@@ -1,47 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Search, Check, Loader2 } from "lucide-react";
-import { azure, type Team } from "@/lib/tauri";
+import { azure } from "@/lib/tauri";
+import type { Team } from "@/types/azure";
 import { cn } from "@/lib/utils";
+import { initials } from "@/utils/formatters";
+import { fuzzyMatch } from "@/utils/search";
 import { useSessionStore } from "@/store/session";
-
-function teamInitials(name: string) {
-  return name
-    .split(/[\s_-]/)
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
-function sameCharSet(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  return a.split("").sort().join("") === b.split("").sort().join("");
-}
-
-function teamMatchesSearch(query: string, teamName: string): boolean {
-  const q = query.toLowerCase().trim();
-  const t = teamName.toLowerCase().trim();
-
-  if (!q) return true;
-
-  if (t.includes(q)) return true;
-
-  const acronym = t.split(/[\s_-]+/).map((w) => w[0] ?? "").join("");
-  if (acronym.startsWith(q) || acronym.includes(q)) return true;
-
-  const qWords = q.split(/\s+/).filter(Boolean);
-  const tWords = t.split(/[\s_-]+/).filter(Boolean);
-
-  return qWords.every((qw) =>
-    tWords.some(
-      (tw) =>
-        tw.includes(qw) ||
-        qw.includes(tw) ||
-        sameCharSet(qw, tw)
-    )
-  );
-}
 
 export function TeamSwitcher() {
   const project = useSessionStore((s) => s.project);
@@ -99,7 +64,7 @@ export function TeamSwitcher() {
 
   const filtered = useMemo(() =>
     search
-      ? teams.filter((t) => teamMatchesSearch(search, t.name))
+      ? teams.filter((t) => fuzzyMatch(search, t.name))
       : teams,
     [search, teams]
   );
@@ -111,7 +76,7 @@ export function TeamSwitcher() {
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[12px] transition-colors",
+          "flex h-7 cursor-pointer items-center gap-1.5 rounded-md border px-2.5 text-[12px] transition-colors",
           open
             ? "border-border bg-elevated text-fg"
             : "border-border bg-elevated text-fg-secondary hover:text-fg"
@@ -123,7 +88,7 @@ export function TeamSwitcher() {
             "bg-accent/20 text-accent"
           )}
         >
-          {currentTeam ? teamInitials(currentTeam) : "?"}
+          {currentTeam ? initials(currentTeam) : "?"}
         </span>
         <span className="max-w-[112px] truncate">
           {currentTeam || "Select team"}
@@ -172,7 +137,7 @@ export function TeamSwitcher() {
                     key={team.id}
                     onClick={() => selectTeam(team.name, team.id)}
                     className={cn(
-                      "flex w-full items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors",
+                      "flex w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors",
                       active
                         ? "text-fg"
                         : "text-fg-secondary hover:bg-elevated hover:text-fg"
@@ -186,7 +151,7 @@ export function TeamSwitcher() {
                           : "bg-base text-fg-muted"
                       )}
                     >
-                      {teamInitials(team.name)}
+                      {initials(team.name)}
                     </span>
                     <span className="flex-1 truncate">{team.name}</span>
                     {active && (

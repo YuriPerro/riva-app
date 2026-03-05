@@ -1,4 +1,4 @@
-import { CheckSquare, Bug, Layers, Zap, ArrowRight, ExternalLink } from "lucide-react";
+import { CheckSquare, Bug, Layers, Zap, Box, ArrowRight, ExternalLink } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -6,10 +6,11 @@ import type { WorkItemStatus, WorkItemType } from "../../types";
 import type { WorkItemsListProps } from "./types";
 
 const typeIcon: Record<WorkItemType, React.ElementType> = {
-  task: CheckSquare,
-  bug:  Bug,
-  pbi:  Layers,
-  epic: Zap,
+  task:    CheckSquare,
+  bug:     Bug,
+  pbi:     Layers,
+  feature: Box,
+  epic:    Zap,
 };
 
 const statusConfig: Record<WorkItemStatus, { label: string; className: string }> = {

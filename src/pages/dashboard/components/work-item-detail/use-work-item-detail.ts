@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { azure } from "@/lib/tauri";
+import { formatDate, extractDisplayName, sanitizeHtml, parseTags } from "@/utils/formatters";
 import type { WorkItemDetail } from "@/types/azure";
 import type { DisplayDetail, PriorityLabel } from "./types";
 
@@ -10,37 +11,6 @@ const PRIORITY_LABELS: Record<number, PriorityLabel> = {
   3: "Medium",
   4: "Low",
 };
-
-function formatDate(dateStr?: string): string {
-  if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function extractDisplayName(
-  identity?: { displayName: string } | null,
-  fallback = "Unassigned",
-): string {
-  if (!identity || typeof identity !== "object") return fallback;
-  return identity.displayName ?? fallback;
-}
-
-function sanitizeHtml(html?: string): string {
-  if (!html) return "";
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  doc.querySelectorAll("script,style,iframe,object,embed").forEach((el) => el.remove());
-  return doc.body.innerHTML.trim();
-}
-
-function parseTags(tags?: string): string[] {
-  if (!tags) return [];
-  return tags.split(";").map((t) => t.trim()).filter(Boolean);
-}
 
 function mapToDisplay(detail: WorkItemDetail): DisplayDetail {
   const fields = detail.fields;

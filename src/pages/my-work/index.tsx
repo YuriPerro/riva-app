@@ -1,6 +1,8 @@
-import { AlertCircle, CheckSquare, Bug, Layers, Zap, Box, Loader2 } from "lucide-react";
+import { AlertCircle, CheckSquare, Bug, Layers, Zap, Box, Loader2, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/ui/page-header";
 import { FilterPill } from "@/components/ui/filter-pill";
+import { WorkItemDetailDialog } from "@/pages/dashboard/components/work-item-detail";
 import {
   useMyWork,
   type MyWorkItem,
@@ -10,7 +12,9 @@ import {
   type TypeFilter,
 } from "./use-my-work";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ============================================================
+// Constants
+// ============================================================
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all",         label: "All"         },
@@ -57,13 +61,17 @@ const STATUS_LABEL: Record<WorkItemStatus, string> = {
   "done":        "Done",
 };
 
-// ─── Grouped items ────────────────────────────────────────────────────────────
+// ============================================================
+// Grouped items
+// ============================================================
 
 function GroupedItems({
   items,
+  onSelect,
   openItem,
 }: {
   items: MyWorkItem[];
+  onSelect: (id: number) => void;
   openItem: (url: string) => void;
 }) {
   const groups = new Map<string, MyWorkItem[]>();
@@ -101,9 +109,9 @@ function GroupedItems({
                 const Icon = TYPE_ICON[item.type];
 
                 return (
-                  <button
+                  <div
                     key={item.id}
-                    onClick={() => openItem(item.url)}
+                    onClick={() => onSelect(item.id)}
                     className={cn(
                       "group flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-elevated",
                       idx !== groupItems.length - 1 && "border-b border-border"
@@ -130,8 +138,18 @@ function GroupedItems({
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-elevated text-[9px] font-medium text-fg-muted">
                         {item.assigneeInitials}
                       </span>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openItem(item.url);
+                        }}
+                        className="cursor-pointer opacity-0 group-hover:opacity-100 text-fg-disabled hover:text-fg-secondary transition-all"
+                      >
+                        <ExternalLink size={12} />
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -142,7 +160,9 @@ function GroupedItems({
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ============================================================
+// Page
+// ============================================================
 
 export function MyWorkPage() {
   const {
@@ -150,11 +170,15 @@ export function MyWorkPage() {
     items,
     isLoading,
     error,
+    project,
     statusFilter,
     typeFilter,
     setStatusFilter,
     setTypeFilter,
     openItem,
+    selectedWorkItemId,
+    selectWorkItem,
+    closeWorkItemDetail,
   } = useMyWork();
 
   const countByStatus = (s: StatusFilter) =>
@@ -162,16 +186,14 @@ export function MyWorkPage() {
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
-      {/* Header */}
-      <div className="flex items-baseline gap-2">
-        <h2 className="text-[18px] font-bold text-fg">My Work</h2>
-        <span className="text-[12px] text-fg-disabled">·</span>
-        <p className="text-[12px] text-fg-muted">
-          {isLoading
+      <PageHeader
+        title="My Work"
+        subtitle={
+          isLoading
             ? "Loading…"
-            : `${items.length} item${items.length !== 1 ? "s" : ""} assigned to you`}
-        </p>
-      </div>
+            : `${items.length} item${items.length !== 1 ? "s" : ""} assigned to you`
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-1.5">
@@ -228,8 +250,16 @@ export function MyWorkPage() {
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto">
-          <GroupedItems items={filtered} openItem={openItem} />
+          <GroupedItems items={filtered} onSelect={selectWorkItem} openItem={openItem} />
         </div>
+      )}
+
+      {project && (
+        <WorkItemDetailDialog
+          itemId={selectedWorkItemId}
+          project={project}
+          onClose={closeWorkItemDetail}
+        />
       )}
     </div>
   );

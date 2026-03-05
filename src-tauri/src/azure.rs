@@ -2,7 +2,9 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use reqwest::{Client, header};
 use serde::{Deserialize, Serialize};
 
-// ─── URL helpers ─────────────────────────────────────────────────────────────
+// ============================================================
+// URL helpers
+// ============================================================
 
 /// Percent-encode path segment characters that would break URL parsing.
 fn encode_path_segment(s: &str) -> String {
@@ -14,7 +16,9 @@ fn encode_path_segment(s: &str) -> String {
         .replace('+', "%2B")
 }
 
-// ─── Auth helper ────────────────────────────────────────────────────────────
+// ============================================================
+// Auth helper
+// ============================================================
 
 fn basic_auth_header(pat: &str) -> String {
     let encoded = STANDARD.encode(format!(":{}", pat));
@@ -39,7 +43,9 @@ fn build_client(pat: &str) -> Result<Client, String> {
         .map_err(|e| e.to_string())
 }
 
-// ─── Response types ──────────────────────────────────────────────────────────
+// ============================================================
+// Response types
+// ============================================================
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Project {
@@ -112,7 +118,9 @@ pub struct PipelineRun {
     pub web_url: String,
 }
 
-// ─── Pull Request types ───────────────────────────────────────────────────────
+// ============================================================
+// Pull Request types
+// ============================================================
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PullRequestIdentity {
@@ -245,7 +253,9 @@ pub struct WorkItemDetail {
     pub web_url: String,
 }
 
-// ─── API calls ───────────────────────────────────────────────────────────────
+// ============================================================
+// API calls
+// ============================================================
 
 /// Verify credentials and return the list of projects
 pub async fn get_projects(org_url: &str, pat: &str) -> Result<Vec<Project>, String> {

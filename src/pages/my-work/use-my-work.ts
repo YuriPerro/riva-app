@@ -1,11 +1,13 @@
 import { useState, useMemo } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useQuery } from "@tanstack/react-query";
-import { azure, type WorkItem as ApiWorkItem } from "@/lib/tauri";
+import { azure } from "@/lib/tauri";
 import { useSessionStore } from "@/store/session";
+import { getAssigneeInitials } from "@/utils/formatters";
+import { mapWorkItemType, mapWorkItemStatus } from "@/utils/mappers";
+import type { WorkItemType, WorkItemStatus } from "@/types/work-item";
 
-export type WorkItemType = "task" | "bug" | "pbi" | "epic" | "feature";
-export type WorkItemStatus = "todo" | "in-progress" | "in-review" | "done";
+export type { WorkItemType, WorkItemStatus };
 
 export interface MyWorkItem {
   id: number;
@@ -19,29 +21,6 @@ export interface MyWorkItem {
   url: string;
 }
 
-function mapType(t: string): WorkItemType {
-  const lower = t.toLowerCase();
-  if (lower.includes("bug")) return "bug";
-  if (lower.includes("epic")) return "epic";
-  if (lower.includes("feature")) return "feature";
-  if (lower.includes("pbi") || lower.includes("product backlog")) return "pbi";
-  return "task";
-}
-
-function mapStatus(s: string): WorkItemStatus {
-  const lower = s.toLowerCase();
-  if (lower.includes("progress") || lower.includes("active") || lower.includes("doing")) return "in-progress";
-  if (lower.includes("review") || lower.includes("testing") || lower.includes("qa")) return "in-review";
-  if (lower.includes("done") || lower.includes("closed") || lower.includes("resolved")) return "done";
-  return "todo";
-}
-
-function getInitials(assignedTo?: ApiWorkItem["fields"]["System.AssignedTo"]): string {
-  if (!assignedTo || typeof assignedTo !== "object") return "?";
-  const name = (assignedTo as { displayName: string }).displayName ?? "";
-  return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "?";
-}
-
 export type StatusFilter = "all" | WorkItemStatus;
 export type TypeFilter = "all" | WorkItemType;
 
@@ -50,11 +29,15 @@ export interface MyWorkData {
   filtered: MyWorkItem[];
   isLoading: boolean;
   error: string | null;
+  project: string | null;
   statusFilter: StatusFilter;
   typeFilter: TypeFilter;
   setStatusFilter: (f: StatusFilter) => void;
   setTypeFilter: (f: TypeFilter) => void;
   openItem: (url: string) => void;
+  selectedWorkItemId: number | null;
+  selectWorkItem: (id: number) => void;
+  closeWorkItemDetail: () => void;
 }
 
 export function useMyWork(): MyWorkData {
@@ -62,6 +45,7 @@ export function useMyWork(): MyWorkData {
   const team = useSessionStore((s) => s.team);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [selectedWorkItemId, setSelectedWorkItemId] = useState<number | null>(null);
 
   const { data: items = [], isLoading, error } = useQuery({
     queryKey: ["my-work", project, team],
@@ -69,12 +53,12 @@ export function useMyWork(): MyWorkData {
       raw.map((w): MyWorkItem => ({
         id: w.id,
         title: w.fields["System.Title"],
-        type: mapType(w.fields["System.WorkItemType"]),
-        status: mapStatus(w.fields["System.State"]),
+        type: mapWorkItemType(w.fields["System.WorkItemType"]),
+        status: mapWorkItemStatus(w.fields["System.State"]),
         rawType: w.fields["System.WorkItemType"],
         rawState: w.fields["System.State"],
         iterationPath: w.fields["System.IterationPath"],
-        assigneeInitials: getInitials(w.fields["System.AssignedTo"]),
+        assigneeInitials: getAssigneeInitials(w.fields["System.AssignedTo"] as { displayName: string } | null),
         url: w.webUrl,
       }))
     ),
@@ -95,10 +79,14 @@ export function useMyWork(): MyWorkData {
     filtered,
     isLoading: !!project && isLoading,
     error: error ? (typeof error === "string" ? error : "Failed to load work items") : null,
+    project,
     statusFilter,
     typeFilter,
     setStatusFilter,
     setTypeFilter,
     openItem: openUrl,
+    selectedWorkItemId,
+    selectWorkItem: setSelectedWorkItemId,
+    closeWorkItemDetail: () => setSelectedWorkItemId(null),
   };
 }

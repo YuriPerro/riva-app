@@ -1,22 +1,17 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { TeamSwitcher } from "./team-switcher";
+import { TeamSwitcher } from "@/components/layout/team-switcher";
 
-const pageTitles: Record<string, string> = {
-  "/": "Dashboard",
-  "/my-work": "My Work",
-  "/pipelines": "Pipelines",
-  "/pull-requests": "Pull Requests",
-  "/settings": "Settings",
-};
-
-export function Header() {
-  const location = useLocation();
+export function PageHeader({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle?: string;
+}) {
   const queryClient = useQueryClient();
-  const title = pageTitles[location.pathname] ?? "Forge";
   const [spinning, setSpinning] = useState(false);
 
   const handleRefresh = () => {
@@ -27,14 +22,7 @@ export function Header() {
   };
 
   return (
-    <header
-      data-tauri-drag-region
-      className="flex h-12 flex-shrink-0 items-center justify-between px-5"
-    >
-      <span data-tauri-drag-region className="text-[13px] font-medium text-fg">
-        {title}
-      </span>
-
+    <div className="flex items-center justify-between pb-2">
       <div className="flex items-center gap-2">
         <TeamSwitcher />
 
@@ -48,6 +36,13 @@ export function Header() {
           <RefreshCw size={13} className={cn(spinning && "animate-spin")} />
         </button>
       </div>
-    </header>
+
+      <div className="flex flex-col items-end">
+        <h2 className="text-4xl font-black text-fg/70">{title}</h2>
+        {subtitle && (
+          <p className="text-[12px] text-fg-muted pr-1">{subtitle}</p>
+        )}
+      </div>
+    </div>
   );
 }
