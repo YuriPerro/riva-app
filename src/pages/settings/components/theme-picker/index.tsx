@@ -11,7 +11,7 @@ function ThemeCard(props: ThemeCardProps) {
     <button
       onClick={onSelect}
       className={cn(
-        "group relative cursor-pointer overflow-hidden rounded-lg border transition-all",
+        "group relative w-40 cursor-pointer overflow-hidden rounded-lg border transition-all",
         active ? "border-transparent" : "border-border hover:border-fg-disabled"
       )}
       style={active ? { borderColor: `${preset.accent}60` } : undefined}
@@ -98,7 +98,7 @@ export function ThemePicker() {
           Choose a visual preset for the app
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex flex-wrap gap-3">
         {themeManager.presets.map((preset) => (
           <ThemeCard
             key={preset.id}

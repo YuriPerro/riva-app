@@ -55,6 +55,19 @@
   --color-running: #8b5cf6;
   --color-info:    #3b82f6;
   --color-neutral: #71717a;
+
+  --color-background:             var(--color-base);
+  --color-foreground:             var(--color-fg);
+  --color-primary:                var(--color-accent);
+  --color-primary-foreground:     var(--color-accent-fg);
+  --color-secondary:              var(--color-elevated);
+  --color-secondary-foreground:   var(--color-fg);
+  --color-muted:                  var(--color-elevated);
+  --color-muted-foreground:       var(--color-fg-muted);
+  --color-destructive:            var(--color-error);
+  --color-destructive-foreground: #ffffff;
+  --color-input:                  var(--color-border);
+  --color-ring:                   var(--color-accent);
 }
 
 *,
