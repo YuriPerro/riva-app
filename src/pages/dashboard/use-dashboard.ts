@@ -117,6 +117,7 @@ export const useDashboard = (): DashboardData => {
     queryKey: ["dashboard", project, team, teamId],
     queryFn: () => fetchDashboardData(project!, team!, teamId ?? ""),
     enabled,
+    refetchInterval: 30_000,
   });
 
   const stats = useMemo(() => ({

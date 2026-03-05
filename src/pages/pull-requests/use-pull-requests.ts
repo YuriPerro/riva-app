@@ -73,6 +73,7 @@ export function usePullRequests() {
     queryKey: ["pull-requests", project],
     queryFn: () => azure.getPullRequests(project!).then((raw) => raw.map(mapPR)),
     enabled: !!project,
+    refetchInterval: 30_000,
   });
 
   const repos = useMemo(() => {

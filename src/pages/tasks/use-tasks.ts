@@ -63,6 +63,7 @@ export function useTasks(): TasksData {
       }))
     ),
     enabled: !!project,
+    refetchInterval: 30_000,
   });
 
   const filtered = useMemo(() =>

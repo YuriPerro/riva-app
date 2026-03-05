@@ -63,6 +63,7 @@ export function usePipelines(): PipelinesData {
     queryKey: ["pipelines", project, teamId],
     queryFn: () => azure.getRecentPipelines(project!, teamId ?? undefined).then((raw) => raw.map(mapRun)),
     enabled: !!project,
+    refetchInterval: 30_000,
   });
 
   const definitions = useMemo(() => {
