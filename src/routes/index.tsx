@@ -9,6 +9,7 @@ import { PullRequestsPage } from "@/pages/pull-requests";
 import { SettingsPage } from "@/pages/settings";
 import { OnboardingPage } from "@/pages/onboarding";
 import { ProjectSelectPage } from "@/pages/project-select";
+import { TeamSelectPage } from "@/pages/team-select";
 import { credentials, session } from "@/lib/tauri";
 
 function AuthGuard() {
@@ -47,6 +48,10 @@ export const router = createBrowserRouter([
   {
     path: "/project-select",
     element: <ProjectSelectPage />,
+  },
+  {
+    path: "/team-select",
+    element: <TeamSelectPage />,
   },
   {
     path: "/",

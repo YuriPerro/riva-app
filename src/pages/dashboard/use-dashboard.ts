@@ -66,33 +66,47 @@ function getInitials(assignedTo?: ApiWorkItem["fields"]["System.AssignedTo"]): s
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
-const FALLBACK_SPRINT: SprintInfo = { name: "No active sprint", daysRemaining: 0, status: "on-track" };
-
 export const useDashboard = (): DashboardData => {
-  const [project, setProject] = useState<string | null>(
+  const [project] = useState<string | null>(
     localStorage.getItem("forge_project")
   );
-  const [sprint, setSprint] = useState<SprintInfo>(FALLBACK_SPRINT);
+  const [team, setTeam] = useState<string | null>(
+    localStorage.getItem("forge_team")
+  );
+  const [sprint, setSprint] = useState<SprintInfo | null>(null);
   const [workItems, setWorkItems] = useState<WorkItem[]>([]);
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // If no project selected, redirect to project selection
+  // React to team changes triggered by the TeamSwitcher in the header
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { team: newTeam } = (e as CustomEvent<{ team: string }>).detail;
+      setTeam(newTeam);
+    };
+    window.addEventListener("forge:team-changed", handler);
+    return () => window.removeEventListener("forge:team-changed", handler);
+  }, []);
+
+  // Guard: both project and team must be set before loading the dashboard
   useEffect(() => {
     if (!project) {
       window.location.href = "/project-select";
+    } else if (!team) {
+      window.location.href = "/team-select";
     }
-  }, [project]);
+  }, [project, team]);
 
-  // Fetch dashboard data once project is known
+  // Fetch dashboard data once project and team are known
   useEffect(() => {
-    if (!project) return;
+    if (!project || !team) return;
     setIsLoading(true);
     setError(null);
+    setSprint(null);
 
     Promise.all([
-      azure.getCurrentSprint(project),
+      azure.getCurrentSprint(project, team),
       azure.getMyWorkItems(project),
       azure.getRecentPipelines(project),
     ])
@@ -132,7 +146,7 @@ export const useDashboard = (): DashboardData => {
       })
       .catch((e) => setError(typeof e === "string" ? e : "Failed to load dashboard data"))
       .finally(() => setIsLoading(false));
-  }, [project]);
+  }, [project, team]);
 
   const inReview = workItems.filter((w) => w.status === "in-review").length;
   const pipelinesRunning = pipelines.filter((p) => p.status === "running").length;

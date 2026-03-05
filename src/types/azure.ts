@@ -4,6 +4,11 @@ export interface Project {
   description?: string;
 }
 
+export interface Team {
+  id: string;
+  name: string;
+}
+
 export interface WorkItemFields {
   "System.Title": string;
   "System.WorkItemType": string;

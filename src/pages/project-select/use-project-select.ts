@@ -15,7 +15,8 @@ export const useProjectSelect = () => {
 
   const selectProject = (name: string) => {
     localStorage.setItem("forge_project", name);
-    window.location.href = "/";
+    localStorage.removeItem("forge_team"); // clear stale team from previous project
+    window.location.href = "/team-select";
   };
 
   return { projects, isLoading, error, selectProject };

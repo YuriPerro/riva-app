@@ -33,7 +33,7 @@ export type DashboardStats = {
 };
 
 export interface DashboardData {
-  sprint: SprintInfo;
+  sprint: SprintInfo | null;
   stats: DashboardStats;
   workItems: WorkItem[];
   pipelines: Pipeline[];

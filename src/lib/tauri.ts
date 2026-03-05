@@ -5,6 +5,7 @@ export { TauriCommand } from "./commands";
 
 export type {
   Project,
+  Team,
   WorkItem,
   WorkItemFields,
   PipelineDefinition,
@@ -15,6 +16,7 @@ export type {
 
 import type {
   Project,
+  Team,
   WorkItem,
   PipelineRun,
   SprintIteration,
@@ -69,12 +71,15 @@ export const azure = {
   getProjects: () =>
     invoke<Project[]>(TauriCommand.GetProjects),
 
+  getTeams: (project: string) =>
+    invoke<Team[]>(TauriCommand.GetTeams, { project }),
+
   getMyWorkItems: (project: string) =>
     invoke<WorkItem[]>(TauriCommand.GetMyWorkItems, { project }),
 
   getRecentPipelines: (project: string) =>
     invoke<PipelineRun[]>(TauriCommand.GetRecentPipelines, { project }),
 
-  getCurrentSprint: (project: string) =>
-    invoke<SprintIteration | null>(TauriCommand.GetCurrentSprint, { project }),
+  getCurrentSprint: (project: string, team?: string) =>
+    invoke<SprintIteration | null>(TauriCommand.GetCurrentSprint, { project, team: team ?? null }),
 };

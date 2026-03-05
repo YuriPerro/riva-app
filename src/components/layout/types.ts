@@ -8,6 +8,7 @@ export interface NavItemProps {
   label: string;
   end?: boolean;
   collapsed: boolean;
+  index: number;
   iconRef: React.RefObject<AnimatedHandle | null>;
   icon: React.ReactNode;
 }

@@ -9,6 +9,15 @@ const statusConfig = {
 
 export function SprintHeader(props: SprintHeaderProps) {
   const { sprint } = props;
+
+  if (!sprint) {
+    return (
+      <div className="flex items-center text-[12px] text-fg-disabled">
+        No active sprint
+      </div>
+    );
+  }
+
   const status = statusConfig[sprint.status];
 
   return (

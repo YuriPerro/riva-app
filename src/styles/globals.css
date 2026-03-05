@@ -3,6 +3,17 @@
 @import "@fontsource/geist/500.css";
 @import "@fontsource/geist/600.css";
 
+@keyframes sidebar-label-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @theme {
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
 

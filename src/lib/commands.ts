@@ -16,6 +16,7 @@ export enum TauriCommand {
 
   // ─── Azure DevOps ─────────────────────────────────────────────────────────
   GetProjects           = "get_projects",
+  GetTeams              = "get_teams",
   GetMyWorkItems        = "get_my_work_items",
   GetRecentPipelines    = "get_recent_pipelines",
   GetCurrentSprint      = "get_current_sprint",

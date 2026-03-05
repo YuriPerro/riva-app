@@ -1,5 +1,5 @@
 import type { SprintInfo } from "../../types";
 
 export interface SprintHeaderProps {
-  sprint: SprintInfo;
+  sprint: SprintInfo | null;
 }

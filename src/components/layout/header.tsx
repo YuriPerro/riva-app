@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TeamSwitcher } from "./team-switcher";
 
 const pageTitles: Record<string, string> = {
   "/": "Dashboard",
@@ -23,14 +24,18 @@ export function Header() {
         {title}
       </span>
 
-      <button
-        className={cn(
-          "flex h-7 w-7 cursor-pointer items-center justify-center rounded-md transition-colors",
-          "text-fg-muted hover:bg-elevated hover:text-fg"
-        )}
-      >
-        <RefreshCw size={13} />
-      </button>
+      <div className="flex items-center gap-2">
+        <TeamSwitcher />
+
+        <button
+          className={cn(
+            "flex h-7 w-7 cursor-pointer items-center justify-center rounded-md transition-colors",
+            "text-fg-muted hover:bg-elevated hover:text-fg"
+          )}
+        >
+          <RefreshCw size={13} />
+        </button>
+      </div>
     </header>
   );
 }

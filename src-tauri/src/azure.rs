@@ -2,6 +2,18 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use reqwest::{Client, header};
 use serde::{Deserialize, Serialize};
 
+// ─── URL helpers ─────────────────────────────────────────────────────────────
+
+/// Percent-encode path segment characters that would break URL parsing.
+fn encode_path_segment(s: &str) -> String {
+    s.replace('%', "%25")
+        .replace(' ', "%20")
+        .replace('#', "%23")
+        .replace('?', "%3F")
+        .replace('&', "%26")
+        .replace('+', "%2B")
+}
+
 // ─── Auth helper ────────────────────────────────────────────────────────────
 
 fn basic_auth_header(pat: &str) -> String {
@@ -126,6 +138,17 @@ struct SprintResponse {
     pub value: Vec<SprintIteration>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Team {
+    pub id: String,
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct TeamsListResponse {
+    pub value: Vec<Team>,
+}
+
 // ─── API calls ───────────────────────────────────────────────────────────────
 
 /// Verify credentials and return the list of projects
@@ -175,8 +198,9 @@ pub async fn get_my_work_items(
         .await
         .map_err(|e| e.to_string())?;
 
-    if !wiql_resp.status().is_success() {
-        return Err(format!("WIQL query failed: {}", wiql_resp.status()));
+    let wiql_status = wiql_resp.status();
+    if !wiql_status.is_success() {
+        return Err(format!("WIQL query failed: {}", wiql_status));
     }
 
     let refs: WiqlResponse = wiql_resp.json().await.map_err(|e| e.to_string())?;
@@ -231,25 +255,90 @@ pub async fn get_recent_pipelines(
         .map_err(|e| e.to_string())
 }
 
-/// Get the current sprint for the default team in a project
+/// Get all teams for a project.
+pub async fn get_teams(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+) -> Result<Vec<Team>, String> {
+    let client = build_client(pat)?;
+    let url = format!(
+        "{}/_apis/projects/{}/teams?api-version=7.1",
+        org_url.trim_end_matches('/'),
+        encode_path_segment(project)
+    );
+
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(format!("Teams API returned {}", resp.status()));
+    }
+
+    resp.json::<TeamsListResponse>()
+        .await
+        .map(|r| r.value)
+        .map_err(|e| e.to_string())
+}
+
+/// Get the current sprint for a project.
+///
+/// If `team` is provided the request goes directly to that team's endpoint.
+/// Otherwise we try the implicit default-team path first, then fall back to
+/// enumerating all teams via `/_apis/projects/{project}/teams`.
 pub async fn get_current_sprint(
     org_url: &str,
     pat: &str,
     project: &str,
+    team: Option<&str>,
 ) -> Result<Option<SprintIteration>, String> {
     let client = build_client(pat)?;
-    let url = format!(
-        "{}/{}/_apis/work/teamsettings/iterations?$timeframe=current&api-version=7.1",
-        org_url.trim_end_matches('/'),
-        project
-    );
+    let base = org_url.trim_end_matches('/');
+    let enc_project = encode_path_segment(project);
 
-    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
-
-    if !resp.status().is_success() {
+    // ── Fast path: specific team provided by the caller ─────────────────────
+    if let Some(team_name) = team {
+        let enc_team = encode_path_segment(team_name);
+        let url = format!(
+            "{}/{}/{}/_apis/work/teamsettings/iterations?$timeframe=current&api-version=7.1",
+            base, enc_project, enc_team
+        );
+        let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+        if resp.status().is_success() {
+            let sprints: SprintResponse = resp.json().await.map_err(|e| e.to_string())?;
+            return Ok(sprints.value.into_iter().next());
+        }
         return Ok(None);
     }
 
-    let sprints: SprintResponse = resp.json().await.map_err(|e| e.to_string())?;
-    Ok(sprints.value.into_iter().next())
+    // ── Attempt 1: implicit default team ────────────────────────────────────
+    let url = format!(
+        "{}/{}/_apis/work/teamsettings/iterations?$timeframe=current&api-version=7.1",
+        base, enc_project
+    );
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if resp.status().is_success() {
+        let sprints: SprintResponse = resp.json().await.map_err(|e| e.to_string())?;
+        if let Some(s) = sprints.value.into_iter().next() {
+            return Ok(Some(s));
+        }
+    }
+
+    // ── Attempt 2: enumerate teams via stable org-level endpoint ────────────
+    let teams = get_teams(org_url, pat, project).await.unwrap_or_default();
+    for t in teams {
+        let enc_team = encode_path_segment(&t.name);
+        let team_url = format!(
+            "{}/{}/{}/_apis/work/teamsettings/iterations?$timeframe=current&api-version=7.1",
+            base, enc_project, enc_team
+        );
+        let r = client.get(&team_url).send().await.map_err(|e| e.to_string())?;
+        if !r.status().is_success() {
+            continue;
+        }
+        let sprints: SprintResponse = r.json().await.map_err(|e| e.to_string())?;
+        if let Some(s) = sprints.value.into_iter().next() {
+            return Ok(Some(s));
+        }
+    }
+
+    Ok(None)
 }

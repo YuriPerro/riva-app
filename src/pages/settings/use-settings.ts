@@ -11,6 +11,8 @@ export function useSettings() {
     try {
       await session.clear();
       await credentials.clear();
+      localStorage.removeItem("forge_project");
+      localStorage.removeItem("forge_team");
       navigate("/onboarding", { replace: true });
     } finally {
       setIsSigningOut(false);

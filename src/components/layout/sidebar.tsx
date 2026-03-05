@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { NavLink } from "react-router-dom";
-import { toast } from "sonner";
+
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/store/sidebar";
@@ -14,21 +14,28 @@ import { LayersIcon, type LayersIconHandle } from "@/components/ui/layers";
 import { ZapIcon, type ZapHandle } from "@/components/ui/zap";
 import { GitPullRequestIcon, type GitPullRequestIconHandle } from "@/components/ui/git-pull-request";
 import { SettingsIcon, type SettingsIconHandle } from "@/components/ui/settings";
-import { BellIcon, type BellIconHandle } from "@/components/ui/bell";
+
 import type { NavItemProps } from "./types";
 
-function SidebarLabel(props: { collapsed: boolean; children: React.ReactNode }) {
+const STAGGER_MS = 60;
+
+function SidebarLabel(props: { collapsed: boolean; delay: number; children: React.ReactNode }) {
   if (props.collapsed) return null;
 
   return (
-    <span className="animate-in fade-in slide-in-from-left-1 duration-200 whitespace-nowrap">
+    <span
+      className="whitespace-nowrap opacity-0"
+      style={{
+        animation: `sidebar-label-in 250ms ease-out ${props.delay}ms forwards`,
+      }}
+    >
       {props.children}
     </span>
   );
 }
 
 function NavItem(props: NavItemProps) {
-  const { to, label, end, collapsed, iconRef, icon } = props;
+  const { to, label, end, collapsed, index, iconRef, icon } = props;
 
   const link = (
     <NavLink
@@ -49,7 +56,7 @@ function NavItem(props: NavItemProps) {
       {({ isActive }) => (
         <>
           <span className={cn("shrink-0", isActive ? "text-fg" : "text-fg-muted")}>{icon}</span>
-          <SidebarLabel collapsed={collapsed}>{label}</SidebarLabel>
+          <SidebarLabel collapsed={collapsed} delay={index * STAGGER_MS}>{label}</SidebarLabel>
         </>
       )}
     </NavLink>
@@ -78,34 +85,6 @@ export function Sidebar() {
   const zapRef = useRef<ZapHandle>(null);
   const prRef = useRef<GitPullRequestIconHandle>(null);
   const settingsRef = useRef<SettingsIconHandle>(null);
-  const bellRef = useRef<BellIconHandle>(null);
-
-  const toastButton = (
-    <button
-      onMouseEnter={() => bellRef.current?.startAnimation()}
-      onMouseLeave={() => bellRef.current?.stopAnimation()}
-      onClick={() => {
-        const toasts = [
-          () => toast.success("Pipeline CI · main succeeded"),
-          () => toast.error("Pipeline CD · hotfix/crash failed"),
-          () => toast.warning("Sprint deadline approaching in 2 days"),
-          () => toast.loading("Syncing work items..."),
-          () => toast("New PR ready for review"),
-        ];
-        toasts[Math.floor(Math.random() * toasts.length)]();
-      }}
-      className={cn(
-        "flex cursor-pointer items-center rounded-md py-2 text-fg-secondary transition-colors hover:bg-elevated hover:text-fg",
-        collapsed ? "justify-center px-2" : "gap-2.5 px-3 text-[13px]"
-      )}
-    >
-      <span className="shrink-0 text-fg-muted">
-        <BellIcon ref={bellRef} size={15} />
-      </span>
-      <SidebarLabel collapsed={collapsed}>Test Toast</SidebarLabel>
-    </button>
-  );
-
   const settingsLink = (
     <NavLink
       to="/settings"
@@ -126,7 +105,7 @@ export function Sidebar() {
           <span className={cn("shrink-0", isActive ? "text-fg" : "text-fg-muted")}>
             <SettingsIcon ref={settingsRef} size={15} />
           </span>
-          <SidebarLabel collapsed={collapsed}>Settings</SidebarLabel>
+          <SidebarLabel collapsed={collapsed} delay={4 * STAGGER_MS}>Settings</SidebarLabel>
         </>
       )}
     </NavLink>
@@ -142,7 +121,7 @@ export function Sidebar() {
     >
       <div data-tauri-drag-region className={cn("mb-2 overflow-hidden", collapsed ? "px-2" : "px-4")}>
         <div data-tauri-drag-region className="flex items-center gap-2">
-          <SidebarLabel collapsed={collapsed}>
+          <SidebarLabel collapsed={collapsed} delay={0}>
             <span className="flex items-center gap-2">
               <span className="text-[13px] font-semibold text-fg">Forge</span>
               <span className="rounded-sm border border-border px-1.5 py-0.5 text-[10px] text-fg-disabled">
@@ -154,24 +133,13 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 px-2">
-        <NavItem to="/" end label="Dashboard" collapsed={collapsed} iconRef={homeRef} icon={<HomeIcon ref={homeRef} size={15} />} />
-        <NavItem to="/my-work" label="My Work" collapsed={collapsed} iconRef={layersRef} icon={<LayersIcon ref={layersRef} size={15} />} />
-        <NavItem to="/pipelines" label="Pipelines" collapsed={collapsed} iconRef={zapRef} icon={<ZapIcon ref={zapRef} size={15} />} />
-        <NavItem to="/pull-requests" label="Pull Requests" collapsed={collapsed} iconRef={prRef} icon={<GitPullRequestIcon ref={prRef} size={15} />} />
+        <NavItem to="/" end label="Dashboard" collapsed={collapsed} index={0} iconRef={homeRef} icon={<HomeIcon ref={homeRef} size={15} />} />
+        <NavItem to="/my-work" label="My Work" collapsed={collapsed} index={1} iconRef={layersRef} icon={<LayersIcon ref={layersRef} size={15} />} />
+        <NavItem to="/pipelines" label="Pipelines" collapsed={collapsed} index={2} iconRef={zapRef} icon={<ZapIcon ref={zapRef} size={15} />} />
+        <NavItem to="/pull-requests" label="Pull Requests" collapsed={collapsed} index={3} iconRef={prRef} icon={<GitPullRequestIcon ref={prRef} size={15} />} />
       </nav>
 
       <div className="flex flex-col gap-0.5 px-2 pt-2">
-        {collapsed ? (
-          <Tooltip>
-            <TooltipTrigger asChild>{toastButton}</TooltipTrigger>
-            <TooltipContent side="right" className="border-border bg-elevated text-[12px] text-fg">
-              Test Toast
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          toastButton
-        )}
-
         {collapsed ? (
           <Tooltip>
             <TooltipTrigger asChild>{settingsLink}</TooltipTrigger>
@@ -193,7 +161,7 @@ export function Sidebar() {
           <span className="shrink-0">
             {collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
           </span>
-          <SidebarLabel collapsed={collapsed}>Collapse</SidebarLabel>
+          <SidebarLabel collapsed={collapsed} delay={5 * STAGGER_MS}>Collapse</SidebarLabel>
         </button>
       </div>
     </aside>
