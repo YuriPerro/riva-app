@@ -1,5 +1,6 @@
-import { AlertCircle, CheckSquare, Bug, Layers, Zap, Box, Loader2, ExternalLink } from "lucide-react";
+import { AlertCircle, Layers, Loader2, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getWorkItemTheme } from "@/utils/work-item-theme";
 import { PageHeader } from "@/components/ui/page-header";
 import { FilterPill } from "@/components/ui/filter-pill";
 import { WorkItemDetailDialog } from "@/pages/dashboard/components/work-item-detail";
@@ -7,7 +8,6 @@ import {
   useMyWork,
   type MyWorkItem,
   type WorkItemStatus,
-  type WorkItemType,
   type StatusFilter,
   type TypeFilter,
 } from "./use-my-work";
@@ -31,14 +31,6 @@ const TYPE_FILTERS: { value: TypeFilter; label: string }[] = [
   { value: "feature", label: "Feature" },
   { value: "epic",    label: "Epic"    },
 ];
-
-const TYPE_ICON: Record<WorkItemType, React.ElementType> = {
-  task:    CheckSquare,
-  bug:     Bug,
-  pbi:     Layers,
-  feature: Box,
-  epic:    Zap,
-};
 
 const STATUS_COLOR: Record<WorkItemStatus, string> = {
   "todo":        "text-fg-disabled",
@@ -106,7 +98,8 @@ function GroupedItems({
 
             <div className="overflow-hidden rounded-lg border border-border bg-surface">
               {groupItems.map((item, idx) => {
-                const Icon = TYPE_ICON[item.type];
+                const itemTheme = getWorkItemTheme(item.type);
+                const Icon = itemTheme.icon;
 
                 return (
                   <div
@@ -117,7 +110,7 @@ function GroupedItems({
                       idx !== groupItems.length - 1 && "border-b border-border"
                     )}
                   >
-                    <Icon size={13} className={cn("flex-shrink-0", STATUS_COLOR[item.status])} />
+                    <Icon size={13} className={cn("flex-shrink-0", itemTheme.className)} />
 
                     <span className="flex-1 truncate text-[13px] text-fg-secondary group-hover:text-fg">
                       {item.title}

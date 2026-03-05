@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { azure } from "@/lib/tauri";
 import { formatDate, extractDisplayName, sanitizeHtml, parseTags } from "@/utils/formatters";
+import { mapWorkItemType } from "@/utils/mappers";
+import { getWorkItemTheme } from "@/utils/work-item-theme";
 import type { WorkItemDetail } from "@/types/azure";
 import type { DisplayDetail, PriorityLabel } from "./types";
 
@@ -32,6 +34,25 @@ function mapToDisplay(detail: WorkItemDetail): DisplayDetail {
     tags: parseTags(fields["System.Tags"]),
     priority: PRIORITY_LABELS[fields["Microsoft.VSTS.Common.Priority"] ?? 0] ?? "None",
     webUrl: detail.webUrl,
+    effort: fields["Microsoft.VSTS.Scheduling.Effort"] != null
+      ? String(fields["Microsoft.VSTS.Scheduling.Effort"])
+      : null,
+    completedWork: fields["Microsoft.VSTS.Scheduling.CompletedWork"] != null
+      ? String(fields["Microsoft.VSTS.Scheduling.CompletedWork"])
+      : null,
+    remainingWork: fields["Microsoft.VSTS.Scheduling.RemainingWork"] != null
+      ? String(fields["Microsoft.VSTS.Scheduling.RemainingWork"])
+      : null,
+    dueDate: fields["Microsoft.VSTS.Scheduling.DueDate"]
+      ? formatDate(fields["Microsoft.VSTS.Scheduling.DueDate"])
+      : null,
+    devStartDate: fields["Microsoft.VSTS.Scheduling.StartDate"]
+      ? formatDate(fields["Microsoft.VSTS.Scheduling.StartDate"])
+      : null,
+    devEndDate: fields["Microsoft.VSTS.Scheduling.FinishDate"]
+      ? formatDate(fields["Microsoft.VSTS.Scheduling.FinishDate"])
+      : null,
+    blocked: fields["Microsoft.VSTS.CMMI.Blocked"] === "Yes" ? "Yes" : "No",
   };
 }
 
@@ -45,8 +66,12 @@ export function useWorkItemDetail(project: string, itemId: number | null) {
 
   const detail = useMemo(() => (data ? mapToDisplay(data) : null), [data]);
 
+  const mappedType = detail ? mapWorkItemType(detail.type) : "task";
+  const theme = getWorkItemTheme(mappedType);
+
   return {
     detail,
+    theme,
     isLoading,
     error: error ? "Failed to load work item details" : null,
   };

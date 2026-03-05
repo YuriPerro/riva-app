@@ -1,17 +1,10 @@
-import { CheckSquare, Bug, Layers, Zap, Box, ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import type { WorkItemStatus, WorkItemType } from "../../types";
+import { getWorkItemTheme } from "@/utils/work-item-theme";
+import type { WorkItemStatus } from "../../types";
 import type { WorkItemsListProps } from "./types";
-
-const typeIcon: Record<WorkItemType, React.ElementType> = {
-  task:    CheckSquare,
-  bug:     Bug,
-  pbi:     Layers,
-  feature: Box,
-  epic:    Zap,
-};
 
 const statusConfig: Record<WorkItemStatus, { label: string; className: string }> = {
   "todo":        { label: "To Do",       className: "text-fg-disabled" },
@@ -38,9 +31,10 @@ export function WorkItemsList(props: WorkItemsListProps) {
         </button>
       </div>
 
-      <div className="flex flex-col max-h-[340px] overflow-y-auto">
+      <div className="flex flex-col max-h-[300px] overflow-y-auto">
         {items.map((item) => {
-          const Icon = typeIcon[item.type];
+          const itemTheme = getWorkItemTheme(item.type);
+          const Icon = itemTheme.icon;
           const status = statusConfig[item.status];
 
           return (
@@ -52,13 +46,13 @@ export function WorkItemsList(props: WorkItemsListProps) {
                 "hover:bg-elevated cursor-pointer"
               )}
             >
-              <Icon size={13} className={cn("flex-shrink-0", status.className)} />
+              <Icon size={13} className={cn("shrink-0", itemTheme.className)} />
 
               <span className="flex-1 truncate text-[13px] text-fg-secondary group-hover:text-fg">
                 {item.title}
               </span>
 
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <span className={cn("text-[11px]", status.className)}>
                   {status.label}
                 </span>

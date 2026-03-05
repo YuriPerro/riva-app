@@ -19,6 +19,13 @@ export type DisplayDetail = {
   tags: string[];
   priority: PriorityLabel;
   webUrl: string;
+  effort: string | null;
+  completedWork: string | null;
+  remainingWork: string | null;
+  dueDate: string | null;
+  devStartDate: string | null;
+  devEndDate: string | null;
+  blocked: string;
 };
 
 export interface DetailFieldProps {

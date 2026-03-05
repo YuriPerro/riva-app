@@ -30,6 +30,13 @@ export interface WorkItemDetailFields extends WorkItemFields {
   "System.CreatedBy"?: { displayName: string; uniqueName: string } | null;
   "System.Tags"?: string;
   "Microsoft.VSTS.Common.Priority"?: number;
+  "Microsoft.VSTS.Scheduling.RemainingWork"?: number;
+  "Microsoft.VSTS.Scheduling.CompletedWork"?: number;
+  "Microsoft.VSTS.Scheduling.Effort"?: number;
+  "Microsoft.VSTS.Scheduling.DueDate"?: string;
+  "Microsoft.VSTS.Scheduling.StartDate"?: string;
+  "Microsoft.VSTS.Scheduling.FinishDate"?: string;
+  "Microsoft.VSTS.CMMI.Blocked"?: string;
 }
 
 export interface WorkItemDetail {

@@ -5,6 +5,8 @@
 @import "@fontsource/geist/600.css";
 @import "@fontsource/geist/700.css";
 
+@custom-variant dark (&:is(.dark *));
+
 @keyframes sidebar-label-in {
   from {
     opacity: 0;
@@ -150,4 +152,19 @@ body {
 [data-sonner-toast][data-type="error"] [data-icon],
 [data-sonner-toast][data-type="warning"] [data-icon] {
   color: inherit !important;
+}
+
+@theme inline {
+  --animate-shine: shine var(--duration) infinite linear;
+  @keyframes shine {
+  0% {
+    background-position: 0% 0%;
+    }
+  50% {
+    background-position: 100% 100%;
+    }
+  to {
+    background-position: 0% 0%;
+    }
+  }
 }

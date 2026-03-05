@@ -1,16 +1,16 @@
 import {
-  CheckSquare,
-  Bug,
-  Layers,
-  Zap,
   ExternalLink,
   Loader2,
   AlertCircle,
   User,
   Calendar,
-  Tag,
   Flag,
   GitBranch,
+  Clock,
+  Hourglass,
+  CheckCircle2,
+  ShieldAlert,
+  Zap,
 } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import {
@@ -22,16 +22,40 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { ShineBorder } from "@/components/ui/shine-border";
 import { useWorkItemDetail } from "./use-work-item-detail";
-import type { WorkItemDetailDialogProps, PriorityLabel, DetailFieldProps } from "./types";
+import type { WorkItemDetailDialogProps, PriorityLabel, DisplayDetail, DetailFieldProps } from "./types";
 
-const typeConfig: Record<string, { icon: React.ElementType; className: string }> = {
-  Task:                 { icon: CheckSquare, className: "text-info" },
-  Bug:                  { icon: Bug,         className: "text-error" },
-  "Product Backlog Item": { icon: Layers,    className: "text-accent" },
-  Epic:                 { icon: Zap,         className: "text-warning" },
-  Feature:              { icon: Layers,      className: "text-accent" },
+// ============================================================
+// Dev fields config per work item type
+// ============================================================
+
+type DevFieldKey = "effort" | "completedWork" | "remainingWork" | "dueDate" | "devStartDate" | "devEndDate" | "blocked";
+
+const DEV_FIELD_META: Record<DevFieldKey, { icon: React.ElementType; label: string }> = {
+  effort:        { icon: Zap,          label: "Effort" },
+  completedWork: { icon: CheckCircle2, label: "Completed Work" },
+  remainingWork: { icon: Hourglass,    label: "Remaining Work" },
+  dueDate:       { icon: Calendar,    label: "Due Date" },
+  devStartDate:  { icon: Calendar,    label: "Dev Start Date" },
+  devEndDate:    { icon: Calendar,    label: "Dev End Date" },
+  blocked:       { icon: ShieldAlert, label: "Blocked" },
 };
+
+const DEV_FIELDS_BY_TYPE: Record<string, DevFieldKey[]> = {
+  Task:                   ["effort", "completedWork", "remainingWork", "dueDate", "blocked"],
+  Bug:                    ["effort", "completedWork", "remainingWork", "devStartDate", "devEndDate", "blocked"],
+  "Product Backlog Item": ["effort", "devStartDate", "devEndDate", "blocked"],
+  Feature:                ["effort", "devStartDate", "devEndDate", "blocked"],
+  Epic:                   ["effort", "devStartDate", "devEndDate", "blocked"],
+};
+
+const DEFAULT_DEV_FIELDS: DevFieldKey[] = ["effort", "blocked"];
+
+// ============================================================
+// Type + priority config
+// ============================================================
+
 
 const priorityConfig: Record<PriorityLabel, string> = {
   Critical: "text-error",
@@ -43,15 +67,15 @@ const priorityConfig: Record<PriorityLabel, string> = {
 
 export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
   const { itemId, project, onClose } = props;
-  const { detail, isLoading, error } = useWorkItemDetail(project, itemId);
+  const { detail, theme, isLoading, error } = useWorkItemDetail(project, itemId);
 
   const isOpen = itemId !== null;
-  const typeEntry = detail ? typeConfig[detail.type] ?? typeConfig.Task : typeConfig.Task;
-  const TypeIcon = typeEntry.icon;
+  const TypeIcon = theme.icon;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-xl max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-xl max-h-[80vh] flex flex-col overflow-hidden">
+        <ShineBorder shineColor={theme.shineColors} borderWidth={1} duration={10} />
         {isLoading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={16} className="animate-spin text-fg-disabled" />
@@ -68,19 +92,36 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
         {detail && (
           <>
             <DialogHeader>
-              <div className="flex items-center gap-2">
-                <TypeIcon size={16} className={typeEntry.className} />
-                <span className={cn("text-[11px] font-medium uppercase", typeEntry.className)}>
-                  {detail.type}
-                </span>
-                <span className="text-[11px] text-fg-disabled">#{itemId}</span>
-              </div>
+              <span className="text-[11px] text-fg-disabled">#{itemId}</span>
               <DialogTitle className="text-[15px] leading-snug">
                 {detail.title}
               </DialogTitle>
               <DialogDescription className="sr-only">
                 Work item details for {detail.title}
               </DialogDescription>
+              <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-1.5">
+                  <TypeIcon size={12} className={theme.className} />
+                  <span className={cn("text-[11px] font-medium", theme.className)}>
+                    {detail.type}
+                  </span>
+                </div>
+                {detail.tags.length > 0 && (
+                  <>
+                    <span className="text-fg-disabled">·</span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {detail.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full bg-elevated px-2 py-0.5 text-[11px] text-fg-secondary"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </DialogHeader>
 
             <div className="flex-1 overflow-y-auto space-y-4 py-2">
@@ -99,24 +140,28 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
                 <DetailField icon={Calendar} label="Last Updated" value={detail.changedDate} />
               </div>
 
-              {detail.tags.length > 0 && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-[11px] text-fg-muted">
-                    <Tag size={11} />
-                    Tags
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {detail.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full bg-elevated px-2 py-0.5 text-[11px] text-fg-secondary"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+                  <Clock size={11} />
+                  Dev
                 </div>
-              )}
+                <div className="grid grid-cols-2 gap-3">
+                  {(DEV_FIELDS_BY_TYPE[detail.type] ?? DEFAULT_DEV_FIELDS).map((key) => {
+                    const meta = DEV_FIELD_META[key];
+                    const raw = detail[key as keyof DisplayDetail] as string | null;
+                    const value = raw ?? "—";
+                    return (
+                      <DetailField
+                        key={key}
+                        icon={meta.icon}
+                        label={meta.label}
+                        value={value}
+                        valueClassName={key === "blocked" && value === "Yes" ? "text-error" : undefined}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
 
               {detail.description && (
                 <div className="space-y-1.5">
@@ -155,7 +200,7 @@ function DetailField(props: DetailFieldProps) {
   const { icon: Icon, label, value, valueClassName } = props;
 
   return (
-    <div className="flex cursor-pointer flex-col gap-0.5 rounded-md px-2 py-1.5 transition-colors hover:bg-elevated">
+    <div className="flex flex-col gap-0.5 rounded-md px-2 py-1.5">
       <div className="flex items-center gap-1.5 text-[11px] text-fg-muted">
         <Icon size={11} />
         {label}

@@ -30,7 +30,7 @@ export function PipelinesList(props: PipelinesListProps) {
         </button>
       </div>
 
-      <div className="flex flex-col max-h-[340px] overflow-y-auto">
+      <div className="flex flex-col max-h-[300px] overflow-y-auto">
         {pipelines.map((pipeline) => {
           const { icon: Icon, className, spin } = statusConfig[pipeline.status];
 
@@ -45,7 +45,7 @@ export function PipelinesList(props: PipelinesListProps) {
             >
               <Icon
                 size={13}
-                className={cn("flex-shrink-0", className, spin && "animate-spin")}
+                className={cn("shrink-0", className, spin && "animate-spin")}
               />
 
               <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
@@ -57,7 +57,7 @@ export function PipelinesList(props: PipelinesListProps) {
                 </span>
               </div>
 
-              <div className="flex-shrink-0 text-right">
+              <div className="shrink-0 text-right">
                 <span className="text-[11px] text-fg-disabled">{pipeline.ago}</span>
               </div>
             </div>

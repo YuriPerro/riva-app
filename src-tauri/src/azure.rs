@@ -243,6 +243,20 @@ pub struct WorkItemDetailFields {
     pub tags: Option<String>,
     #[serde(rename = "Microsoft.VSTS.Common.Priority", default)]
     pub priority: Option<u32>,
+    #[serde(rename = "Microsoft.VSTS.Scheduling.RemainingWork", default)]
+    pub remaining_work: Option<f64>,
+    #[serde(rename = "Microsoft.VSTS.Scheduling.CompletedWork", default)]
+    pub completed_work: Option<f64>,
+    #[serde(rename = "Microsoft.VSTS.Scheduling.Effort", default)]
+    pub effort: Option<f64>,
+    #[serde(rename = "Microsoft.VSTS.Scheduling.DueDate", default)]
+    pub due_date: Option<String>,
+    #[serde(rename = "Microsoft.VSTS.Scheduling.StartDate", default)]
+    pub start_date: Option<String>,
+    #[serde(rename = "Microsoft.VSTS.Scheduling.FinishDate", default)]
+    pub finish_date: Option<String>,
+    #[serde(rename = "Microsoft.VSTS.CMMI.Blocked", default)]
+    pub blocked: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

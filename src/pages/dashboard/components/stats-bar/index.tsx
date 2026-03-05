@@ -20,7 +20,7 @@ export function StatsBar(props: StatsBarProps) {
             key={i}
             className="flex flex-1 items-center gap-3 rounded-md border border-border-subtle px-3 py-2.5 cursor-pointer transition-colors hover:bg-elevated hover:border-border"
           >
-            <Icon size={15} className="text-fg flex-shrink-0" />
+            <Icon size={15} className="text-fg shrink-0" />
             <div className="flex flex-col gap-0.5">
               <span className="text-[18px] font-semibold leading-none text-fg">
                 {item.value}
