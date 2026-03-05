@@ -1,9 +1,5 @@
 import { ListTodo, GitPullRequest, Workflow } from "lucide-react";
-import type { DashboardStats } from "../../types";
-
-interface StatsBarProps {
-  stats: DashboardStats;
-}
+import type { StatsBarProps } from "./types";
 
 export function StatsBar(props: StatsBarProps) {
   const { stats } = props;

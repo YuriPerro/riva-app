@@ -2,12 +2,14 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { router } from "./routes";
 import "./styles/globals.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <TooltipProvider delayDuration={300}>
+      <RouterProvider router={router} />
     <Toaster
       position="top-right"
       theme="dark"
@@ -21,5 +23,6 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         },
       }}
     />
+    </TooltipProvider>
   </React.StrictMode>
 );

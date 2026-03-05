@@ -1,6 +1,7 @@
 import { CheckSquare, Bug, Layers, Zap, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { WorkItem, WorkItemStatus, WorkItemType } from "../../types";
+import type { WorkItemStatus, WorkItemType } from "../../types";
+import type { WorkItemsListProps } from "./types";
 
 const typeIcon: Record<WorkItemType, React.ElementType> = {
   task: CheckSquare,
@@ -16,10 +17,6 @@ const statusConfig: Record<WorkItemStatus, { label: string; className: string }>
   "done":        { label: "Done",        className: "text-success" },
 };
 
-interface WorkItemsListProps {
-  items: WorkItem[];
-}
-
 export function WorkItemsList(props: WorkItemsListProps) {
   const { items } = props;
 
@@ -29,12 +26,12 @@ export function WorkItemsList(props: WorkItemsListProps) {
         <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
           My Work Items
         </span>
-        <button className="flex items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary">
+        <button className="flex cursor-pointer items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary">
           View all <ArrowRight size={10} />
         </button>
       </div>
 
-      <div className="flex flex-col">
+      <div className="flex flex-col max-h-[340px] overflow-y-auto">
         {items.map((item) => {
           const Icon = typeIcon[item.type];
           const status = statusConfig[item.status];

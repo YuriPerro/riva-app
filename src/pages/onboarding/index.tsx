@@ -15,7 +15,7 @@ export function OnboardingPage() {
   } = form;
 
   return (
-    <div className="flex h-full min-h-screen items-center justify-center bg-base">
+    <div data-tauri-drag-region className="flex h-full min-h-screen items-center justify-center bg-base">
       <div className="w-full max-w-[400px] px-4">
         <div className="mb-8 flex flex-col items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface">
@@ -91,7 +91,7 @@ export function OnboardingPage() {
               <button
                 type="button"
                 onClick={toggleShowToken}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-fg-muted transition-colors hover:text-fg-secondary"
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-fg-muted transition-colors hover:text-fg-secondary"
               >
                 {showToken ? <EyeOff size={13} /> : <Eye size={13} />}
               </button>
@@ -123,8 +123,7 @@ export function OnboardingPage() {
         </form>
 
         <p className="mt-6 text-center text-[11px] text-fg-disabled">
-          Your PAT is stored locally in your OS keychain and never leaves your
-          device.
+          Your PAT is stored locally and never leaves your device.
         </p>
       </div>
     </div>

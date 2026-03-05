@@ -1,3 +1,4 @@
+import { Loader2, AlertCircle } from "lucide-react";
 import { useDashboard } from "./use-dashboard";
 import { SprintHeader } from "./components/sprint-header";
 import { StatsBar } from "./components/stats-bar";
@@ -5,7 +6,24 @@ import { WorkItemsList } from "./components/work-items-list";
 import { PipelinesList } from "./components/pipelines-list";
 
 export function DashboardPage() {
-  const { sprint, stats, workItems, pipelines } = useDashboard();
+  const { sprint, stats, workItems, pipelines, isLoading, error } = useDashboard();
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <Loader2 size={16} className="animate-spin text-fg-disabled" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-1 items-center justify-center gap-2 text-[13px] text-error">
+        <AlertCircle size={14} />
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">

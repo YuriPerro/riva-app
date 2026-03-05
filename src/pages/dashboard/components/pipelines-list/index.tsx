@@ -1,6 +1,7 @@
 import { CheckCircle2, XCircle, Loader2, MinusCircle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Pipeline, PipelineStatus } from "../../types";
+import type { PipelineStatus } from "../../types";
+import type { PipelinesListProps } from "./types";
 
 const statusConfig: Record<PipelineStatus, { icon: React.ElementType; className: string; spin?: boolean }> = {
   succeeded: { icon: CheckCircle2, className: "text-success" },
@@ -8,10 +9,6 @@ const statusConfig: Record<PipelineStatus, { icon: React.ElementType; className:
   running:   { icon: Loader2,      className: "text-running", spin: true },
   cancelled: { icon: MinusCircle,  className: "text-neutral" },
 };
-
-interface PipelinesListProps {
-  pipelines: Pipeline[];
-}
 
 export function PipelinesList(props: PipelinesListProps) {
   const { pipelines } = props;
@@ -22,12 +19,12 @@ export function PipelinesList(props: PipelinesListProps) {
         <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
           Pipelines
         </span>
-        <button className="flex items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary">
+        <button className="flex cursor-pointer items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary">
           View all <ArrowRight size={10} />
         </button>
       </div>
 
-      <div className="flex flex-col">
+      <div className="flex flex-col max-h-[340px] overflow-y-auto">
         {pipelines.map((pipeline) => {
           const { icon: Icon, className, spin } = statusConfig[pipeline.status];
 

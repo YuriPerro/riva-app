@@ -31,3 +31,13 @@ export type DashboardStats = {
   inReview: number;
   pipelinesRunning: number;
 };
+
+export interface DashboardData {
+  sprint: SprintInfo;
+  stats: DashboardStats;
+  workItems: WorkItem[];
+  pipelines: Pipeline[];
+  isLoading: boolean;
+  error: string | null;
+  project: string | null;
+}

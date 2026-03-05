@@ -1,3 +1,3 @@
 export function PullRequestsPage() {
-  return <div className="text-[#a1a1aa]">Pull Requests — coming soon</div>;
+  return <div className="text-fg-disabled text-[13px]">Pull Requests — coming soon</div>;
 }
