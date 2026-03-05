@@ -1,9 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "@fontsource/geist/400.css";
-@import "@fontsource/geist/500.css";
-@import "@fontsource/geist/600.css";
-@import "@fontsource/geist/700.css";
+@import "./themes/midnight.css";
+@import "./themes/ocean.css";
+@import "./themes/ember.css";
+@import "./themes/forest.css";
 
 @custom-variant dark (&:is(.dark *));
 

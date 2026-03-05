@@ -1,0 +1,17 @@
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource/jetbrains-mono/700.css";
+
+[data-theme="ember"] {
+  --color-base:          #120a0a;
+  --color-surface:       #1a1010;
+  --color-elevated:      #261616;
+  --color-overlay:       #301c1c;
+  --color-border:        #3d2020;
+  --color-border-subtle: #2e1818;
+  --color-accent:        #f97316;
+  --color-accent-fg:     #ffffff;
+  --color-accent-muted:  #fdba74;
+  --font-sans:           "JetBrains Mono", ui-monospace, monospace;
+}

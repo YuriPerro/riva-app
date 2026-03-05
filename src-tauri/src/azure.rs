@@ -43,6 +43,21 @@ fn build_client(pat: &str) -> Result<Client, String> {
         .map_err(|e| e.to_string())
 }
 
+async fn api_error(resp: reqwest::Response) -> String {
+    let status = resp.status();
+    let body = resp.text().await.unwrap_or_default();
+
+    serde_json::from_str::<serde_json::Value>(&body)
+        .ok()
+        .and_then(|v| v["message"].as_str().map(String::from))
+        .unwrap_or_else(|| match status.as_u16() {
+            401 => "Unauthorized — check your PAT permissions".into(),
+            403 => "Access denied — check your PAT permissions".into(),
+            404 => "Resource not found".into(),
+            _ => format!("Request failed (HTTP {status})"),
+        })
+}
+
 // ============================================================
 // Response types
 // ============================================================
@@ -267,6 +282,18 @@ pub struct WorkItemDetail {
     pub web_url: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WorkItemTypeState {
+    pub name: String,
+    pub color: String,
+    pub category: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct WorkItemTypeStatesResponse {
+    value: Vec<WorkItemTypeState>,
+}
+
 // ============================================================
 // API calls
 // ============================================================
@@ -283,7 +310,7 @@ pub async fn get_projects(org_url: &str, pat: &str) -> Result<Vec<Project>, Stri
         .map_err(|e| e.to_string())?;
 
     if !resp.status().is_success() {
-        return Err(format!("Azure DevOps returned {}", resp.status()));
+        return Err(api_error(resp).await);
     }
 
     resp.json::<ProjectsResponse>()
@@ -433,7 +460,7 @@ pub async fn get_recent_pipelines(
     let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
 
     if !resp.status().is_success() {
-        return Err(format!("Builds API returned {}", resp.status()));
+        return Err(api_error(resp).await);
     }
 
     let mut runs = resp
@@ -469,7 +496,7 @@ pub async fn get_pull_requests(
     let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
 
     if !resp.status().is_success() {
-        return Err(format!("Pull Requests API returned {}", resp.status()));
+        return Err(api_error(resp).await);
     }
 
     let mut prs = resp
@@ -504,7 +531,7 @@ pub async fn get_teams(
 
     let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
     if !resp.status().is_success() {
-        return Err(format!("Teams API returned {}", resp.status()));
+        return Err(api_error(resp).await);
     }
 
     resp.json::<TeamsListResponse>()
@@ -593,7 +620,70 @@ pub async fn get_work_item_detail(
     let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
 
     if !resp.status().is_success() {
-        return Err(format!("Work item detail API returned {}", resp.status()));
+        return Err(api_error(resp).await);
+    }
+
+    let mut item: WorkItemDetail = resp.json().await.map_err(|e| e.to_string())?;
+    item.web_url = format!("{}/{}/_workitems/edit/{}", base, project, item.id);
+    Ok(item)
+}
+
+pub async fn get_work_item_type_states(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    work_item_type: &str,
+) -> Result<Vec<WorkItemTypeState>, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let encoded_type = encode_path_segment(work_item_type);
+    let url = format!(
+        "{}/{}/_apis/wit/workitemtypes/{}/states?api-version=7.1",
+        base, project, encoded_type
+    );
+
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+
+    let data: WorkItemTypeStatesResponse = resp.json().await.map_err(|e| e.to_string())?;
+    Ok(data.value)
+}
+
+pub async fn update_work_item_state(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    id: u64,
+    state: &str,
+) -> Result<WorkItemDetail, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/wit/workitems/{}?api-version=7.1",
+        base, project, id
+    );
+
+    let patch_body = serde_json::json!([
+        {
+            "op": "replace",
+            "path": "/fields/System.State",
+            "value": state
+        }
+    ]);
+
+    let resp = client
+        .patch(&url)
+        .header("Content-Type", "application/json-patch+json")
+        .json(&patch_body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
     }
 
     let mut item: WorkItemDetail = resp.json().await.map_err(|e| e.to_string())?;

@@ -1,6 +1,6 @@
 mod azure;
 
-use azure::{PipelineRun, Project, PullRequest, SprintIteration, Team, WorkItem, WorkItemDetail};
+use azure::{PipelineRun, Project, PullRequest, SprintIteration, Team, WorkItem, WorkItemDetail, WorkItemTypeState};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
@@ -180,6 +180,27 @@ async fn get_work_item_detail(
     azure::get_work_item_detail(&org_url, &pat, &project, id).await
 }
 
+#[tauri::command]
+async fn get_work_item_type_states(
+    state: State<'_, AppState>,
+    project: String,
+    work_item_type: String,
+) -> Result<Vec<WorkItemTypeState>, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::get_work_item_type_states(&org_url, &pat, &project, &work_item_type).await
+}
+
+#[tauri::command]
+async fn update_work_item_state(
+    state: State<'_, AppState>,
+    project: String,
+    id: u64,
+    new_state: String,
+) -> Result<WorkItemDetail, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::update_work_item_state(&org_url, &pat, &project, id, &new_state).await
+}
+
 // ============================================================
 // App entry point
 // ============================================================
@@ -206,6 +227,8 @@ pub fn run() {
             get_pull_requests,
             get_current_sprint,
             get_work_item_detail,
+            get_work_item_type_states,
+            update_work_item_state,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application")

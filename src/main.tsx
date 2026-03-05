@@ -2,10 +2,17 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 import { TooltipProvider } from "@/components/animate-ui/components/animate/tooltip";
 import { router } from "./routes";
+import { themeManager } from "@/lib/theme-manager";
 import "./styles/globals.css";
+
+themeManager.init();
+
+function handleGlobalError(err: unknown) {
+  toast.error(typeof err === "string" ? err : "Something went wrong");
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,6 +20,9 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 2,
       retry: 1,
       refetchOnWindowFocus: false,
+    },
+    mutations: {
+      onError: handleGlobalError,
     },
   },
 });

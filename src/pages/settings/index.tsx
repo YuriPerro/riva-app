@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { ProjectSwitcher } from "@/components/layout/project-switcher";
 import { useSessionStore } from "@/store/session";
+import { ThemePicker } from "./components/theme-picker";
 import { useSettings } from "./use-settings";
 
 export function SettingsPage() {
@@ -24,6 +25,8 @@ export function SettingsPage() {
       <PageHeader title="Settings" subtitle="Manage your account and preferences" />
 
       <div className="flex flex-col gap-4">
+
+        <ThemePicker />
 
         <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-4">
           <div className="flex flex-col gap-1">

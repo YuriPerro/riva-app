@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { azure } from "@/lib/tauri";
 import { formatDate, extractDisplayName, sanitizeHtml, parseTags } from "@/utils/formatters";
 import { mapWorkItemType } from "@/utils/mappers";
@@ -57,6 +57,8 @@ function mapToDisplay(detail: WorkItemDetail): DisplayDetail {
 }
 
 export function useWorkItemDetail(project: string, itemId: number | null) {
+  const queryClient = useQueryClient();
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["work-item-detail", project, itemId],
     queryFn: () => azure.getWorkItemDetail(project, itemId!),
@@ -69,10 +71,32 @@ export function useWorkItemDetail(project: string, itemId: number | null) {
   const mappedType = detail ? mapWorkItemType(detail.type) : "task";
   const theme = getWorkItemTheme(mappedType);
 
+  const workItemType = data?.fields["System.WorkItemType"] ?? "";
+
+  const { data: states } = useQuery({
+    queryKey: ["work-item-states", project, workItemType],
+    queryFn: () => azure.getWorkItemTypeStates(project, workItemType),
+    enabled: itemId !== null && workItemType !== "",
+    staleTime: 300_000,
+  });
+
+  const stateMutation = useMutation({
+    mutationFn: (newState: string) =>
+      azure.updateWorkItemState(project, itemId!, newState),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["work-item-detail", project, itemId] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["my-work"] });
+    },
+  });
+
   return {
     detail,
     theme,
+    states: states ?? [],
     isLoading,
+    isUpdating: stateMutation.isPending,
+    updateState: (newState: string) => stateMutation.mutate(newState),
     error: error ? "Failed to load work item details" : null,
   };
 }

@@ -45,6 +45,12 @@ export interface WorkItemDetail {
   webUrl: string;
 }
 
+export interface WorkItemTypeState {
+  name: string;
+  color: string;
+  category: string;
+}
+
 export interface PipelineDefinition {
   id: number;
   name: string;

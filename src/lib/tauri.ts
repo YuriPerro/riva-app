@@ -5,6 +5,7 @@ import type {
   Team,
   WorkItem,
   WorkItemDetail,
+  WorkItemTypeState,
   PipelineRun,
   SprintIteration,
   PullRequest,
@@ -82,4 +83,10 @@ export const azure = {
 
   getWorkItemDetail: (project: string, id: number) =>
     invoke<WorkItemDetail>(TauriCommand.GetWorkItemDetail, { project, id }),
+
+  getWorkItemTypeStates: (project: string, workItemType: string) =>
+    invoke<WorkItemTypeState[]>(TauriCommand.GetWorkItemTypeStates, { project, workItemType }),
+
+  updateWorkItemState: (project: string, id: number, newState: string) =>
+    invoke<WorkItemDetail>(TauriCommand.UpdateWorkItemState, { project, id, newState }),
 };

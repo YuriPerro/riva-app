@@ -15,4 +15,6 @@ export enum TauriCommand {
   GetPullRequests       = "get_pull_requests",
   GetCurrentSprint      = "get_current_sprint",
   GetWorkItemDetail     = "get_work_item_detail",
+  GetWorkItemTypeStates = "get_work_item_type_states",
+  UpdateWorkItemState   = "update_work_item_state",
 }
