@@ -20,3 +20,10 @@ export type DisplayDetail = {
   priority: PriorityLabel;
   webUrl: string;
 };
+
+export interface DetailFieldProps {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  valueClassName?: string;
+}

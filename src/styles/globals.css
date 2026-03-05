@@ -3,6 +3,7 @@
 @import "@fontsource/geist/400.css";
 @import "@fontsource/geist/500.css";
 @import "@fontsource/geist/600.css";
+@import "@fontsource/geist/700.css";
 
 @keyframes sidebar-label-in {
   from {
@@ -40,9 +41,9 @@
   --color-fg-disabled:  #3f3f46;
 
   /* Accent */
-  --color-accent:       #fafafa;
-  --color-accent-fg:    #0a0a0a;
-  --color-accent-muted: #e4e4e7;
+  --color-accent:       #ff7e5f;
+  --color-accent-fg:    #ffffff;
+  --color-accent-muted: #ffb09e;
 
   /* Status */
   --color-success: #22c55e;
@@ -95,6 +96,17 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-elevated);
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Sonner toast type overrides */

@@ -17,6 +17,7 @@ export function DashboardPage() {
     error,
     selectedWorkItemId,
     selectWorkItem,
+    closeWorkItemDetail,
   } = useDashboard();
 
   if (isLoading) {
@@ -38,6 +39,17 @@ export function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Header */}
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-[18px] font-bold text-fg">Dashboard</h2>
+        {project && (
+          <>
+            <span className="text-[12px] text-fg-disabled">·</span>
+            <p className="text-[12px] text-fg-muted">{project}</p>
+          </>
+        )}
+      </div>
+
       <div>
         <SprintHeader sprint={sprint} />
         <StatsBar stats={stats} />
@@ -52,7 +64,7 @@ export function DashboardPage() {
         <WorkItemDetailDialog
           itemId={selectedWorkItemId}
           project={project}
-          onClose={() => selectWorkItem(null)}
+          onClose={closeWorkItemDetail}
         />
       )}
     </div>

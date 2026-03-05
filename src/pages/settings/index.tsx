@@ -19,10 +19,11 @@ export function SettingsPage() {
   const currentProject = useSessionStore((s) => s.project);
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-lg font-semibold text-fg">Settings</h1>
-        <p className="text-sm text-fg-muted">Manage your account and preferences</p>
+    <div className="flex flex-col gap-6">
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-[18px] font-bold text-fg">Settings</h2>
+        <span className="text-[12px] text-fg-disabled">·</span>
+        <p className="text-[12px] text-fg-muted">Manage your account and preferences</p>
       </div>
 
       <div className="flex flex-col gap-4">

@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useWorkItemDetail } from "./use-work-item-detail";
-import type { WorkItemDetailDialogProps } from "./types";
+import type { WorkItemDetailDialogProps, PriorityLabel, DetailFieldProps } from "./types";
 
 const typeConfig: Record<string, { icon: React.ElementType; className: string }> = {
   Task:                 { icon: CheckSquare, className: "text-info" },
@@ -33,7 +33,7 @@ const typeConfig: Record<string, { icon: React.ElementType; className: string }>
   Feature:              { icon: Layers,      className: "text-accent" },
 };
 
-const priorityConfig: Record<string, string> = {
+const priorityConfig: Record<PriorityLabel, string> = {
   Critical: "text-error",
   High:     "text-warning",
   Medium:   "text-info",
@@ -151,12 +151,7 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
   );
 }
 
-function DetailField(props: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  valueClassName?: string;
-}) {
+function DetailField(props: DetailFieldProps) {
   const { icon: Icon, label, value, valueClassName } = props;
 
   return (

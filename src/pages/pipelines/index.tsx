@@ -1,12 +1,13 @@
 import { AlertCircle, CheckCircle2, XCircle, Loader2, MinusCircle, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FilterPill } from "@/components/ui/filter-pill";
+import { FilterSelector } from "@/components/ui/filter-selector";
 import {
   usePipelines,
   type PipelineRunItem,
   type PipelineStatus,
   type StatusFilter,
 } from "./use-pipelines";
-import { FilterSelector } from "@/components/ui/filter-selector";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -29,32 +30,6 @@ const STATUS_CONFIG: Record<PipelineStatus, {
   failed:    { icon: XCircle,      className: "text-error",                dot: "bg-error"    },
   cancelled: { icon: MinusCircle,  className: "text-fg-muted",             dot: "bg-fg-muted" },
 };
-
-// ─── Filter pill ──────────────────────────────────────────────────────────────
-
-function FilterPill({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "cursor-pointer rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
-        active
-          ? "border-accent bg-accent/10 text-accent"
-          : "border-border bg-surface text-fg-secondary hover:text-fg"
-      )}
-    >
-      {children}
-    </button>
-  );
-}
 
 // ─── Run row ─────────────────────────────────────────────────────────────────
 

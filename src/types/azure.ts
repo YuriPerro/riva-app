@@ -23,12 +23,7 @@ export interface WorkItem {
   webUrl: string;
 }
 
-export interface WorkItemDetailFields {
-  "System.Title": string;
-  "System.WorkItemType": string;
-  "System.State": string;
-  "System.AssignedTo"?: { displayName: string; uniqueName: string } | null;
-  "System.IterationPath"?: string;
+export interface WorkItemDetailFields extends WorkItemFields {
   "System.Description"?: string;
   "System.CreatedDate"?: string;
   "System.ChangedDate"?: string;

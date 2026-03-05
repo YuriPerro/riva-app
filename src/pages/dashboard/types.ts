@@ -64,4 +64,5 @@ export interface DashboardData {
   project: string | null;
   selectedWorkItemId: number | null;
   selectWorkItem: (id: number | null) => void;
+  closeWorkItemDetail: () => void;
 }

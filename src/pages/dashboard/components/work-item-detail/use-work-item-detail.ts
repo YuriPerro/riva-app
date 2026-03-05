@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { azure } from "@/lib/tauri";
 import type { WorkItemDetail } from "@/types/azure";
@@ -21,9 +22,12 @@ function formatDate(dateStr?: string): string {
   });
 }
 
-function extractDisplayName(identity?: { displayName: string } | null): string {
-  if (!identity || typeof identity !== "object") return "Unassigned";
-  return identity.displayName ?? "Unassigned";
+function extractDisplayName(
+  identity?: { displayName: string } | null,
+  fallback = "Unassigned",
+): string {
+  if (!identity || typeof identity !== "object") return fallback;
+  return identity.displayName ?? fallback;
 }
 
 function sanitizeHtml(html?: string): string {
@@ -45,14 +49,15 @@ function mapToDisplay(detail: WorkItemDetail): DisplayDetail {
     type: fields["System.WorkItemType"],
     state: fields["System.State"],
     assignee: extractDisplayName(
-      fields["System.AssignedTo"] as { displayName: string } | null
+      fields["System.AssignedTo"] as { displayName: string } | null,
     ),
     iterationPath: fields["System.IterationPath"] ?? "—",
     description: sanitizeHtml(fields["System.Description"]),
     createdDate: formatDate(fields["System.CreatedDate"]),
     changedDate: formatDate(fields["System.ChangedDate"]),
     createdBy: extractDisplayName(
-      fields["System.CreatedBy"] as { displayName: string } | null
+      fields["System.CreatedBy"] as { displayName: string } | null,
+      "Unknown",
     ),
     tags: parseTags(fields["System.Tags"]),
     priority: PRIORITY_LABELS[fields["Microsoft.VSTS.Common.Priority"] ?? 0] ?? "None",
@@ -65,9 +70,10 @@ export function useWorkItemDetail(project: string, itemId: number | null) {
     queryKey: ["work-item-detail", project, itemId],
     queryFn: () => azure.getWorkItemDetail(project, itemId!),
     enabled: itemId !== null,
+    staleTime: 60_000,
   });
 
-  const detail = data ? mapToDisplay(data) : null;
+  const detail = useMemo(() => (data ? mapToDisplay(data) : null), [data]);
 
   return {
     detail,

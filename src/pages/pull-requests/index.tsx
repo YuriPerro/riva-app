@@ -1,7 +1,8 @@
 import { AlertCircle, GitPullRequest, Loader2, GitBranch, Check, X, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { usePullRequests, type PR, type ReviewVote, type PRFilter } from "./use-pull-requests";
+import { FilterPill } from "@/components/ui/filter-pill";
 import { FilterSelector } from "@/components/ui/filter-selector";
+import { usePullRequests, type PR, type ReviewVote, type PRFilter } from "./use-pull-requests";
 
 // ─── Review vote badge ────────────────────────────────────────────────────────
 
@@ -134,32 +135,6 @@ function PRCard({ pr, onClick }: { pr: PR; onClick: () => void }) {
         {/* Time */}
         <span className="flex-shrink-0 text-[11px] text-fg-disabled">{pr.createdAgo}</span>
       </div>
-    </button>
-  );
-}
-
-// ─── Filter pill ──────────────────────────────────────────────────────────────
-
-function FilterPill({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "cursor-pointer rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
-        active
-          ? "border-accent bg-accent/10 text-accent"
-          : "border-border bg-surface text-fg-secondary hover:text-fg"
-      )}
-    >
-      {children}
     </button>
   );
 }

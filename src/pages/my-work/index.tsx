@@ -1,5 +1,6 @@
 import { AlertCircle, CheckSquare, Bug, Layers, Zap, Box, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FilterPill } from "@/components/ui/filter-pill";
 import {
   useMyWork,
   type MyWorkItem,
@@ -55,32 +56,6 @@ const STATUS_LABEL: Record<WorkItemStatus, string> = {
   "in-review":   "In Review",
   "done":        "Done",
 };
-
-// ─── Filter pill ──────────────────────────────────────────────────────────────
-
-function FilterPill({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "cursor-pointer rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
-        active
-          ? "border-accent bg-accent/10 text-accent"
-          : "border-border bg-surface text-fg-secondary hover:text-fg"
-      )}
-    >
-      {children}
-    </button>
-  );
-}
 
 // ─── Grouped items ────────────────────────────────────────────────────────────
 
@@ -188,9 +163,10 @@ export function MyWorkPage() {
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       {/* Header */}
-      <div>
-        <h2 className="text-[15px] font-semibold text-fg">My Work</h2>
-        <p className="mt-0.5 text-[12px] text-fg-muted">
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-[18px] font-bold text-fg">My Work</h2>
+        <span className="text-[12px] text-fg-disabled">·</span>
+        <p className="text-[12px] text-fg-muted">
           {isLoading
             ? "Loading…"
             : `${items.length} item${items.length !== 1 ? "s" : ""} assigned to you`}
@@ -246,8 +222,9 @@ export function MyWorkPage() {
           {error}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-1 items-center justify-center text-[13px] text-fg-disabled">
-          No items match the selected filters
+        <div className="flex flex-1 flex-col items-center justify-center gap-2">
+          <Layers size={24} className="text-fg-disabled" />
+          <span className="text-[13px] text-fg-disabled">No items match the selected filters</span>
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto">
