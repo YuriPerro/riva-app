@@ -201,6 +201,18 @@ async fn update_work_item_state(
     azure::update_work_item_state(&org_url, &pat, &project, id, &new_state).await
 }
 
+#[tauri::command]
+async fn review_pull_request(
+    state: State<'_, AppState>,
+    project: String,
+    repo_id: String,
+    pr_id: u64,
+    vote: i32,
+) -> Result<(), String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::review_pull_request(&org_url, &pat, &project, &repo_id, pr_id, vote).await
+}
+
 // ============================================================
 // App entry point
 // ============================================================
@@ -229,6 +241,7 @@ pub fn run() {
             get_work_item_detail,
             get_work_item_type_states,
             update_work_item_state,
+            review_pull_request,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application")

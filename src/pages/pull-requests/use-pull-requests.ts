@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { azure } from "@/lib/tauri";
 import type { PullRequest } from "@/types/azure";
 import { useSessionStore } from "@/store/session";
@@ -20,6 +21,7 @@ export interface PR {
   id: number;
   title: string;
   repo: string;
+  repoId: string;
   sourceBranch: string;
   targetBranch: string;
   author: string;
@@ -42,6 +44,7 @@ function mapPR(raw: PullRequest): PR {
     id: raw.pullRequestId,
     title: raw.title,
     repo: raw.repository.name,
+    repoId: raw.repository.id,
     sourceBranch: stripRefs(raw.sourceRefName),
     targetBranch: stripRefs(raw.targetRefName),
     author: raw.createdBy.displayName,
@@ -60,26 +63,12 @@ function mapPR(raw: PullRequest): PR {
 
 export type PRFilter = "all" | "active" | "draft";
 
-export interface PullRequestsData {
-  prs: PR[];
-  filtered: PR[];
-  isLoading: boolean;
-  error: string | null;
-  filter: PRFilter;
-  setFilter: (f: PRFilter) => void;
-  repos: string[];
-  repoFilters: string[];
-  addRepoFilter: (repo: string) => void;
-  removeRepoFilter: (repo: string) => void;
-  openPR: (url: string) => void;
-}
-
-export function usePullRequests(): PullRequestsData {
+export function usePullRequests() {
   const project = useSessionStore((s) => s.project);
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState<PRFilter>("all");
   const [repoFilters, setRepoFilters] = useState<string[]>([]);
 
-  // PRs are repo-scoped, not team-scoped — show all active PRs for the project
   const { data: prs = [], isLoading, error } = useQuery({
     queryKey: ["pull-requests", project],
     queryFn: () => azure.getPullRequests(project!).then((raw) => raw.map(mapPR)),
@@ -97,6 +86,16 @@ export function usePullRequests(): PullRequestsData {
     return result;
   }, [prs, filter, repoFilters]);
 
+  const reviewMutation = useMutation({
+    mutationFn: (params: { repoId: string; prId: number; vote: number }) =>
+      azure.reviewPullRequest(project!, params.repoId, params.prId, params.vote),
+    onSuccess: (_data, variables) => {
+      const label = variables.vote === 10 ? "approved" : variables.vote === -10 ? "rejected" : "updated";
+      toast.success(`PR ${label}`);
+      queryClient.invalidateQueries({ queryKey: ["pull-requests", project] });
+    },
+  });
+
   return {
     prs,
     filtered,
@@ -106,8 +105,11 @@ export function usePullRequests(): PullRequestsData {
     setFilter,
     repos,
     repoFilters,
-    addRepoFilter: (repo) => setRepoFilters((prev) => [...prev, repo]),
-    removeRepoFilter: (repo) => setRepoFilters((prev) => prev.filter((r) => r !== repo)),
+    addRepoFilter: (repo: string) => setRepoFilters((prev) => [...prev, repo]),
+    removeRepoFilter: (repo: string) => setRepoFilters((prev) => prev.filter((r) => r !== repo)),
     openPR: openUrl,
+    reviewPR: (repoId: string, prId: number, vote: number) =>
+      reviewMutation.mutate({ repoId, prId, vote }),
+    isReviewing: reviewMutation.isPending,
   };
 }

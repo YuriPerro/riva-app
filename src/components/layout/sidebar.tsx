@@ -14,6 +14,7 @@ import { ZapIcon, type ZapHandle } from "@/components/ui/zap";
 import { GitPullRequestIcon, type GitPullRequestIconHandle } from "@/components/ui/git-pull-request";
 import { SettingsIcon, type SettingsIconHandle } from "@/components/ui/settings";
 import { ShineBorder } from "@/components/ui/shine-border";
+import { Route } from "@/types/routes";
 import type { NavItemProps } from "./types";
 
 const STAGGER_MS = 60;
@@ -108,14 +109,14 @@ export const Sidebar = memo(function Sidebar() {
       </div>
 
       <nav className={cn("flex flex-1 flex-col px-2 mt-3", collapsed ? "gap-5" : "gap-1")}>
-        <NavItem to="/" end label="Dashboard" collapsed={collapsed} index={0} iconRef={homeRef} icon={<HomeIcon ref={homeRef} size={18} />} />
-        <NavItem to="/my-work" label="My Work" collapsed={collapsed} index={1} iconRef={layersRef} icon={<LayersIcon ref={layersRef} size={18} />} />
-        <NavItem to="/pipelines" label="Pipelines" collapsed={collapsed} index={2} iconRef={zapRef} icon={<ZapIcon ref={zapRef} size={18} />} />
-        <NavItem to="/pull-requests" label="Pull Requests" collapsed={collapsed} index={3} iconRef={prRef} icon={<GitPullRequestIcon ref={prRef} size={18} />} />
+        <NavItem to={Route.Dashboard} end label="Dashboard" collapsed={collapsed} index={0} iconRef={homeRef} icon={<HomeIcon ref={homeRef} size={18} />} />
+        <NavItem to={Route.Tasks} label="Tasks" collapsed={collapsed} index={1} iconRef={layersRef} icon={<LayersIcon ref={layersRef} size={18} />} />
+        <NavItem to={Route.Pipelines} label="Pipelines" collapsed={collapsed} index={2} iconRef={zapRef} icon={<ZapIcon ref={zapRef} size={18} />} />
+        <NavItem to={Route.PullRequests} label="Pull Requests" collapsed={collapsed} index={3} iconRef={prRef} icon={<GitPullRequestIcon ref={prRef} size={18} />} />
       </nav>
 
       <div className={cn("flex flex-col px-2 pt-2", collapsed ? "gap-5" : "gap-1")}>
-        <NavItem to="/settings" label="Settings" collapsed={collapsed} index={4} iconRef={settingsRef} icon={<SettingsIcon ref={settingsRef} size={18} />} />
+        <NavItem to={Route.Settings} label="Settings" collapsed={collapsed} index={4} iconRef={settingsRef} icon={<SettingsIcon ref={settingsRef} size={18} />} />
 
         <button
           onClick={toggle}

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { azure } from "@/lib/tauri";
 import type { PullRequest as ApiPullRequest } from "@/types/azure";
+import { Route } from "@/types/routes";
 import { useSessionStore } from "@/store/session";
 import { formatAgo, formatDuration, getAssigneeInitials, initials, stripRefs } from "@/utils/formatters";
 import { mapWorkItemType, mapWorkItemStatus, mapPipelineStatus } from "@/utils/mappers";
@@ -48,7 +49,7 @@ function sprintTotalDays(startDate?: string, finishDate?: string): number {
 async function fetchDashboardData(project: string, team: string, teamId: string) {
   const [sprintData, rawItems, rawPipelines, rawPRs] = await Promise.all([
     azure.getCurrentSprint(project, team),
-    azure.getMyWorkItems(project, team),
+    azure.getTasks(project, team),
     azure.getRecentPipelines(project, teamId),
     azure.getPullRequests(project),
   ]);
@@ -102,9 +103,9 @@ export const useDashboard = (): DashboardData => {
 
   useEffect(() => {
     if (!project) {
-      navigate("/project-select", { replace: true });
+      navigate(Route.ProjectSelect, { replace: true });
     } else if (!team) {
-      navigate("/team-select", { replace: true });
+      navigate(Route.TeamSelect, { replace: true });
     }
   }, [project, team, navigate]);
 

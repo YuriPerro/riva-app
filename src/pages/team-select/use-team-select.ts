@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { azure } from "@/lib/tauri";
 import type { Team } from "@/types/azure";
+import { Route } from "@/types/routes";
 import { useSessionStore } from "@/store/session";
 
 export const useTeamSelect = () => {
@@ -14,7 +15,7 @@ export const useTeamSelect = () => {
 
   useEffect(() => {
     if (!project) {
-      navigate("/project-select", { replace: true });
+      navigate(Route.ProjectSelect, { replace: true });
       return;
     }
 
@@ -26,7 +27,7 @@ export const useTeamSelect = () => {
 
   const selectTeam = (name: string, id: string) => {
     setTeam(name, id);
-    navigate("/", { replace: true });
+    navigate(Route.Dashboard, { replace: true });
   };
 
   return { project: project ?? "", teams, isLoading, error, selectTeam };

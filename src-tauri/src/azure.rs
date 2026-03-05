@@ -128,6 +128,8 @@ pub struct PipelineRun {
     #[serde(rename = "queueTime")]
     pub queue_time: Option<String>,
     pub definition: PipelineDefinition,
+    #[serde(rename = "triggerInfo", default)]
+    pub trigger_info: Option<std::collections::HashMap<String, String>>,
     /// Web browser URL for this build — computed after deserialization.
     #[serde(rename = "webUrl", default, skip_deserializing)]
     pub web_url: String,
@@ -689,5 +691,59 @@ pub async fn update_work_item_state(
     let mut item: WorkItemDetail = resp.json().await.map_err(|e| e.to_string())?;
     item.web_url = format!("{}/{}/_workitems/edit/{}", base, project, item.id);
     Ok(item)
+}
+
+// ============================================================
+// Pull Request review
+// ============================================================
+
+async fn get_my_user_id(org_url: &str, pat: &str) -> Result<String, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!("{}/_apis/connectionData?api-version=7.1", base);
+
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+
+    let data: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+    data["authenticatedUser"]["id"]
+        .as_str()
+        .map(String::from)
+        .ok_or_else(|| "Could not resolve your user ID".into())
+}
+
+pub async fn review_pull_request(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repo_id: &str,
+    pr_id: u64,
+    vote: i32,
+) -> Result<(), String> {
+    let user_id = get_my_user_id(org_url, pat).await?;
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests/{}/reviewers/{}?api-version=7.1",
+        base, project, repo_id, pr_id, user_id
+    );
+
+    let body = serde_json::json!({ "vote": vote });
+
+    let resp = client
+        .put(&url)
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+
+    Ok(())
 }
 

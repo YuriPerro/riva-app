@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { credentials, session } from "@/lib/tauri";
+import { Route } from "@/types/routes";
 import { onboardingSchema, type OnboardingFormValues } from "./types";
 
 export const useOnboarding = () => {
@@ -29,7 +30,7 @@ export const useOnboarding = () => {
       // 3. Hydrate Rust session
       await session.init(values.organizationUrl, values.personalAccessToken);
       // 4. Navigate to project selection
-      navigate("/project-select", { replace: true });
+      navigate(Route.ProjectSelect, { replace: true });
     } catch (err) {
       toast.error(
         typeof err === "string" ? err : "Failed to connect. Check your URL and PAT."

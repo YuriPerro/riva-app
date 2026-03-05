@@ -2,6 +2,7 @@ import { CheckCircle2, XCircle, Loader2, MinusCircle, ArrowRight } from "lucide-
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Route } from "@/types/routes";
 import type { PipelineStatus } from "../../types";
 import type { PipelinesListProps } from "./types";
 
@@ -23,7 +24,7 @@ export function PipelinesList(props: PipelinesListProps) {
           Pipelines
         </span>
         <button
-          onClick={() => navigate("/pipelines")}
+          onClick={() => navigate(Route.Pipelines)}
           className="flex cursor-pointer items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary"
         >
           View all <ArrowRight size={10} />

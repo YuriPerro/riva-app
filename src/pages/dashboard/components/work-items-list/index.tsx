@@ -2,6 +2,7 @@ import { ArrowRight, ExternalLink } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Route } from "@/types/routes";
 import { getWorkItemTheme } from "@/utils/work-item-theme";
 import type { WorkItemStatus } from "../../types";
 import type { WorkItemsListProps } from "./types";
@@ -21,10 +22,10 @@ export function WorkItemsList(props: WorkItemsListProps) {
     <div className="flex flex-col">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-          My Work Items
+          Tasks
         </span>
         <button
-          onClick={() => navigate("/my-work")}
+          onClick={() => navigate(Route.Tasks)}
           className="flex cursor-pointer items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary"
         >
           View all <ArrowRight size={10} />

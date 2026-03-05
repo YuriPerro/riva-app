@@ -87,7 +87,7 @@ export function useWorkItemDetail(project: string, itemId: number | null) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["work-item-detail", project, itemId] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["my-work"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 

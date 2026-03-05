@@ -5,12 +5,12 @@ import { PageHeader } from "@/components/ui/page-header";
 import { FilterPill } from "@/components/ui/filter-pill";
 import { WorkItemDetailDialog } from "@/pages/dashboard/components/work-item-detail";
 import {
-  useMyWork,
-  type MyWorkItem,
+  useTasks,
+  type TaskItem,
   type WorkItemStatus,
   type StatusFilter,
   type TypeFilter,
-} from "./use-my-work";
+} from "./use-tasks";
 
 // ============================================================
 // Constants
@@ -62,11 +62,11 @@ function GroupedItems({
   onSelect,
   openItem,
 }: {
-  items: MyWorkItem[];
+  items: TaskItem[];
   onSelect: (id: number) => void;
   openItem: (url: string) => void;
 }) {
-  const groups = new Map<string, MyWorkItem[]>();
+  const groups = new Map<string, TaskItem[]>();
   for (const item of items) {
     const key = item.iterationPath ?? "No Sprint";
     if (!groups.has(key)) groups.set(key, []);
@@ -157,7 +157,7 @@ function GroupedItems({
 // Page
 // ============================================================
 
-export function MyWorkPage() {
+export function TasksPage() {
   const {
     filtered,
     items,
@@ -172,7 +172,7 @@ export function MyWorkPage() {
     selectedWorkItemId,
     selectWorkItem,
     closeWorkItemDetail,
-  } = useMyWork();
+  } = useTasks();
 
   const countByStatus = (s: StatusFilter) =>
     s === "all" ? items.length : items.filter((i) => i.status === s).length;
@@ -180,7 +180,7 @@ export function MyWorkPage() {
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       <PageHeader
-        title="My Work"
+        title="Tasks"
         subtitle={
           isLoading
             ? "Loading…"

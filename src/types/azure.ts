@@ -65,6 +65,7 @@ export interface PipelineRun {
   finishTime?: string;
   queueTime?: string;
   definition: PipelineDefinition;
+  triggerInfo?: Record<string, string>;
   webUrl: string;
 }
 

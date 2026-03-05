@@ -9,7 +9,7 @@ import type { WorkItemType, WorkItemStatus } from "@/types/work-item";
 
 export type { WorkItemType, WorkItemStatus };
 
-export interface MyWorkItem {
+export interface TaskItem {
   id: number;
   title: string;
   type: WorkItemType;
@@ -24,9 +24,9 @@ export interface MyWorkItem {
 export type StatusFilter = "all" | WorkItemStatus;
 export type TypeFilter = "all" | WorkItemType;
 
-export interface MyWorkData {
-  items: MyWorkItem[];
-  filtered: MyWorkItem[];
+export interface TasksData {
+  items: TaskItem[];
+  filtered: TaskItem[];
   isLoading: boolean;
   error: string | null;
   project: string | null;
@@ -40,7 +40,7 @@ export interface MyWorkData {
   closeWorkItemDetail: () => void;
 }
 
-export function useMyWork(): MyWorkData {
+export function useTasks(): TasksData {
   const project = useSessionStore((s) => s.project);
   const team = useSessionStore((s) => s.team);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -48,9 +48,9 @@ export function useMyWork(): MyWorkData {
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<number | null>(null);
 
   const { data: items = [], isLoading, error } = useQuery({
-    queryKey: ["my-work", project, team],
-    queryFn: () => azure.getMyWorkItems(project!, team ?? undefined).then((raw) =>
-      raw.map((w): MyWorkItem => ({
+    queryKey: ["tasks", project, team],
+    queryFn: () => azure.getTasks(project!, team ?? undefined).then((raw) =>
+      raw.map((w): TaskItem => ({
         id: w.id,
         title: w.fields["System.Title"],
         type: mapWorkItemType(w.fields["System.WorkItemType"]),

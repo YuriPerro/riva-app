@@ -3,9 +3,10 @@ import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/layout";
 import { credentials, session } from "@/lib/tauri";
+import { Route } from "@/types/routes";
 
 const DashboardPage = lazy(() => import("@/pages/dashboard").then((m) => ({ default: m.DashboardPage })));
-const MyWorkPage = lazy(() => import("@/pages/my-work").then((m) => ({ default: m.MyWorkPage })));
+const TasksPage = lazy(() => import("@/pages/tasks").then((m) => ({ default: m.TasksPage })));
 const PipelinesPage = lazy(() => import("@/pages/pipelines").then((m) => ({ default: m.PipelinesPage })));
 const PullRequestsPage = lazy(() => import("@/pages/pull-requests").then((m) => ({ default: m.PullRequestsPage })));
 const SettingsPage = lazy(() => import("@/pages/settings").then((m) => ({ default: m.SettingsPage })));
@@ -53,31 +54,31 @@ function AuthGuard() {
     );
   }
 
-  return authed ? <Outlet /> : <Navigate to="/onboarding" replace />;
+  return authed ? <Outlet /> : <Navigate to={Route.Onboarding} replace />;
 }
 
 export const router = createBrowserRouter([
   {
-    path: "/onboarding",
+    path: Route.Onboarding,
     element: <LazyPage><OnboardingPage /></LazyPage>,
   },
   {
-    path: "/project-select",
+    path: Route.ProjectSelect,
     element: <LazyPage><ProjectSelectPage /></LazyPage>,
   },
   {
-    path: "/team-select",
+    path: Route.TeamSelect,
     element: <LazyPage><TeamSelectPage /></LazyPage>,
   },
   {
-    path: "/",
+    path: Route.Dashboard,
     element: <AuthGuard />,
     children: [
       {
         element: <AppLayout />,
         children: [
           { index: true, element: <LazyPage><DashboardPage /></LazyPage> },
-          { path: "my-work", element: <LazyPage><MyWorkPage /></LazyPage> },
+          { path: "tasks", element: <LazyPage><TasksPage /></LazyPage> },
           { path: "pipelines", element: <LazyPage><PipelinesPage /></LazyPage> },
           { path: "pull-requests", element: <LazyPage><PullRequestsPage /></LazyPage> },
           { path: "settings", element: <LazyPage><SettingsPage /></LazyPage> },

@@ -53,17 +53,24 @@ function RunRow({ run, onClick }: { run: PipelineRunItem; onClick: () => void })
       />
 
       {/* Build number */}
-      <span className="w-16 flex-shrink-0 font-mono text-[11px] text-fg-disabled">
+      <span className="w-24 flex-shrink-0 font-mono text-[11px] text-fg-disabled">
         #{run.buildNumber}
       </span>
 
-      {/* Branch */}
-      <span className="flex-1 truncate font-mono text-[12px] text-fg-secondary group-hover:text-fg">
-        {run.branch}
-      </span>
+      {/* Branch + title */}
+      <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
+        <span className="truncate font-mono text-[12px] text-fg-secondary group-hover:text-fg">
+          {run.branch}
+        </span>
+        {run.title && (
+          <span className="truncate text-[11px] text-fg-disabled">
+            {run.title}
+          </span>
+        )}
+      </div>
 
       {/* Status pill */}
-      <div className="flex flex-shrink-0 items-center gap-1.5">
+      <div className="flex w-24 flex-shrink-0 items-center gap-1.5">
         <span className={cn("h-1.5 w-1.5 rounded-full", dot)} />
         <span className={cn("text-[11px]", className)}>
           {run.status.charAt(0).toUpperCase() + run.status.slice(1)}
@@ -197,7 +204,7 @@ export function PipelinesPage() {
                 {/* Column headers */}
                 <div className="mb-1 flex items-center gap-3 px-3">
                   <span className="w-[13px] flex-shrink-0" />
-                  <span className="w-16 flex-shrink-0 text-[10px] text-fg-disabled">Build</span>
+                  <span className="w-24 flex-shrink-0 text-[10px] text-fg-disabled">Build</span>
                   <span className="flex-1 text-[10px] text-fg-disabled">Branch</span>
                   <span className="w-24 flex-shrink-0 text-[10px] text-fg-disabled">Status</span>
                   <span className="w-14 flex-shrink-0 text-right text-[10px] text-fg-disabled">Duration</span>

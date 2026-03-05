@@ -1,8 +1,9 @@
-import { AlertCircle, GitPullRequest, Loader2, GitBranch, Check, X, Clock } from "lucide-react";
+import { AlertCircle, GitPullRequest, Loader2, GitBranch, Check, X, Clock, CircleCheck, CircleX, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
 import { FilterPill } from "@/components/ui/filter-pill";
 import { FilterSelector } from "@/components/ui/filter-selector";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { usePullRequests, type PR, type ReviewVote, type PRFilter } from "./use-pull-requests";
 
 // ============================================================
@@ -16,32 +17,40 @@ const VOTE_CONFIG: Record<ReviewVote, { icon: React.ElementType; className: stri
   none:     { icon: Clock,  className: "text-fg-muted", title: "No vote"   },
 };
 
-function ReviewerDot({ reviewer }: { reviewer: { initials: string; vote: ReviewVote; isRequired: boolean } }) {
+function ReviewerDot({ reviewer }: { reviewer: { displayName: string; initials: string; vote: ReviewVote; isRequired: boolean } }) {
   const { icon: Icon, className, title } = VOTE_CONFIG[reviewer.vote];
 
   return (
-    <div
-      className="group relative flex h-5 w-5 items-center justify-center"
-      title={`${reviewer.initials} · ${title}`}
-    >
-      <span
-        className={cn(
-          "flex h-5 w-5 items-center justify-center rounded-full text-[8px] font-semibold",
-          reviewer.vote === "approved" ? "bg-success/15 text-success" :
-          reviewer.vote === "rejected" ? "bg-error/15 text-error" :
-          "bg-elevated text-fg-muted"
-        )}
-      >
-        {reviewer.initials}
-      </span>
-      <Icon
-        size={8}
-        className={cn(
-          "absolute -bottom-0.5 -right-0.5 rounded-full bg-surface p-px",
-          className
-        )}
-      />
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="relative flex h-6 w-6 cursor-pointer items-center justify-center">
+          <span
+            className={cn(
+              "flex h-6 w-6 items-center justify-center rounded-full border text-[9px] font-semibold",
+              reviewer.vote === "approved" ? "border-success/40 bg-success/15 text-success" :
+              reviewer.vote === "rejected" ? "border-error/40 bg-error/15 text-error" :
+              "border-border bg-elevated text-fg-muted"
+            )}
+          >
+            {reviewer.initials}
+          </span>
+          <Icon
+            size={9}
+            className={cn(
+              "absolute -bottom-0.5 -right-0.5 rounded-full bg-surface p-px",
+              className,
+            )}
+          />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="top">
+        <div className="flex items-center gap-1.5">
+          <Icon size={10} className={className} />
+          <span>{reviewer.displayName}</span>
+          <span className="text-fg-disabled">· {title}</span>
+        </div>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -49,7 +58,15 @@ function ReviewerDot({ reviewer }: { reviewer: { initials: string; vote: ReviewV
 // PR card
 // ============================================================
 
-function PRCard({ pr, onClick }: { pr: PR; onClick: () => void }) {
+interface PRCardProps {
+  pr: PR;
+  onOpen: () => void;
+  onApprove: () => void;
+  onReject: () => void;
+  isReviewing: boolean;
+}
+
+function PRCard({ pr, onOpen, onApprove, onReject, isReviewing }: PRCardProps) {
   const approved   = pr.reviewers.filter((r) => r.vote === "approved").length;
   const rejected   = pr.reviewers.filter((r) => r.vote === "rejected").length;
   const reqApproved = pr.reviewers.filter((r) => r.isRequired && r.vote === "approved").length;
@@ -59,11 +76,7 @@ function PRCard({ pr, onClick }: { pr: PR; onClick: () => void }) {
   const hasRejection = rejected > 0;
 
   return (
-    <button
-      onClick={onClick}
-      className="group flex w-full cursor-pointer flex-col gap-2.5 rounded-lg border border-border bg-surface p-4 text-left transition-colors hover:bg-elevated"
-    >
-      {/* Top row: icon + title + draft badge */}
+    <div className="group flex w-full flex-col gap-2.5 rounded-lg border border-border bg-surface p-4 text-left transition-colors hover:bg-elevated">
       <div className="flex items-start gap-2.5">
         <GitPullRequest
           size={14}
@@ -73,23 +86,49 @@ function PRCard({ pr, onClick }: { pr: PR; onClick: () => void }) {
           )}
         />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="flex-1 truncate text-[13px] font-medium text-fg-secondary group-hover:text-fg">
-              {pr.title}
-            </span>
+          <button
+            onClick={onOpen}
+            className="block w-full truncate cursor-pointer text-left text-[13px] font-medium text-fg-secondary hover:text-fg hover:underline"
+          >
+            {pr.title}
+          </button>
+          <div className="mt-0.5 flex items-center gap-2 text-[11px] text-fg-disabled">
+            <span>{pr.repo} · #{pr.id}</span>
             {pr.status === "draft" && (
-              <span className="flex-shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] text-fg-disabled">
+              <span className="rounded border border-border px-1.5 py-0.5 text-[10px]">
                 Draft
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[11px] text-fg-disabled">
-            {pr.repo} · #{pr.id}
-          </p>
+        </div>
+
+        <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            onClick={onApprove}
+            disabled={isReviewing}
+            className="flex h-6 cursor-pointer items-center gap-1 rounded-md border border-success/30 bg-success/10 px-2 text-[11px] font-medium text-success transition-colors hover:bg-success/20 disabled:opacity-50"
+          >
+            <CircleCheck size={12} />
+            Approve
+          </button>
+          <button
+            onClick={onReject}
+            disabled={isReviewing}
+            className="flex h-6 cursor-pointer items-center gap-1 rounded-md border border-error/30 bg-error/10 px-2 text-[11px] font-medium text-error transition-colors hover:bg-error/20 disabled:opacity-50"
+          >
+            <CircleX size={12} />
+            Reject
+          </button>
+          <button
+            onClick={onOpen}
+            title="Open in Azure DevOps"
+            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-elevated hover:text-fg"
+          >
+            <ExternalLink size={12} />
+          </button>
         </div>
       </div>
 
-      {/* Branch info */}
       <div className="flex items-center gap-1.5 text-[11px] text-fg-disabled">
         <GitBranch size={10} className="flex-shrink-0" />
         <span className="truncate font-mono">{pr.sourceBranch}</span>
@@ -97,9 +136,7 @@ function PRCard({ pr, onClick }: { pr: PR; onClick: () => void }) {
         <span className="truncate font-mono">{pr.targetBranch}</span>
       </div>
 
-      {/* Bottom row: author + reviewers + time + status */}
       <div className="flex items-center gap-3">
-        {/* Author */}
         <div className="flex items-center gap-1.5">
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-elevated text-[8px] font-semibold text-fg-muted">
             {pr.authorInitials}
@@ -107,40 +144,39 @@ function PRCard({ pr, onClick }: { pr: PR; onClick: () => void }) {
           <span className="text-[11px] text-fg-disabled">{pr.author}</span>
         </div>
 
-        {/* Reviewer dots */}
-        {pr.reviewers.length > 0 && (
-          <div className="flex items-center gap-0.5 ml-auto">
-            {pr.reviewers.slice(0, 5).map((r, i) => (
-              <ReviewerDot key={i} reviewer={r} />
-            ))}
-            {pr.reviewers.length > 5 && (
-              <span className="ml-1 text-[10px] text-fg-disabled">
-                +{pr.reviewers.length - 5}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Review summary */}
-        <span
-          className={cn(
-            "ml-auto flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px]",
-            hasRejection
-              ? "border-error/40 bg-error/10 text-error"
-              : allRequiredApproved
-                ? "border-success/40 bg-success/10 text-success"
-                : "border-border bg-elevated text-fg-disabled"
+        <div className="ml-auto flex items-center gap-2">
+          {pr.reviewers.length > 0 && (
+            <div className="flex items-center gap-1">
+              {pr.reviewers.slice(0, 5).map((r, i) => (
+                <ReviewerDot key={i} reviewer={r} />
+              ))}
+              {pr.reviewers.length > 5 && (
+                <span className="ml-1 text-[10px] text-fg-disabled">
+                  +{pr.reviewers.length - 5}
+                </span>
+              )}
+            </div>
           )}
-        >
-          {hasRejection
-            ? `${rejected} rejected`
-            : `${approved}/${pr.reviewers.length} approved`}
-        </span>
 
-        {/* Time */}
-        <span className="flex-shrink-0 text-[11px] text-fg-disabled">{pr.createdAgo}</span>
+          <span
+            className={cn(
+              "flex-shrink-0 rounded border px-1.5 py-0.5 text-[10px]",
+              hasRejection
+                ? "border-error/40 bg-error/10 text-error"
+                : allRequiredApproved
+                  ? "border-success/40 bg-success/10 text-success"
+                  : "border-border bg-elevated text-fg-disabled"
+            )}
+          >
+            {hasRejection
+              ? `${rejected} rejected`
+              : `${approved}/${pr.reviewers.length} approved`}
+          </span>
+
+          <span className="flex-shrink-0 text-[11px] text-fg-disabled">{pr.createdAgo}</span>
+        </div>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -158,14 +194,13 @@ export function PullRequestsPage() {
   const {
     filtered, prs, isLoading, error, filter, setFilter,
     repos, repoFilters, addRepoFilter, removeRepoFilter, openPR,
+    reviewPR, isReviewing,
   } = usePullRequests();
 
-  // Counts respect active repo filters
   const baseForCount = repoFilters.length > 0 ? prs.filter((p) => repoFilters.includes(p.repo)) : prs;
   const countByFilter = (f: PRFilter) =>
     f === "all" ? baseForCount.length : baseForCount.filter((p) => p.status === f).length;
 
-  // Group by repo
   const repoGroups = new Map<string, PR[]>();
   for (const pr of filtered) {
     if (!repoGroups.has(pr.repo)) repoGroups.set(pr.repo, []);
@@ -173,6 +208,7 @@ export function PullRequestsPage() {
   }
 
   return (
+    <TooltipProvider delayDuration={150} skipDelayDuration={500} disableHoverableContent>
     <div className="flex h-full flex-col gap-4 overflow-hidden">
       <PageHeader
         title="Pull Requests"
@@ -183,7 +219,6 @@ export function PullRequestsPage() {
         }
       />
 
-      {/* Status filters + repo selector */}
       <div className="flex flex-wrap items-center gap-1.5">
         {FILTERS.map(({ value, label }) => (
           <FilterPill
@@ -205,7 +240,6 @@ export function PullRequestsPage() {
           </FilterPill>
         ))}
 
-        {/* Divider + repo selector */}
         {!isLoading && repos.length > 1 && (
           <>
             <span className="h-4 w-px bg-border" />
@@ -220,7 +254,6 @@ export function PullRequestsPage() {
         )}
       </div>
 
-      {/* Content */}
       {isLoading ? (
         <div className="flex flex-1 items-center justify-center">
           <Loader2 size={16} className="animate-spin text-fg-disabled" />
@@ -252,7 +285,14 @@ export function PullRequestsPage() {
                 )}
                 <div className="flex flex-col gap-2">
                   {repoPRs.map((pr) => (
-                    <PRCard key={pr.id} pr={pr} onClick={() => openPR(pr.url)} />
+                    <PRCard
+                      key={pr.id}
+                      pr={pr}
+                      onOpen={() => openPR(pr.url)}
+                      onApprove={() => reviewPR(pr.repoId, pr.id, 10)}
+                      onReject={() => reviewPR(pr.repoId, pr.id, -10)}
+                      isReviewing={isReviewing}
+                    />
                   ))}
                 </div>
               </div>
@@ -261,5 +301,6 @@ export function PullRequestsPage() {
         </div>
       )}
     </div>
+    </TooltipProvider>
   );
 }

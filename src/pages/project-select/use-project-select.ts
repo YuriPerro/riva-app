@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { azure } from "@/lib/tauri";
 import type { Project } from "@/types/azure";
+import { Route } from "@/types/routes";
 import { useSessionStore } from "@/store/session";
 
 export const useProjectSelect = () => {
@@ -20,7 +21,7 @@ export const useProjectSelect = () => {
 
   const selectProject = (name: string) => {
     setProject(name);
-    navigate("/team-select", { replace: true });
+    navigate(Route.TeamSelect, { replace: true });
   };
 
   return { projects, isLoading, error, selectProject };
