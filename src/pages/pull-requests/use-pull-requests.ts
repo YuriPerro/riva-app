@@ -88,23 +88,35 @@ export interface PullRequestsData {
   error: string | null;
   filter: PRFilter;
   setFilter: (f: PRFilter) => void;
+  repos: string[];
+  repoFilters: string[];
+  addRepoFilter: (repo: string) => void;
+  removeRepoFilter: (repo: string) => void;
   openPR: (url: string) => void;
 }
 
 export function usePullRequests(): PullRequestsData {
   const project = useSessionStore((s) => s.project);
   const [filter, setFilter] = useState<PRFilter>("all");
+  const [repoFilters, setRepoFilters] = useState<string[]>([]);
 
+  // PRs are repo-scoped, not team-scoped — show all active PRs for the project
   const { data: prs = [], isLoading, error } = useQuery({
     queryKey: ["pull-requests", project],
     queryFn: () => azure.getPullRequests(project!).then((raw) => raw.map(mapPR)),
     enabled: !!project,
   });
 
-  const filtered = useMemo(() =>
-    filter === "all" ? prs : prs.filter((pr) => pr.status === filter),
-    [prs, filter]
-  );
+  const repos = useMemo(() => {
+    const names = [...new Set(prs.map((pr) => pr.repo))];
+    return names.sort((a, b) => a.localeCompare(b));
+  }, [prs]);
+
+  const filtered = useMemo(() => {
+    let result = filter === "all" ? prs : prs.filter((pr) => pr.status === filter);
+    if (repoFilters.length > 0) result = result.filter((pr) => repoFilters.includes(pr.repo));
+    return result;
+  }, [prs, filter, repoFilters]);
 
   return {
     prs,
@@ -113,6 +125,10 @@ export function usePullRequests(): PullRequestsData {
     error: error ? (typeof error === "string" ? error : "Failed to load pull requests") : null,
     filter,
     setFilter,
+    repos,
+    repoFilters,
+    addRepoFilter: (repo) => setRepoFilters((prev) => [...prev, repo]),
+    removeRepoFilter: (repo) => setRepoFilters((prev) => prev.filter((r) => r !== repo)),
     openPR: openUrl,
   };
 }

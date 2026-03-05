@@ -53,7 +53,7 @@ export function TeamSelectPage() {
             {teams.map((team) => (
               <button
                 key={team.id}
-                onClick={() => selectTeam(team.name)}
+                onClick={() => selectTeam(team.name, team.id)}
                 className="group flex cursor-pointer flex-col gap-3 rounded-lg border border-border bg-surface p-4 text-left transition-colors hover:bg-elevated"
               >
                 <TeamInitial name={team.name} />

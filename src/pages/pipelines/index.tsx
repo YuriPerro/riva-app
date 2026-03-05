@@ -6,6 +6,7 @@ import {
   type PipelineStatus,
   type StatusFilter,
 } from "./use-pipelines";
+import { FilterSelector } from "@/components/ui/filter-selector";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -112,11 +113,19 @@ export function PipelinesPage() {
     error,
     statusFilter,
     setStatusFilter,
+    definitions,
+    definitionFilters,
+    addDefinitionFilter,
+    removeDefinitionFilter,
     openRun,
   } = usePipelines();
 
+  // Counts respect active definition filters
+  const baseForCount = definitionFilters.length > 0
+    ? runs.filter((r) => definitionFilters.includes(r.definitionName))
+    : runs;
   const countByStatus = (s: StatusFilter) =>
-    s === "all" ? runs.length : runs.filter((r) => r.status === s).length;
+    s === "all" ? baseForCount.length : baseForCount.filter((r) => r.status === s).length;
 
   // Group by pipeline definition name
   const groups = new Map<string, PipelineRunItem[]>();
@@ -137,7 +146,18 @@ export function PipelinesPage() {
         </p>
       </div>
 
-      {/* Filters */}
+      {/* Pipeline definition selector */}
+      {!isLoading && definitions.length > 1 && (
+        <FilterSelector
+          options={definitions}
+          selected={definitionFilters}
+          onAdd={addDefinitionFilter}
+          onRemove={removeDefinitionFilter}
+          placeholder="Pipeline"
+        />
+      )}
+
+      {/* Status filters */}
       <div className="flex flex-wrap gap-1.5">
         {STATUS_FILTERS.map(({ value, label }) => (
           <FilterPill

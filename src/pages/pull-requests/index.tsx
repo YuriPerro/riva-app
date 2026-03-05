@@ -1,6 +1,7 @@
 import { AlertCircle, GitPullRequest, Loader2, GitBranch, Check, X, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePullRequests, type PR, type ReviewVote, type PRFilter } from "./use-pull-requests";
+import { FilterSelector } from "@/components/ui/filter-selector";
 
 // ─── Review vote badge ────────────────────────────────────────────────────────
 
@@ -172,10 +173,15 @@ const FILTERS: { value: PRFilter; label: string }[] = [
 ];
 
 export function PullRequestsPage() {
-  const { filtered, prs, isLoading, error, filter, setFilter, openPR } = usePullRequests();
+  const {
+    filtered, prs, isLoading, error, filter, setFilter,
+    repos, repoFilters, addRepoFilter, removeRepoFilter, openPR,
+  } = usePullRequests();
 
+  // Counts respect active repo filters
+  const baseForCount = repoFilters.length > 0 ? prs.filter((p) => repoFilters.includes(p.repo)) : prs;
   const countByFilter = (f: PRFilter) =>
-    f === "all" ? prs.length : prs.filter((p) => p.status === f).length;
+    f === "all" ? baseForCount.length : baseForCount.filter((p) => p.status === f).length;
 
   // Group by repo
   const repoGroups = new Map<string, PR[]>();
@@ -196,7 +202,18 @@ export function PullRequestsPage() {
         </p>
       </div>
 
-      {/* Filters */}
+      {/* Repo selector */}
+      {!isLoading && repos.length > 1 && (
+        <FilterSelector
+          options={repos}
+          selected={repoFilters}
+          onAdd={addRepoFilter}
+          onRemove={removeRepoFilter}
+          placeholder="Repo"
+        />
+      )}
+
+      {/* Status filters */}
       <div className="flex gap-1.5">
         {FILTERS.map(({ value, label }) => (
           <FilterPill

@@ -26,13 +26,31 @@ export type Pipeline = {
 export type SprintInfo = {
   name: string;
   daysRemaining: number;
+  totalDays: number;
+  startDate: string;
   status: "on-track" | "at-risk" | "off-track";
+};
+
+export type DashboardPR = {
+  id: number;
+  title: string;
+  repo: string;
+  sourceBranch: string;
+  targetBranch: string;
+  author: string;
+  authorInitials: string;
+  createdAgo: string;
+  status: "active" | "draft";
+  reviewerCount: number;
+  approvedCount: number;
+  url: string;
 };
 
 export type DashboardStats = {
   myTasks: number;
   inReview: number;
   pipelinesRunning: number;
+  openPRs: number;
 };
 
 export interface DashboardData {
@@ -40,6 +58,7 @@ export interface DashboardData {
   stats: DashboardStats;
   workItems: WorkItem[];
   pipelines: Pipeline[];
+  pullRequests: DashboardPR[];
   isLoading: boolean;
   error: string | null;
   project: string | null;

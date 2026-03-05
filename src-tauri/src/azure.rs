@@ -234,25 +234,79 @@ pub async fn get_projects(org_url: &str, pat: &str) -> Result<Vec<Project>, Stri
         .map_err(|e| e.to_string())
 }
 
-/// Get work items assigned to the current user in a project
+/// Fetch the team's default area path from `teamfieldvalues`.
+/// Returns `None` on any failure so callers can safely fall back.
+async fn get_team_area_path(
+    client: &Client,
+    base: &str,
+    project: &str,
+    team: &str,
+) -> Option<String> {
+    #[derive(Deserialize)]
+    struct FieldValuesResponse {
+        #[serde(rename = "defaultValue")]
+        default_value: String,
+    }
+
+    let url = format!(
+        "{}/{}/{}/_apis/work/teamsettings/teamfieldvalues?api-version=7.1",
+        base,
+        encode_path_segment(project),
+        encode_path_segment(team),
+    );
+
+    let resp = client.get(&url).send().await.ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    resp.json::<FieldValuesResponse>().await.ok().map(|r| r.default_value)
+}
+
+/// Get work items assigned to the current user in a project.
+///
+/// When `team` is provided the team's area path is fetched first and injected
+/// as a literal `UNDER` clause so results are scoped to that team's areas.
 pub async fn get_my_work_items(
     org_url: &str,
     pat: &str,
     project: &str,
+    team: Option<&str>,
 ) -> Result<Vec<WorkItem>, String> {
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
+    let enc_project = encode_path_segment(project);
 
-    // WIQL query — items assigned to me, not done, ordered by changed date
-    let wiql = serde_json::json!({
-        "query": "SELECT [System.Id] FROM WorkItems \
-                  WHERE [System.TeamProject] = @project \
-                  AND [System.AssignedTo] = @Me \
-                  AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
-                  ORDER BY [System.ChangedDate] DESC"
-    });
+    // Build the WIQL query, optionally injecting an area-path filter
+    let wiql_query = if let Some(t) = team {
+        match get_team_area_path(&client, base, project, t).await {
+            Some(area_path) => format!(
+                "SELECT [System.Id] FROM WorkItems \
+                 WHERE [System.TeamProject] = @project \
+                 AND [System.AssignedTo] = @Me \
+                 AND [System.AreaPath] UNDER '{}' \
+                 AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
+                 ORDER BY [System.ChangedDate] DESC",
+                area_path
+            ),
+            // Area path lookup failed — fall back to project-wide query
+            None => "SELECT [System.Id] FROM WorkItems \
+                     WHERE [System.TeamProject] = @project \
+                     AND [System.AssignedTo] = @Me \
+                     AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
+                     ORDER BY [System.ChangedDate] DESC"
+                .to_string(),
+        }
+    } else {
+        "SELECT [System.Id] FROM WorkItems \
+         WHERE [System.TeamProject] = @project \
+         AND [System.AssignedTo] = @Me \
+         AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
+         ORDER BY [System.ChangedDate] DESC"
+            .to_string()
+    };
 
-    let wiql_url = format!("{}/{}/_apis/wit/wiql?api-version=7.1&$top=100", base, project);
+    let wiql_url = format!("{}/{}/_apis/wit/wiql?api-version=7.1&$top=100", base, enc_project);
+    let wiql = serde_json::json!({ "query": wiql_query });
     let wiql_resp = client
         .post(&wiql_url)
         .json(&wiql)
@@ -298,18 +352,25 @@ pub async fn get_my_work_items(
     Ok(items)
 }
 
-/// Get the most recent pipeline runs for a project
+/// Get the most recent pipeline runs for a project.
+///
+/// When `team_id` (a team GUID) is provided it is forwarded to the builds API
+/// as `teamId` so only builds queued in that team's context are returned.
 pub async fn get_recent_pipelines(
     org_url: &str,
     pat: &str,
     project: &str,
+    team_id: Option<&str>,
 ) -> Result<Vec<PipelineRun>, String> {
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
-    let url = format!(
+    let mut url = format!(
         "{}/{}/_apis/build/builds?$top=50&queryOrder=queueTimeDescending&api-version=7.1",
         base, project
     );
+    if let Some(tid) = team_id {
+        url.push_str(&format!("&teamId={}", tid));
+    }
 
     let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
 
@@ -333,7 +394,8 @@ pub async fn get_recent_pipelines(
     Ok(runs)
 }
 
-/// Get active pull requests for a project
+/// Get active pull requests for a project.
+/// PRs are repo-scoped, not team-scoped — returns all active PRs in the project.
 pub async fn get_pull_requests(
     org_url: &str,
     pat: &str,
@@ -365,6 +427,7 @@ pub async fn get_pull_requests(
             base, project, pr.repository.name, pr.pull_request_id
         );
     }
+
     Ok(prs)
 }
 

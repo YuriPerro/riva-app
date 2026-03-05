@@ -91,8 +91,8 @@ export function TeamSwitcher() {
     return () => document.removeEventListener("keydown", handler);
   }, [open]);
 
-  const selectTeam = (name: string) => {
-    setTeam(name);
+  const selectTeam = (name: string, id: string) => {
+    setTeam(name, id);
     queryClient.invalidateQueries();
     setOpen(false);
   };
@@ -170,7 +170,7 @@ export function TeamSwitcher() {
                 return (
                   <button
                     key={team.id}
-                    onClick={() => selectTeam(team.name)}
+                    onClick={() => selectTeam(team.name, team.id)}
                     className={cn(
                       "flex w-full items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors",
                       active

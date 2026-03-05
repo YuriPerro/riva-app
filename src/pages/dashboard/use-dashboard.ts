@@ -1,9 +1,9 @@
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { azure, type PipelineRun, type WorkItem as ApiWorkItem } from "@/lib/tauri";
+import { azure, type PipelineRun, type WorkItem as ApiWorkItem, type PullRequest as ApiPullRequest } from "@/lib/tauri";
 import { useSessionStore } from "@/store/session";
-import type { WorkItem, Pipeline, SprintInfo, DashboardData } from "./types";
+import type { WorkItem, Pipeline, DashboardPR, SprintInfo, DashboardData } from "./types";
 
 function mapWorkItemType(type: string): WorkItem["type"] {
   const t = type.toLowerCase();
@@ -65,17 +65,52 @@ function getInitials(assignedTo?: ApiWorkItem["fields"]["System.AssignedTo"]): s
   return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "?";
 }
 
-async function fetchDashboardData(project: string, team: string) {
-  const [sprintData, rawItems, rawPipelines] = await Promise.all([
+function mapPullRequest(pr: ApiPullRequest): DashboardPR {
+  const name = pr.createdBy.displayName ?? "";
+  const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "?";
+  const approvedCount = pr.reviewers.filter((r) => r.vote === 10).length;
+
+  return {
+    id: pr.pullRequestId,
+    title: pr.title,
+    repo: pr.repository.name,
+    sourceBranch: pr.sourceRefName.replace("refs/heads/", ""),
+    targetBranch: pr.targetRefName.replace("refs/heads/", ""),
+    author: name,
+    authorInitials: initials,
+    createdAgo: formatAgo(pr.creationDate),
+    status: pr.isDraft ? "draft" : "active",
+    reviewerCount: pr.reviewers.length,
+    approvedCount,
+    url: pr.webUrl,
+  };
+}
+
+function sprintTotalDays(startDate?: string, finishDate?: string): number {
+  if (!startDate || !finishDate) return 0;
+  const diff = new Date(finishDate).getTime() - new Date(startDate).getTime();
+  return Math.max(1, Math.ceil(diff / 86400000));
+}
+
+async function fetchDashboardData(project: string, team: string, teamId: string) {
+  const [sprintData, rawItems, rawPipelines, rawPRs] = await Promise.all([
     azure.getCurrentSprint(project, team),
-    azure.getMyWorkItems(project),
-    azure.getRecentPipelines(project),
+    azure.getMyWorkItems(project, team),
+    azure.getRecentPipelines(project, teamId),
+    azure.getPullRequests(project),
   ]);
 
   const sprint: SprintInfo | null = sprintData
     ? (() => {
         const days = sprintDaysRemaining(sprintData.attributes.finishDate);
-        return { name: sprintData.name, daysRemaining: days, status: mapSprintStatus(days) };
+        const totalDays = sprintTotalDays(sprintData.attributes.startDate, sprintData.attributes.finishDate);
+        return {
+          name: sprintData.name,
+          daysRemaining: days,
+          totalDays,
+          startDate: sprintData.attributes.startDate ?? "",
+          status: mapSprintStatus(days),
+        };
       })()
     : null;
 
@@ -101,13 +136,16 @@ async function fetchDashboardData(project: string, team: string) {
     url: p.webUrl,
   }));
 
-  return { sprint, workItems, pipelines };
+  const pullRequests: DashboardPR[] = rawPRs.map(mapPullRequest);
+
+  return { sprint, workItems, pipelines, pullRequests };
 }
 
 export const useDashboard = (): DashboardData => {
   const navigate = useNavigate();
   const project = useSessionStore((s) => s.project);
   const team = useSessionStore((s) => s.team);
+  const teamId = useSessionStore((s) => s.teamId);
 
   useEffect(() => {
     if (!project) {
@@ -120,8 +158,8 @@ export const useDashboard = (): DashboardData => {
   const enabled = !!project && !!team;
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["dashboard", project, team],
-    queryFn: () => fetchDashboardData(project!, team!),
+    queryKey: ["dashboard", project, team, teamId],
+    queryFn: () => fetchDashboardData(project!, team!, teamId ?? ""),
     enabled,
   });
 
@@ -129,7 +167,8 @@ export const useDashboard = (): DashboardData => {
     myTasks: data?.workItems.length ?? 0,
     inReview: data?.workItems.filter((w) => w.status === "in-review").length ?? 0,
     pipelinesRunning: data?.pipelines.filter((p) => p.status === "running").length ?? 0,
-  }), [data?.workItems, data?.pipelines]);
+    openPRs: data?.pullRequests.length ?? 0,
+  }), [data?.workItems, data?.pipelines, data?.pullRequests]);
 
   return {
     project,
@@ -137,6 +176,7 @@ export const useDashboard = (): DashboardData => {
     stats,
     workItems: data?.workItems ?? [],
     pipelines: data?.pipelines ?? [],
+    pullRequests: data?.pullRequests ?? [],
     isLoading: enabled && isLoading,
     error: error ? (typeof error === "string" ? error : "Failed to load dashboard data") : null,
   };

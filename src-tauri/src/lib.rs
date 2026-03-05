@@ -120,18 +120,20 @@ async fn get_projects(state: State<'_, AppState>) -> Result<Vec<Project>, String
 async fn get_my_work_items(
     state: State<'_, AppState>,
     project: String,
+    team: Option<String>,
 ) -> Result<Vec<WorkItem>, String> {
     let (org_url, pat) = session_creds(&state)?;
-    azure::get_my_work_items(&org_url, &pat, &project).await
+    azure::get_my_work_items(&org_url, &pat, &project, team.as_deref()).await
 }
 
 #[tauri::command]
 async fn get_recent_pipelines(
     state: State<'_, AppState>,
     project: String,
+    team_id: Option<String>,
 ) -> Result<Vec<PipelineRun>, String> {
     let (org_url, pat) = session_creds(&state)?;
-    azure::get_recent_pipelines(&org_url, &pat, &project).await
+    azure::get_recent_pipelines(&org_url, &pat, &project, team_id.as_deref()).await
 }
 
 #[tauri::command]

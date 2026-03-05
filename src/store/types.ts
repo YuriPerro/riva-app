@@ -6,7 +6,8 @@ export interface SidebarState {
 export interface SessionState {
   project: string | null;
   team: string | null;
+  teamId: string | null;
   setProject: (project: string) => void;
-  setTeam: (team: string) => void;
+  setTeam: (team: string, teamId: string) => void;
   clear: () => void;
 }

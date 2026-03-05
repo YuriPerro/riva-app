@@ -68,25 +68,35 @@ export interface PipelinesData {
   error: string | null;
   statusFilter: StatusFilter;
   setStatusFilter: (f: StatusFilter) => void;
+  definitions: string[];
+  definitionFilters: string[];
+  addDefinitionFilter: (d: string) => void;
+  removeDefinitionFilter: (d: string) => void;
   openRun: (url: string) => void;
 }
 
 export function usePipelines(): PipelinesData {
   const project = useSessionStore((s) => s.project);
+  const teamId = useSessionStore((s) => s.teamId);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [definitionFilters, setDefinitionFilters] = useState<string[]>([]);
 
   const { data: runs = [], isLoading, error } = useQuery({
-    queryKey: ["pipelines", project],
-    queryFn: () => azure.getRecentPipelines(project!).then((raw) => raw.map(mapRun)),
+    queryKey: ["pipelines", project, teamId],
+    queryFn: () => azure.getRecentPipelines(project!, teamId ?? undefined).then((raw) => raw.map(mapRun)),
     enabled: !!project,
   });
 
-  const filtered = useMemo(() =>
-    statusFilter === "all"
-      ? runs
-      : runs.filter((r) => r.status === statusFilter),
-    [runs, statusFilter]
-  );
+  const definitions = useMemo(() => {
+    const names = [...new Set(runs.map((r) => r.definitionName))];
+    return names.sort((a, b) => a.localeCompare(b));
+  }, [runs]);
+
+  const filtered = useMemo(() => {
+    let result = statusFilter === "all" ? runs : runs.filter((r) => r.status === statusFilter);
+    if (definitionFilters.length > 0) result = result.filter((r) => definitionFilters.includes(r.definitionName));
+    return result;
+  }, [runs, statusFilter, definitionFilters]);
 
   return {
     runs,
@@ -95,6 +105,10 @@ export function usePipelines(): PipelinesData {
     error: error ? (typeof error === "string" ? error : "Failed to load pipelines") : null,
     statusFilter,
     setStatusFilter,
+    definitions,
+    definitionFilters,
+    addDefinitionFilter: (d) => setDefinitionFilters((prev) => [...prev, d]),
+    removeDefinitionFilter: (d) => setDefinitionFilters((prev) => prev.filter((x) => x !== d)),
     openRun: openUrl,
   };
 }

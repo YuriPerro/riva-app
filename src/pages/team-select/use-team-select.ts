@@ -23,8 +23,8 @@ export const useTeamSelect = () => {
       .finally(() => setIsLoading(false));
   }, [project, navigate]);
 
-  const selectTeam = (name: string) => {
-    setTeam(name);
+  const selectTeam = (name: string, id: string) => {
+    setTeam(name, id);
     navigate("/", { replace: true });
   };
 

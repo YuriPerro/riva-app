@@ -59,12 +59,13 @@ export interface MyWorkData {
 
 export function useMyWork(): MyWorkData {
   const project = useSessionStore((s) => s.project);
+  const team = useSessionStore((s) => s.team);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
 
   const { data: items = [], isLoading, error } = useQuery({
-    queryKey: ["my-work", project],
-    queryFn: () => azure.getMyWorkItems(project!).then((raw) =>
+    queryKey: ["my-work", project, team],
+    queryFn: () => azure.getMyWorkItems(project!, team ?? undefined).then((raw) =>
       raw.map((w): MyWorkItem => ({
         id: w.id,
         title: w.fields["System.Title"],

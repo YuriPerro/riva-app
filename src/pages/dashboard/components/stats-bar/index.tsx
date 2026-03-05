@@ -1,4 +1,4 @@
-import { ListTodo, GitPullRequest, Workflow } from "lucide-react";
+import { ListTodo, GitPullRequest, Workflow, GitPullRequestArrow } from "lucide-react";
 import type { StatsBarProps } from "./types";
 
 export function StatsBar(props: StatsBarProps) {
@@ -8,6 +8,7 @@ export function StatsBar(props: StatsBarProps) {
     { value: stats.myTasks,          label: "my tasks",          icon: ListTodo },
     { value: stats.inReview,         label: "in review",         icon: GitPullRequest },
     { value: stats.pipelinesRunning, label: "pipelines running", icon: Workflow },
+    { value: stats.openPRs,          label: "open PRs",          icon: GitPullRequestArrow },
   ];
 
   return (
