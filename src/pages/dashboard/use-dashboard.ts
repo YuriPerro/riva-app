@@ -5,7 +5,7 @@ import { azure } from '@/lib/tauri';
 import type { PullRequest as ApiPullRequest } from '@/types/azure';
 import { Route } from '@/types/routes';
 import { useSessionStore } from '@/store/session';
-import { formatAgo, formatDuration, getAssigneeInitials, initials, stripRefs } from '@/utils/formatters';
+import { formatAgo, formatBuildReason, formatDuration, getAssigneeInitials, initials, stripRefs } from '@/utils/formatters';
 import { mapWorkItemType, mapWorkItemStatus, mapPipelineStatus } from '@/utils/mappers';
 import type { WorkItem, Pipeline, DashboardPR, SprintInfo, DashboardData } from './types';
 
@@ -82,7 +82,7 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
     id: p.id,
     name: p.definition.name,
     branch: stripRefs(p.sourceBranch),
-    target: p.sourceBranch.includes('main') || p.sourceBranch.includes('master') ? 'production' : 'staging',
+    target: formatBuildReason(p.reason),
     status: mapPipelineStatus(p),
     duration: formatDuration(p.queueTime, p.finishTime),
     ago: formatAgo(p.finishTime ?? p.queueTime),

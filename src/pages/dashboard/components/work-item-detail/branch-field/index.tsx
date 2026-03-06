@@ -24,7 +24,7 @@ export function BranchField(props: BranchFieldProps) {
     <div className="space-y-1.5">
       <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
         <GitBranch size={11} />
-        Branch
+        Suggested Branch Name
       </div>
       <button
         onClick={handleCopy}

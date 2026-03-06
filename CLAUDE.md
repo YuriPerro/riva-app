@@ -362,6 +362,36 @@ Each file owns what it defines. If it didn't define it, it doesn't export it.
 
 ---
 
+### Readable Conditionals — Strict Rule
+
+**NEVER** inline complex boolean expressions. Extract them into named helpers or named variables that read like English.
+
+```typescript
+// ❌ Wrong — unreadable inline condition
+const isEmpty =
+  !standup ||
+  (standup.transitions.length === 0 &&
+    standup.today.length === 0 &&
+    standup.todayPrs.length === 0 &&
+    standup.blockers.length === 0);
+
+// ✅ Correct — named helper
+function hasActivity(data: StandupData): boolean {
+  const hasTransitions = data.transitions.length > 0;
+  const hasTodayData = data.today.length > 0;
+  const hasTodayPRs = data.todayPrs.length > 0;
+  const hasBlockers = data.blockers.length > 0;
+
+  return hasTransitions || hasTodayData || hasTodayPRs || hasBlockers;
+}
+
+const isEmpty = !standup || !hasActivity(standup);
+```
+
+When a condition checks 3+ properties, extract it. Name the variables so the logic is obvious without reading the implementation.
+
+---
+
 ### Naming Conventions
 
 **Queries and mutations** must use descriptive suffixes:

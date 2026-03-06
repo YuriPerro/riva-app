@@ -129,6 +129,7 @@ pub struct PipelineRun {
     #[serde(rename = "queueTime")]
     pub queue_time: Option<String>,
     pub definition: PipelineDefinition,
+    pub reason: Option<String>,
     #[serde(rename = "triggerInfo", default)]
     pub trigger_info: Option<std::collections::HashMap<String, String>>,
     /// Web browser URL for this build — computed after deserialization.
@@ -369,7 +370,8 @@ pub async fn get_my_work_items(
     let base = org_url.trim_end_matches('/');
     let enc_project = encode_path_segment(project);
 
-    // Build the WIQL query, optionally injecting an area-path filter
+    let enc_team = team.map(|t| encode_path_segment(t));
+
     let wiql_query = if let Some(t) = team {
         match get_team_area_path(&client, base, project, t).await {
             Some(area_path) => format!(
@@ -377,14 +379,15 @@ pub async fn get_my_work_items(
                  WHERE [System.TeamProject] = @project \
                  AND [System.AssignedTo] = @Me \
                  AND [System.AreaPath] UNDER '{}' \
+                 AND [System.IterationPath] = @CurrentIteration \
                  AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
                  ORDER BY [System.ChangedDate] DESC",
                 area_path
             ),
-            // Area path lookup failed — fall back to project-wide query
             None => "SELECT [System.Id] FROM WorkItems \
                      WHERE [System.TeamProject] = @project \
                      AND [System.AssignedTo] = @Me \
+                     AND [System.IterationPath] = @CurrentIteration \
                      AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
                      ORDER BY [System.ChangedDate] DESC"
                 .to_string(),
@@ -398,7 +401,11 @@ pub async fn get_my_work_items(
             .to_string()
     };
 
-    let wiql_url = format!("{}/{}/_apis/wit/wiql?api-version=7.1&$top=100", base, enc_project);
+    let wiql_url = if let Some(ref et) = enc_team {
+        format!("{}/{}/{}/_apis/wit/wiql?api-version=7.1&$top=100", base, enc_project, et)
+    } else {
+        format!("{}/{}/_apis/wit/wiql?api-version=7.1&$top=100", base, enc_project)
+    };
     let wiql = serde_json::json!({ "query": wiql_query });
     let wiql_resp = client
         .post(&wiql_url)
@@ -855,8 +862,17 @@ async fn get_my_display_name(client: &Client, base: &str) -> Result<String, Stri
         .ok_or_else(|| "Could not resolve your display name".into())
 }
 
-async fn run_wiql(client: &Client, base: &str, project: &str, query: &str, top: u32) -> Result<Vec<u64>, String> {
-    let url = format!("{}/{}/_apis/wit/wiql?api-version=7.1&$top={}", base, encode_path_segment(project), top);
+async fn run_wiql(client: &Client, base: &str, project: &str, team: Option<&str>, query: &str, top: u32) -> Result<Vec<u64>, String> {
+    let url = match team {
+        Some(t) => format!(
+            "{}/{}/{}/_apis/wit/wiql?api-version=7.1&$top={}",
+            base, encode_path_segment(project), encode_path_segment(t), top
+        ),
+        None => format!(
+            "{}/{}/_apis/wit/wiql?api-version=7.1&$top={}",
+            base, encode_path_segment(project), top
+        ),
+    };
     let body = serde_json::json!({ "query": query });
     let resp = client.post(&url).json(&body).send().await.map_err(|e| e.to_string())?;
     if !resp.status().is_success() {
@@ -888,11 +904,33 @@ async fn batch_fetch_items(client: &Client, base: &str, project: &str, ids: &[u6
     Ok(items)
 }
 
+fn cutoff_iso(lookback_days: u32) -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let epoch_secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("system clock error")
+        .as_secs()
+        .saturating_sub(lookback_days as u64 * 86400);
+    let days = (epoch_secs / 86400) as i64;
+    let z = days + 719468;
+    let era = if z >= 0 { z } else { z - 146096 } / 146097;
+    let doe = (z - era * 146097) as u64;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = yoe as i64 + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = if m <= 2 { y + 1 } else { y };
+    format!("{:04}-{:02}-{:02}T00:00:00Z", y, m, d)
+}
+
 async fn get_state_transitions(
     client: &Client,
     base: &str,
     project: &str,
     item: &WorkItem,
+    cutoff: &str,
 ) -> Vec<StandupTransition> {
     let url = format!(
         "{}/{}/_apis/wit/workitems/{}/updates?api-version=7.1",
@@ -907,28 +945,48 @@ async fn get_state_transitions(
         Err(_) => return vec![],
     };
 
-    let mut transitions = Vec::new();
-    for update in updates.value.iter().rev() {
+    let mut first_from: Option<String> = None;
+    let mut last_to: Option<String> = None;
+    let mut last_date = String::new();
+
+    for update in &updates.value {
         if let Some(fields) = &update.fields {
+            let change_date = fields
+                .get("System.ChangedDate")
+                .and_then(|v| v.get("newValue"))
+                .and_then(|v| v.as_str())
+                .unwrap_or(update.revised_date.as_deref().unwrap_or(""));
+
+            if change_date < cutoff || change_date.starts_with("9999") {
+                continue;
+            }
+
             if let Some(state_change) = fields.get("System.State") {
                 let old = state_change.get("oldValue").and_then(|v| v.as_str()).unwrap_or("").to_string();
                 let new = state_change.get("newValue").and_then(|v| v.as_str()).unwrap_or("").to_string();
                 if !old.is_empty() && !new.is_empty() {
-                    transitions.push(StandupTransition {
-                        work_item_id: item.id,
-                        title: item.fields.title.clone(),
-                        work_item_type: item.fields.work_item_type.clone(),
-                        from_state: old,
-                        to_state: new,
-                        changed_date: update.revised_date.clone().unwrap_or_default(),
-                        web_url: item.web_url.clone(),
-                    });
-                    break;
+                    if first_from.is_none() {
+                        first_from = Some(old);
+                    }
+                    last_to = Some(new);
+                    last_date = change_date.to_string();
                 }
             }
         }
     }
-    transitions
+
+    match (first_from, last_to) {
+        (Some(from), Some(to)) if from != to => vec![StandupTransition {
+            work_item_id: item.id,
+            title: item.fields.title.clone(),
+            work_item_type: item.fields.work_item_type.clone(),
+            from_state: from,
+            to_state: to,
+            changed_date: last_date,
+            web_url: item.web_url.clone(),
+        }],
+        _ => vec![],
+    }
 }
 
 pub async fn get_standup_data(
@@ -948,36 +1006,42 @@ pub async fn get_standup_data(
         None => String::new(),
     };
 
+    let iteration_clause = if team.is_some() {
+        "AND [System.IterationPath] = @CurrentIteration"
+    } else {
+        ""
+    };
+
     let changed_query = format!(
         "SELECT [System.Id] FROM WorkItems \
          WHERE [System.TeamProject] = @project \
-         AND [System.AssignedTo] = @Me {} \
+         AND [System.AssignedTo] = @Me {} {} \
          AND [System.ChangedDate] >= @Today-{} \
          ORDER BY [System.ChangedDate] DESC",
-        area_clause, lookback_days
+        area_clause, iteration_clause, lookback_days
     );
 
     let today_query = format!(
         "SELECT [System.Id] FROM WorkItems \
          WHERE [System.TeamProject] = @project \
-         AND [System.AssignedTo] = @Me {} \
+         AND [System.AssignedTo] = @Me {} {} \
          AND [System.State] IN ('In Progress', 'Active', 'Doing', 'Committed') \
          ORDER BY [System.ChangedDate] DESC",
-        area_clause
+        area_clause, iteration_clause
     );
 
     let blocked_query = format!(
         "SELECT [System.Id] FROM WorkItems \
          WHERE [System.TeamProject] = @project \
-         AND [System.AssignedTo] = @Me {} \
+         AND [System.AssignedTo] = @Me {} {} \
          AND [Microsoft.VSTS.CMMI.Blocked] = 'Yes' \
          ORDER BY [System.ChangedDate] DESC",
-        area_clause
+        area_clause, iteration_clause
     );
 
-    let changed_ids = run_wiql(&client, base, project, &changed_query, 30).await?;
-    let today_ids = run_wiql(&client, base, project, &today_query, 30).await?;
-    let blocked_ids = run_wiql(&client, base, project, &blocked_query, 30).await.unwrap_or_default();
+    let changed_ids = run_wiql(&client, base, project, team, &changed_query, 30).await?;
+    let today_ids = run_wiql(&client, base, project, team, &today_query, 30).await?;
+    let blocked_ids = run_wiql(&client, base, project, team, &blocked_query, 30).await.unwrap_or_default();
 
     let (changed_items, today_items, blocked_items) = tokio::join!(
         batch_fetch_items(&client, base, project, &changed_ids),
@@ -988,9 +1052,11 @@ pub async fn get_standup_data(
     let today_items = today_items?;
     let blocked_items = blocked_items.unwrap_or_default();
 
+    let cutoff = cutoff_iso(lookback_days);
+
     let mut transitions = Vec::new();
     for item in &changed_items {
-        let t = get_state_transitions(&client, base, project, item).await;
+        let t = get_state_transitions(&client, base, project, item, &cutoff).await;
         transitions.extend(t);
     }
 

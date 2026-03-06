@@ -16,7 +16,7 @@ export function mapWorkItemStatus(state: string): WorkItemStatus {
   const s = state.toLowerCase();
   if (s.includes('progress') || s.includes('active') || s.includes('doing')) return 'in-progress';
   if (s.includes('review') || s.includes('testing') || s.includes('qa')) return 'in-review';
-  if (s.includes('done') || s.includes('closed') || s.includes('resolved')) return 'done';
+  if (s.includes('done') || s.includes('closed') || s.includes('resolved') || s.includes('completed') || s.includes('removed')) return 'done';
   return 'todo';
 }
 

@@ -64,6 +64,22 @@ export function parseTags(tags?: string): string[] {
     .filter(Boolean);
 }
 
+const BUILD_REASON_LABELS: Record<string, string> = {
+  individualCI: 'CI',
+  batchedCI: 'CI',
+  pullRequest: 'Pull Request',
+  manual: 'Manual',
+  schedule: 'Scheduled',
+  buildCompletion: 'Chained',
+  resourceTrigger: 'Resource',
+  triggered: 'Triggered',
+};
+
+export function formatBuildReason(reason?: string): string {
+  if (!reason) return 'CI';
+  return BUILD_REASON_LABELS[reason] ?? reason;
+}
+
 export function stripRefs(ref: string): string {
   return ref.replace('refs/heads/', '');
 }

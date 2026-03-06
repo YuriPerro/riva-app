@@ -49,7 +49,7 @@ export function PipelinesList(props: PipelinesListProps) {
                   {pipeline.name} · {pipeline.branch}
                 </span>
                 <span className="text-[11px] text-fg-disabled">
-                  → {pipeline.target} · {pipeline.duration}
+                  trigger: {pipeline.target} · {pipeline.duration}
                 </span>
               </div>
 

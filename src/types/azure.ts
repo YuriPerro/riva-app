@@ -62,6 +62,7 @@ export interface PipelineRun {
   status: string;
   result?: string;
   sourceBranch: string;
+  reason?: string;
   finishTime?: string;
   queueTime?: string;
   definition: PipelineDefinition;
