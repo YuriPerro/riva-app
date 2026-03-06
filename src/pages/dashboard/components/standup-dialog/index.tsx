@@ -1,6 +1,8 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import dayjs from 'dayjs';
+import isTodayPlugin from 'dayjs/plugin/isToday';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import type { StandupData, StandupTransition } from '@/types/azure';
 import { mapWorkItemStatus } from '@/utils/mappers';
@@ -8,10 +10,10 @@ import { PeriodSelector } from './period-selector';
 import { StandupContent } from './standup-content';
 import type { StandupDialogProps, TransitionGroup } from './types';
 
+dayjs.extend(isTodayPlugin);
+
 function isToday(isoDate: string): boolean {
-  const d = new Date(isoDate);
-  const now = new Date();
-  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  return dayjs(isoDate).isToday();
 }
 
 function groupTransitions(transitions: StandupTransition[]): TransitionGroup[] {

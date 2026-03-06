@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import dayjs from 'dayjs';
 import { azure } from '@/lib/tauri';
 import type { PullRequest as ApiPullRequest } from '@/types/azure';
 import { Route } from '@/types/routes';
@@ -8,12 +9,6 @@ import { useSessionStore } from '@/store/session';
 import { formatAgo, formatBuildReason, formatDuration, getAssigneeInitials, initials, stripRefs } from '@/utils/formatters';
 import { mapWorkItemType, mapWorkItemStatus, mapPipelineStatus } from '@/utils/mappers';
 import type { WorkItem, Pipeline, DashboardPR, SprintInfo, DashboardData } from './types';
-
-function sprintDaysRemaining(finishDate?: string): number {
-  if (!finishDate) return 0;
-  const diff = new Date(finishDate).getTime() - Date.now();
-  return Math.max(0, Math.ceil(diff / 86400000));
-}
 
 function mapSprintStatus(days: number): SprintInfo['status'] {
   if (days <= 2) return 'at-risk';
@@ -40,12 +35,6 @@ function mapPullRequest(pr: ApiPullRequest): DashboardPR {
   };
 }
 
-function sprintTotalDays(startDate?: string, finishDate?: string): number {
-  if (!startDate || !finishDate) return 0;
-  const diff = new Date(finishDate).getTime() - new Date(startDate).getTime();
-  return Math.max(1, Math.ceil(diff / 86400000));
-}
-
 async function fetchDashboardData(project: string, team: string, teamId: string) {
   const [sprintData, rawItems, rawPipelines, rawPRs] = await Promise.all([
     azure.getCurrentSprint(project, team),
@@ -56,14 +45,17 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
 
   const sprint: SprintInfo | null = sprintData
     ? (() => {
-        const days = sprintDaysRemaining(sprintData.attributes.finishDate);
-        const totalDays = sprintTotalDays(sprintData.attributes.startDate, sprintData.attributes.finishDate);
+        const finishDate = sprintData.attributes.finishDate;
+        const startDate = sprintData.attributes.startDate;
+        const days = finishDate ? Math.max(0, dayjs(finishDate).diff(dayjs(), 'day', true)) : 0;
+        const daysRemaining = Math.ceil(days);
+        const totalDays = startDate && finishDate ? Math.max(1, Math.ceil(dayjs(finishDate).diff(dayjs(startDate), 'day', true))) : 0;
         return {
           name: sprintData.name,
-          daysRemaining: days,
+          daysRemaining,
           totalDays,
-          startDate: sprintData.attributes.startDate ?? '',
-          status: mapSprintStatus(days),
+          startDate: startDate ?? '',
+          status: mapSprintStatus(daysRemaining),
         };
       })()
     : null;

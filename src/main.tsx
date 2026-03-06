@@ -7,6 +7,7 @@ import { TooltipProvider } from '@/components/animate-ui/components/animate/tool
 import { AppRoutes } from './routes';
 import { themeManager } from '@/lib/theme-manager';
 import './styles/globals.css';
+import '@/lib/dayjs';
 
 themeManager.init();
 

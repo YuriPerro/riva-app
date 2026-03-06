@@ -1,17 +1,16 @@
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
+
 export function formatAgo(dateStr?: string): string {
   if (!dateStr) return '—';
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}min ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
+  return dayjs(dateStr).fromNow();
 }
 
 export function formatDuration(start?: string, end?: string): string {
   if (!start || !end) return '—';
-  const ms = new Date(end).getTime() - new Date(start).getTime();
+  const ms = dayjs(end).diff(dayjs(start));
   if (ms < 0) return '—';
   const mins = Math.floor(ms / 60000);
   const secs = Math.floor((ms % 60000) / 1000);
@@ -20,13 +19,7 @@ export function formatDuration(start?: string, end?: string): string {
 
 export function formatDate(dateStr?: string): string {
   if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return dayjs(dateStr).format('MMM D, YYYY, hh:mm A');
 }
 
 export function initials(name: string): string {
