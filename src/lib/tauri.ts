@@ -6,6 +6,7 @@ import type {
   WorkItem,
   WorkItemDetail,
   WorkItemTypeState,
+  PipelineDefinition,
   PipelineRun,
   SprintIteration,
   PullRequest,
@@ -74,6 +75,9 @@ export const azure = {
 
   getRecentPipelines: (project: string, teamId?: string) =>
     invoke<PipelineRun[]>(TauriCommand.GetRecentPipelines, { project, teamId: teamId ?? null }),
+
+  getPipelineDefinitions: (project: string) =>
+    invoke<PipelineDefinition[]>(TauriCommand.GetPipelineDefinitions, { project }),
 
   getPullRequests: (project: string) =>
     invoke<PullRequest[]>(TauriCommand.GetPullRequests, { project }),

@@ -63,6 +63,8 @@ function mapPR(raw: PullRequest): PR {
 
 export type PRFilter = "all" | "active" | "draft";
 
+export type PullRequestsData = ReturnType<typeof usePullRequests>;
+
 export function usePullRequests() {
   const project = useSessionStore((s) => s.project);
   const queryClient = useQueryClient();

@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from "react";
 import {
   ExternalLink,
   Loader2,
@@ -12,13 +11,8 @@ import {
   CheckCircle2,
   ShieldAlert,
   Zap,
-  ChevronDown,
-  Check,
-  Copy,
-  CheckCheck,
 } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -28,10 +22,11 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { ShineBorder } from "@/components/ui/shine-border";
-import { buildBranchName } from "@/utils/formatters";
-import { mapWorkItemType } from "@/utils/mappers";
 import { useWorkItemDetail } from "./use-work-item-detail";
-import type { WorkItemDetailDialogProps, PriorityLabel, DisplayDetail, DetailFieldProps } from "./types";
+import { StatusField } from "./status-field";
+import { BranchField } from "./branch-field";
+import { DetailField } from "./detail-field";
+import type { WorkItemDetailDialogProps, PriorityLabel, DisplayDetail } from "./types";
 
 type DevFieldKey = "effort" | "completedWork" | "remainingWork" | "dueDate" | "devStartDate" | "devEndDate" | "blocked";
 
@@ -203,156 +198,5 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
         )}
       </DialogContent>
     </Dialog>
-  );
-}
-
-interface StatusFieldProps {
-  currentState: string;
-  states: { name: string; color: string; category: string }[];
-  isUpdating: boolean;
-  onSelect: (state: string) => void;
-}
-
-function StatusField(props: StatusFieldProps) {
-  const { currentState, states, isUpdating, onSelect } = props;
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [open]);
-
-  const handleSelect = (stateName: string) => {
-    if (stateName === currentState) {
-      setOpen(false);
-      return;
-    }
-    onSelect(stateName);
-    setOpen(false);
-  };
-
-  return (
-    <div ref={containerRef} className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        disabled={isUpdating}
-        className={cn(
-          "flex w-full cursor-pointer flex-col gap-0.5 rounded-md px-2 py-1.5 text-left transition-colors",
-          open ? "bg-elevated" : "hover:bg-elevated"
-        )}
-      >
-        <div className="flex items-center gap-1.5 text-[11px] text-fg-muted">
-          <Flag size={11} />
-          Status
-        </div>
-        <div className="flex items-center gap-1.5">
-          {isUpdating ? (
-            <Loader2 size={12} className="animate-spin text-fg-disabled" />
-          ) : (
-            <span className="text-[13px] text-fg-secondary">{currentState}</span>
-          )}
-          <ChevronDown
-            size={10}
-            className={cn(
-              "ml-auto shrink-0 text-fg-disabled transition-transform duration-150",
-              open && "rotate-180"
-            )}
-          />
-        </div>
-      </button>
-
-      {open && states.length > 0 && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-48 rounded-lg border border-border bg-surface py-1 shadow-lg">
-          {states.map((s) => {
-            const active = s.name === currentState;
-            return (
-              <button
-                key={s.name}
-                onClick={() => handleSelect(s.name)}
-                className={cn(
-                  "flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-left text-[12px] transition-colors",
-                  active
-                    ? "text-fg"
-                    : "text-fg-secondary hover:bg-elevated hover:text-fg"
-                )}
-              >
-                <span
-                  className="h-2 w-2 shrink-0 rounded-full"
-                  style={{ backgroundColor: `#${s.color}` }}
-                />
-                <span className="flex-1">{s.name}</span>
-                {active && <Check size={11} className="shrink-0 text-accent" />}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface BranchFieldProps {
-  id: number;
-  type: string;
-}
-
-function BranchField(props: BranchFieldProps) {
-  const { id, type } = props;
-  const [copied, setCopied] = useState(false);
-  const branch = buildBranchName(id, mapWorkItemType(type));
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(branch);
-    setCopied(true);
-    toast.success("Branch name copied");
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const CopyIcon = copied ? CheckCheck : Copy;
-
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
-        <GitBranch size={11} />
-        Branch
-      </div>
-      <button
-        onClick={handleCopy}
-        className="flex w-full cursor-pointer items-center gap-2 rounded-md bg-elevated px-3 py-2 text-left transition-colors hover:bg-border"
-      >
-        <code className="flex-1 truncate text-[12px] text-fg-secondary">{branch}</code>
-        <CopyIcon size={12} className={cn("shrink-0", copied ? "text-success" : "text-fg-muted")} />
-      </button>
-    </div>
-  );
-}
-
-function DetailField(props: DetailFieldProps) {
-  const { icon: Icon, label, value, valueClassName } = props;
-
-  return (
-    <div className="flex flex-col gap-0.5 rounded-md px-2 py-1.5">
-      <div className="flex items-center gap-1.5 text-[11px] text-fg-muted">
-        <Icon size={11} />
-        {label}
-      </div>
-      <span className={cn("text-[13px] text-fg-secondary", valueClassName)}>
-        {value}
-      </span>
-    </div>
   );
 }

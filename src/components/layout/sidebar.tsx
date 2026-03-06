@@ -1,13 +1,7 @@
 import { memo, useRef } from "react";
-import { NavLink } from "react-router-dom";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/store/sidebar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/animate-ui/components/animate/tooltip";
 import { HomeIcon, type HomeIconHandle } from "@/components/ui/home";
 import { LayersIcon, type LayersIconHandle } from "@/components/ui/layers";
 import { ZapIcon, type ZapHandle } from "@/components/ui/zap";
@@ -15,66 +9,10 @@ import { GitPullRequestIcon, type GitPullRequestIconHandle } from "@/components/
 import { SettingsIcon, type SettingsIconHandle } from "@/components/ui/settings";
 import { ShineBorder } from "@/components/ui/shine-border";
 import { Route } from "@/types/routes";
-import type { NavItemProps } from "./types";
+import { SidebarLabel } from "./sidebar-label";
+import { NavItem } from "./nav-item";
 
 const STAGGER_MS = 60;
-
-function SidebarLabel(props: { collapsed: boolean; delay: number; children: React.ReactNode }) {
-  if (props.collapsed) return null;
-
-  return (
-    <span
-      className="whitespace-nowrap opacity-0"
-      style={{
-        animation: `sidebar-label-in 250ms ease-out ${props.delay}ms forwards`,
-      }}
-    >
-      {props.children}
-    </span>
-  );
-}
-
-function NavItem(props: NavItemProps) {
-  const { to, label, end, collapsed, index, iconRef, icon } = props;
-
-  const link = (
-    <NavLink
-      to={to}
-      end={end}
-      onMouseEnter={() => iconRef.current?.startAnimation()}
-      onMouseLeave={() => iconRef.current?.stopAnimation()}
-      className={({ isActive }) =>
-        cn(
-          "flex cursor-pointer items-center rounded-md py-2 transition-colors",
-          collapsed ? "justify-center px-2" : "gap-2.5 px-3 text-[13px]",
-          isActive
-            ? "bg-elevated text-fg"
-            : "text-fg-secondary hover:bg-elevated hover:text-fg"
-        )
-      }
-    >
-      {({ isActive }) => (
-        <>
-          <span className={cn("shrink-0", isActive ? "text-fg" : "text-fg-muted")}>{icon}</span>
-          <SidebarLabel collapsed={collapsed} delay={index * STAGGER_MS}>{label}</SidebarLabel>
-        </>
-      )}
-    </NavLink>
-  );
-
-  if (collapsed) {
-    return (
-      <Tooltip side="right">
-        <TooltipTrigger asChild>{link}</TooltipTrigger>
-        <TooltipContent>
-          {label}
-        </TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  return link;
-}
 
 export const Sidebar = memo(function Sidebar() {
   const collapsed = useSidebarStore((s) => s.collapsed);

@@ -218,6 +218,50 @@ Prefer `&&` over ternaries for simple conditionals:
 
 ---
 
+### No Nested Ternary Chains — Strict Rule
+
+**NEVER** chain ternaries for state rendering (loading → error → empty → data). Extract a `[Page]Content` component that uses early returns instead.
+
+```tsx
+// ❌ Wrong — nested ternary chain in JSX
+{isLoading ? (
+  <Spinner />
+) : error ? (
+  <ErrorMessage />
+) : items.length === 0 ? (
+  <EmptyState />
+) : (
+  <ItemList />
+)}
+
+// ✅ Correct — separate component with early returns
+function ItemsContent(props: ReturnType<typeof useItems>) {
+  const { isLoading, error, items } = props;
+
+  if (isLoading) return <Spinner />;
+  if (error) return <ErrorMessage />;
+  if (items.length === 0) return <EmptyState />;
+
+  return <ItemList items={items} />;
+}
+
+// Page stays flat
+export function ItemsPage() {
+  const items = useItems();
+  return (
+    <div>
+      <PageHeader />
+      <Filters />
+      <ItemsContent {...items} />
+    </div>
+  );
+}
+```
+
+Extract `[Page]Content` into its own component folder under `pages/[page]/components/`. Pass the hook return directly via spread props.
+
+---
+
 ### Props Destructuring
 
 Always receive props as an object and destructure in the function body:
@@ -335,6 +379,28 @@ export const useUpdateWorkItem = createMutation<...>({...});
 **Files:** kebab-case (`pipeline-card/`, `use-pipelines.ts`)
 **Components:** PascalCase (`PipelineCard`, `WorkItemList`)
 **Hooks:** camelCase with `use` prefix (`usePipelines`, `useWorkItems`)
+
+---
+
+### One Component Per File — Strict Rule
+
+**NEVER** define more than one component in a single `.tsx` file. Every component gets its own folder with `index.tsx` and `types.ts`.
+
+```typescript
+// ❌ Wrong — two components in one file
+// pages/items/index.tsx
+function ItemsContent(props: ItemsContentProps) { ... }
+export function ItemsPage() { ... }
+
+// ✅ Correct — each component in its own folder
+// pages/items/components/items-content/index.tsx
+export function ItemsContent(props: ItemsContentProps) { ... }
+
+// pages/items/index.tsx
+export function ItemsPage() { ... }
+```
+
+Constants (`STATUS_FILTERS`, config maps) and non-component helpers may live alongside the component that uses them.
 
 ---
 

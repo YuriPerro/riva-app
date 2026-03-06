@@ -27,10 +27,3 @@ export type DisplayDetail = {
   devEndDate: string | null;
   blocked: string;
 };
-
-export interface DetailFieldProps {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  valueClassName?: string;
-}

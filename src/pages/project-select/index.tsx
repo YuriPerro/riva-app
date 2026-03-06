@@ -1,20 +1,6 @@
 import { Loader2, AlertCircle, FolderKanban } from "lucide-react";
+import { ProjectInitial } from "./components/project-initial";
 import { useProjectSelect } from "./use-project-select";
-
-function ProjectInitial({ name }: { name: string }) {
-  const initials = name
-    .split(/[\s_-]/)
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  return (
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent/15 text-[13px] font-semibold text-accent">
-      {initials}
-    </div>
-  );
-}
 
 export function ProjectSelectPage() {
   const { projects, isLoading, error, selectProject } = useProjectSelect();

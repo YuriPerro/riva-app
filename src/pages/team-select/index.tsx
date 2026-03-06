@@ -1,20 +1,6 @@
 import { Loader2, AlertCircle, Users } from "lucide-react";
+import { TeamInitial } from "./components/team-initial";
 import { useTeamSelect } from "./use-team-select";
-
-function TeamInitial({ name }: { name: string }) {
-  const initials = name
-    .split(/[\s_-]/)
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  return (
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-accent/15 text-[13px] font-semibold text-accent">
-      {initials}
-    </div>
-  );
-}
 
 export function TeamSelectPage() {
   const { project, teams, isLoading, error, selectTeam } = useTeamSelect();

@@ -203,6 +203,11 @@ struct BuildsResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+struct DefinitionsResponse {
+    pub value: Vec<PipelineDefinition>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SprintIteration {
     pub id: String,
     pub name: String,
@@ -452,7 +457,7 @@ pub async fn get_recent_pipelines(
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
     let mut url = format!(
-        "{}/{}/_apis/build/builds?$top=50&queryOrder=queueTimeDescending&api-version=7.1",
+        "{}/{}/_apis/build/builds?$top=200&maxBuildsPerDefinition=5&queryOrder=queueTimeDescending&api-version=7.1",
         base, project
     );
     if let Some(tid) = team_id {
@@ -479,6 +484,30 @@ pub async fn get_recent_pipelines(
         );
     }
     Ok(runs)
+}
+
+pub async fn get_pipeline_definitions(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+) -> Result<Vec<PipelineDefinition>, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/build/definitions?api-version=7.1",
+        base, project
+    );
+
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+
+    resp.json::<DefinitionsResponse>()
+        .await
+        .map(|r| r.value)
+        .map_err(|e| e.to_string())
 }
 
 /// Get active pull requests for a project.
