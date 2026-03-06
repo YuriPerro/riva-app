@@ -1,13 +1,12 @@
-import { Loader2, AlertCircle, FolderKanban } from "lucide-react";
-import { ProjectInitial } from "./components/project-initial";
-import { useProjectSelect } from "./use-project-select";
+import { Loader2, AlertCircle, FolderKanban } from 'lucide-react';
+import { ProjectInitial } from './components/project-initial';
+import { useProjectSelect } from './use-project-select';
 
 export function ProjectSelectPage() {
   const { projects, isLoading, error, selectProject } = useProjectSelect();
 
   return (
     <div data-tauri-drag-region className="flex min-h-screen flex-col items-center overflow-y-auto bg-base px-6 py-14">
-
       <div className="w-full max-w-[560px]">
         <div className="mb-8 flex flex-col items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface">
@@ -15,9 +14,7 @@ export function ProjectSelectPage() {
           </div>
           <div className="text-center">
             <h1 className="text-[15px] font-semibold text-fg">Select a project</h1>
-            <p className="mt-1 text-[13px] text-fg-muted">
-              Choose the project you want to work on
-            </p>
+            <p className="mt-1 text-[13px] text-fg-muted">Choose the project you want to work on</p>
           </div>
         </div>
 
@@ -46,9 +43,7 @@ export function ProjectSelectPage() {
                 <div>
                   <p className="text-[13px] font-medium text-fg">{project.name}</p>
                   {project.description && (
-                    <p className="mt-0.5 line-clamp-2 text-[12px] text-fg-muted">
-                      {project.description}
-                    </p>
+                    <p className="mt-0.5 line-clamp-2 text-[12px] text-fg-muted">{project.description}</p>
                   )}
                 </div>
               </button>

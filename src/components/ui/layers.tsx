@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import type { Transition } from "motion/react";
-import { motion, useAnimation } from "motion/react";
-import type { HTMLAttributes } from "react";
-import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
+import type { Transition } from 'motion/react';
+import { motion, useAnimation } from 'motion/react';
+import type { HTMLAttributes } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 export interface LayersIconHandle {
   startAnimation: () => void;
@@ -17,7 +17,7 @@ interface LayersIconProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const DEFAULT_TRANSITION: Transition = {
-  type: "spring",
+  type: 'spring',
   stiffness: 100,
   damping: 14,
   mass: 1,
@@ -33,10 +33,10 @@ const LayersIcon = forwardRef<LayersIconHandle, LayersIconProps>(
 
       return {
         startAnimation: async () => {
-          await controls.start("firstState");
-          await controls.start("secondState");
+          await controls.start('firstState');
+          await controls.start('secondState');
         },
-        stopAnimation: () => controls.start("normal"),
+        stopAnimation: () => controls.start('normal'),
       };
     });
 
@@ -45,11 +45,11 @@ const LayersIcon = forwardRef<LayersIconHandle, LayersIconProps>(
         if (isControlledRef.current) {
           onMouseEnter?.(e);
         } else {
-          await controls.start("firstState");
-          await controls.start("secondState");
+          await controls.start('firstState');
+          await controls.start('secondState');
         }
       },
-      [controls, onMouseEnter]
+      [controls, onMouseEnter],
     );
 
     const handleMouseLeave = useCallback(
@@ -57,15 +57,15 @@ const LayersIcon = forwardRef<LayersIconHandle, LayersIconProps>(
         if (isControlledRef.current) {
           onMouseLeave?.(e);
         } else {
-          controls.start("normal");
+          controls.start('normal');
         }
       },
-      [controls, onMouseLeave]
+      [controls, onMouseLeave],
     );
 
     return (
       <div
-        className={cn("flex items-center justify-center", className)}
+        className={cn('flex items-center justify-center', className)}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         {...props}
@@ -105,9 +105,9 @@ const LayersIcon = forwardRef<LayersIconHandle, LayersIconProps>(
         </svg>
       </div>
     );
-  }
+  },
 );
 
-LayersIcon.displayName = "LayersIcon";
+LayersIcon.displayName = 'LayersIcon';
 
 export { LayersIcon };

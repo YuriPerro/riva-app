@@ -1,5 +1,6 @@
-import type { WorkItemType, WorkItemStatus } from "@/types/work-item";
-import type { PipelineStatus } from "@/types/pipeline";
+import type { WorkItemType, WorkItemStatus } from '@/types/work-item';
+import type { PipelineStatus } from '@/types/pipeline';
+import type { StandupData } from '@/types/azure';
 
 export type { WorkItemType, WorkItemStatus, PipelineStatus };
 
@@ -29,7 +30,7 @@ export type SprintInfo = {
   daysRemaining: number;
   totalDays: number;
   startDate: string;
-  status: "on-track" | "at-risk" | "off-track";
+  status: 'on-track' | 'at-risk' | 'off-track';
 };
 
 export type DashboardPR = {
@@ -41,7 +42,7 @@ export type DashboardPR = {
   author: string;
   authorInitials: string;
   createdAgo: string;
-  status: "active" | "draft";
+  status: 'active' | 'draft';
   reviewerCount: number;
   approvedCount: number;
   url: string;
@@ -66,4 +67,10 @@ export interface DashboardData {
   selectedWorkItemId: number | null;
   selectWorkItem: (id: number | null) => void;
   closeWorkItemDetail: () => void;
+  standup: StandupData | null;
+  standupLoading: boolean;
+  standupPeriod: number;
+  setStandupPeriod: (days: number) => void;
+  standupOpen: boolean;
+  setStandupOpen: (open: boolean) => void;
 }

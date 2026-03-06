@@ -1,6 +1,6 @@
 mod azure;
 
-use azure::{PipelineDefinition, PipelineRun, Project, PullRequest, SprintIteration, Team, WorkItem, WorkItemDetail, WorkItemTypeState};
+use azure::{PipelineDefinition, PipelineRun, Project, PullRequest, SprintIteration, StandupData, Team, WorkItem, WorkItemDetail, WorkItemTypeState};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
@@ -222,6 +222,17 @@ async fn review_pull_request(
     azure::review_pull_request(&org_url, &pat, &project, &repo_id, pr_id, vote).await
 }
 
+#[tauri::command]
+async fn get_standup_data(
+    state: State<'_, AppState>,
+    project: String,
+    team: Option<String>,
+    lookback_days: u32,
+) -> Result<StandupData, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::get_standup_data(&org_url, &pat, &project, team.as_deref(), lookback_days).await
+}
+
 // ============================================================
 // App entry point
 // ============================================================
@@ -252,6 +263,7 @@ pub fn run() {
             get_work_item_type_states,
             update_work_item_state,
             review_pull_request,
+            get_standup_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application")

@@ -1,5 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
-import { TauriCommand } from "@/types/commands";
+import { invoke } from '@tauri-apps/api/core';
+import { TauriCommand } from '@/types/commands';
 import type {
   Project,
   Team,
@@ -10,21 +10,19 @@ import type {
   PipelineRun,
   SprintIteration,
   PullRequest,
-} from "@/types/azure";
+  StandupData,
+} from '@/types/azure';
 
 // ============================================================
 // Credentials
 // ============================================================
 
 export const credentials = {
-  save: (orgUrl: string, pat: string) =>
-    invoke<void>(TauriCommand.SaveCredentials, { orgUrl, pat }),
+  save: (orgUrl: string, pat: string) => invoke<void>(TauriCommand.SaveCredentials, { orgUrl, pat }),
 
   load: async (): Promise<{ orgUrl: string; pat: string } | null> => {
     try {
-      const raw = await invoke<{ org_url: string; pat: string } | null>(
-        TauriCommand.LoadCredentials
-      );
+      const raw = await invoke<{ org_url: string; pat: string } | null>(TauriCommand.LoadCredentials);
       if (!raw) return null;
       return { orgUrl: raw.org_url, pat: raw.pat };
     } catch {
@@ -46,17 +44,13 @@ export const credentials = {
 // ============================================================
 
 export const session = {
-  validate: (orgUrl: string, pat: string) =>
-    invoke<void>(TauriCommand.ValidateCredentials, { orgUrl, pat }),
+  validate: (orgUrl: string, pat: string) => invoke<void>(TauriCommand.ValidateCredentials, { orgUrl, pat }),
 
-  init: (orgUrl: string, pat: string) =>
-    invoke<void>(TauriCommand.InitSession, { orgUrl, pat }),
+  init: (orgUrl: string, pat: string) => invoke<void>(TauriCommand.InitSession, { orgUrl, pat }),
 
-  exists: () =>
-    invoke<boolean>(TauriCommand.HasSession),
+  exists: () => invoke<boolean>(TauriCommand.HasSession),
 
-  clear: () =>
-    invoke<void>(TauriCommand.ClearSession),
+  clear: () => invoke<void>(TauriCommand.ClearSession),
 };
 
 // ============================================================
@@ -64,11 +58,9 @@ export const session = {
 // ============================================================
 
 export const azure = {
-  getProjects: () =>
-    invoke<Project[]>(TauriCommand.GetProjects),
+  getProjects: () => invoke<Project[]>(TauriCommand.GetProjects),
 
-  getTeams: (project: string) =>
-    invoke<Team[]>(TauriCommand.GetTeams, { project }),
+  getTeams: (project: string) => invoke<Team[]>(TauriCommand.GetTeams, { project }),
 
   getTasks: (project: string, team?: string) =>
     invoke<WorkItem[]>(TauriCommand.GetTasks, { project, team: team ?? null }),
@@ -79,8 +71,7 @@ export const azure = {
   getPipelineDefinitions: (project: string) =>
     invoke<PipelineDefinition[]>(TauriCommand.GetPipelineDefinitions, { project }),
 
-  getPullRequests: (project: string) =>
-    invoke<PullRequest[]>(TauriCommand.GetPullRequests, { project }),
+  getPullRequests: (project: string) => invoke<PullRequest[]>(TauriCommand.GetPullRequests, { project }),
 
   getCurrentSprint: (project: string, team?: string) =>
     invoke<SprintIteration | null>(TauriCommand.GetCurrentSprint, { project, team: team ?? null }),
@@ -96,4 +87,11 @@ export const azure = {
 
   reviewPullRequest: (project: string, repoId: string, prId: number, vote: number) =>
     invoke<void>(TauriCommand.ReviewPullRequest, { project, repoId, prId, vote }),
+
+  getStandupData: (project: string, team?: string, lookbackDays?: number) =>
+    invoke<StandupData>(TauriCommand.GetStandupData, {
+      project,
+      team: team ?? null,
+      lookbackDays: lookbackDays ?? 1,
+    }),
 };

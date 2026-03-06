@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { azure } from "@/lib/tauri";
-import type { PullRequest as ApiPullRequest } from "@/types/azure";
-import { Route } from "@/types/routes";
-import { useSessionStore } from "@/store/session";
-import { formatAgo, formatDuration, getAssigneeInitials, initials, stripRefs } from "@/utils/formatters";
-import { mapWorkItemType, mapWorkItemStatus, mapPipelineStatus } from "@/utils/mappers";
-import type { WorkItem, Pipeline, DashboardPR, SprintInfo, DashboardData } from "./types";
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { azure } from '@/lib/tauri';
+import type { PullRequest as ApiPullRequest } from '@/types/azure';
+import { Route } from '@/types/routes';
+import { useSessionStore } from '@/store/session';
+import { formatAgo, formatDuration, getAssigneeInitials, initials, stripRefs } from '@/utils/formatters';
+import { mapWorkItemType, mapWorkItemStatus, mapPipelineStatus } from '@/utils/mappers';
+import type { WorkItem, Pipeline, DashboardPR, SprintInfo, DashboardData } from './types';
 
 function sprintDaysRemaining(finishDate?: string): number {
   if (!finishDate) return 0;
@@ -15,13 +15,13 @@ function sprintDaysRemaining(finishDate?: string): number {
   return Math.max(0, Math.ceil(diff / 86400000));
 }
 
-function mapSprintStatus(days: number): SprintInfo["status"] {
-  if (days <= 2) return "at-risk";
-  return "on-track";
+function mapSprintStatus(days: number): SprintInfo['status'] {
+  if (days <= 2) return 'at-risk';
+  return 'on-track';
 }
 
 function mapPullRequest(pr: ApiPullRequest): DashboardPR {
-  const name = pr.createdBy.displayName ?? "";
+  const name = pr.createdBy.displayName ?? '';
   const approvedCount = pr.reviewers.filter((r) => r.vote === 10).length;
 
   return {
@@ -31,9 +31,9 @@ function mapPullRequest(pr: ApiPullRequest): DashboardPR {
     sourceBranch: stripRefs(pr.sourceRefName),
     targetBranch: stripRefs(pr.targetRefName),
     author: name,
-    authorInitials: initials(name) || "?",
+    authorInitials: initials(name) || '?',
     createdAgo: formatAgo(pr.creationDate),
-    status: pr.isDraft ? "draft" : "active",
+    status: pr.isDraft ? 'draft' : 'active',
     reviewerCount: pr.reviewers.length,
     approvedCount,
     url: pr.webUrl,
@@ -62,7 +62,7 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
           name: sprintData.name,
           daysRemaining: days,
           totalDays,
-          startDate: sprintData.attributes.startDate ?? "",
+          startDate: sprintData.attributes.startDate ?? '',
           status: mapSprintStatus(days),
         };
       })()
@@ -70,11 +70,11 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
 
   const workItems: WorkItem[] = rawItems.map((w) => ({
     id: w.id,
-    title: w.fields["System.Title"],
-    type: mapWorkItemType(w.fields["System.WorkItemType"]),
-    status: mapWorkItemStatus(w.fields["System.State"]),
-    assigneeInitials: getAssigneeInitials(w.fields["System.AssignedTo"] as { displayName: string } | null),
-    iterationPath: w.fields["System.IterationPath"],
+    title: w.fields['System.Title'],
+    type: mapWorkItemType(w.fields['System.WorkItemType']),
+    status: mapWorkItemStatus(w.fields['System.State']),
+    assigneeInitials: getAssigneeInitials(w.fields['System.AssignedTo'] as { displayName: string } | null),
+    iterationPath: w.fields['System.IterationPath'],
     url: w.webUrl,
   }));
 
@@ -82,8 +82,7 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
     id: p.id,
     name: p.definition.name,
     branch: stripRefs(p.sourceBranch),
-    target: p.sourceBranch.includes("main") || p.sourceBranch.includes("master")
-      ? "production" : "staging",
+    target: p.sourceBranch.includes('main') || p.sourceBranch.includes('master') ? 'production' : 'staging',
     status: mapPipelineStatus(p),
     duration: formatDuration(p.queueTime, p.finishTime),
     ago: formatAgo(p.finishTime ?? p.queueTime),
@@ -112,20 +111,33 @@ export const useDashboard = (): DashboardData => {
   const enabled = !!project && !!team;
 
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<number | null>(null);
+  const [standupPeriod, setStandupPeriod] = useState<number>(1);
+  const [standupOpen, setStandupOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["dashboard", project, team, teamId],
-    queryFn: () => fetchDashboardData(project!, team!, teamId ?? ""),
+    queryKey: ['dashboard', project, team, teamId],
+    queryFn: () => fetchDashboardData(project!, team!, teamId ?? ''),
     enabled,
     refetchInterval: 30_000,
   });
 
-  const stats = useMemo(() => ({
-    myTasks: data?.workItems.length ?? 0,
-    inReview: data?.workItems.filter((w) => w.status === "in-review").length ?? 0,
-    pipelinesRunning: data?.pipelines.filter((p) => p.status === "running").length ?? 0,
-    openPRs: data?.pullRequests.length ?? 0,
-  }), [data?.workItems, data?.pipelines, data?.pullRequests]);
+  const standupQuery = useQuery({
+    queryKey: ['standup', project, team, standupPeriod],
+    queryFn: () => azure.getStandupData(project!, team ?? undefined, standupPeriod),
+    enabled,
+    staleTime: 300_000,
+    refetchInterval: false,
+  });
+
+  const stats = useMemo(
+    () => ({
+      myTasks: data?.workItems.length ?? 0,
+      inReview: data?.workItems.filter((w) => w.status === 'in-review').length ?? 0,
+      pipelinesRunning: data?.pipelines.filter((p) => p.status === 'running').length ?? 0,
+      openPRs: data?.pullRequests.length ?? 0,
+    }),
+    [data?.workItems, data?.pipelines, data?.pullRequests],
+  );
 
   return {
     project,
@@ -135,9 +147,15 @@ export const useDashboard = (): DashboardData => {
     pipelines: data?.pipelines ?? [],
     pullRequests: data?.pullRequests ?? [],
     isLoading: enabled && isLoading,
-    error: error ? (typeof error === "string" ? error : "Failed to load dashboard data") : null,
+    error: error ? (typeof error === 'string' ? error : 'Failed to load dashboard data') : null,
     selectedWorkItemId,
     selectWorkItem: setSelectedWorkItemId,
     closeWorkItemDetail: () => setSelectedWorkItemId(null),
+    standup: standupQuery.data ?? null,
+    standupLoading: enabled && standupQuery.isLoading,
+    standupPeriod,
+    setStandupPeriod,
+    standupOpen,
+    setStandupOpen,
   };
 };

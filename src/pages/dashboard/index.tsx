@@ -1,11 +1,13 @@
-import { Loader2, AlertCircle } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
-import { useDashboard } from "./use-dashboard";
-import { SprintHeader } from "./components/sprint-header";
-import { StatsBar } from "./components/stats-bar";
-import { WorkItemsList } from "./components/work-items-list";
-import { PipelinesList } from "./components/pipelines-list";
-import { WorkItemDetailDialog } from "./components/work-item-detail";
+import { Loader2, AlertCircle, ClipboardList } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { PageHeader } from '@/components/ui/page-header';
+import { useDashboard } from './use-dashboard';
+import { SprintHeader } from './components/sprint-header';
+import { StatsBar } from './components/stats-bar';
+import { WorkItemsList } from './components/work-items-list';
+import { PipelinesList } from './components/pipelines-list';
+import { WorkItemDetailDialog } from './components/work-item-detail';
+import { StandupDialog } from './components/standup-dialog';
 
 export function DashboardPage() {
   const {
@@ -19,6 +21,12 @@ export function DashboardPage() {
     selectedWorkItemId,
     selectWorkItem,
     closeWorkItemDetail,
+    standup,
+    standupLoading,
+    standupPeriod,
+    setStandupPeriod,
+    standupOpen,
+    setStandupOpen,
   } = useDashboard();
 
   if (isLoading) {
@@ -40,7 +48,22 @@ export function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Dashboard" subtitle={project ?? undefined} />
+      <PageHeader
+        title="Dashboard"
+        subtitle={project ?? undefined}
+        actions={
+          <button
+            onClick={() => setStandupOpen(true)}
+            className={cn(
+              'flex cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors',
+              'border border-border bg-elevated text-fg-muted hover:bg-surface hover:text-fg',
+            )}
+          >
+            <ClipboardList size={12} />
+            Standup
+          </button>
+        }
+      />
 
       <div>
         <SprintHeader sprint={sprint} />
@@ -52,13 +75,16 @@ export function DashboardPage() {
         <PipelinesList pipelines={pipelines} />
       </div>
 
-      {project && (
-        <WorkItemDetailDialog
-          itemId={selectedWorkItemId}
-          project={project}
-          onClose={closeWorkItemDetail}
-        />
-      )}
+      {project && <WorkItemDetailDialog itemId={selectedWorkItemId} project={project} onClose={closeWorkItemDetail} />}
+
+      <StandupDialog
+        open={standupOpen}
+        onOpenChange={setStandupOpen}
+        standup={standup}
+        isLoading={standupLoading}
+        period={standupPeriod}
+        onPeriodChange={setStandupPeriod}
+      />
     </div>
   );
 }

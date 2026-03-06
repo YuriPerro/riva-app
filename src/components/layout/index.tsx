@@ -1,5 +1,5 @@
-import { Outlet, useLocation } from "react-router-dom";
-import { Sidebar } from "./sidebar";
+import { Outlet, useLocation } from 'react-router-dom';
+import { Sidebar } from './sidebar';
 
 export function AppLayout() {
   const location = useLocation();
@@ -13,7 +13,7 @@ export function AppLayout() {
           <main
             key={location.pathname}
             className="flex-1 overflow-auto p-6"
-            style={{ animation: "page-enter 250ms ease-out" }}
+            style={{ animation: 'page-enter 250ms ease-out' }}
           >
             <Outlet />
           </main>

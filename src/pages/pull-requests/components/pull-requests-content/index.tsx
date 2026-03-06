@@ -1,7 +1,7 @@
-import { AlertCircle, GitPullRequest, Loader2 } from "lucide-react";
-import type { PR } from "../../use-pull-requests";
-import { PRCard } from "../pr-card";
-import type { PullRequestsContentProps } from "./types";
+import { AlertCircle, GitPullRequest, Loader2 } from 'lucide-react';
+import type { PR } from '../../use-pull-requests';
+import { PRCard } from '../pr-card';
+import type { PullRequestsContentProps } from './types';
 
 export function PullRequestsContent(props: PullRequestsContentProps) {
   const { isLoading, error, filtered, openPR, reviewPR, isReviewing } = props;
@@ -45,9 +45,7 @@ export function PullRequestsContent(props: PullRequestsContentProps) {
           <div key={repo}>
             {repoGroups.size > 1 && (
               <div className="mb-2 flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-disabled">
-                  {repo}
-                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-disabled">{repo}</span>
                 <span className="rounded-full bg-elevated px-1.5 py-0.5 text-[10px] text-fg-muted">
                   {repoPRs.length}
                 </span>

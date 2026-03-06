@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
-import { credentials, session } from "@/lib/tauri";
-import { Route } from "@/types/routes";
-import { useSessionStore } from "@/store/session";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { credentials, session } from '@/lib/tauri';
+import { Route } from '@/types/routes';
+import { useSessionStore } from '@/store/session';
 
 export function useSettings() {
   const navigate = useNavigate();

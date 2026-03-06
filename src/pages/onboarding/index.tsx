@@ -1,13 +1,12 @@
-import { Eye, EyeOff, ExternalLink, Loader2, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { useOnboarding } from "./use-onboarding";
+import { Eye, EyeOff, ExternalLink, Loader2, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import { useOnboarding } from './use-onboarding';
 
 export function OnboardingPage() {
-  const { form, isConnecting, showToken, toggleShowToken, onSubmit } =
-    useOnboarding();
+  const { form, isConnecting, showToken, toggleShowToken, onSubmit } = useOnboarding();
 
   const {
     register,
@@ -22,12 +21,9 @@ export function OnboardingPage() {
             <Zap size={18} className="text-fg" />
           </div>
           <div className="text-center">
-            <h1 className="text-[15px] font-semibold text-fg">
-              Connect to Azure DevOps
-            </h1>
+            <h1 className="text-[15px] font-semibold text-fg">Connect to Azure DevOps</h1>
             <p className="mt-1 text-[13px] text-fg-muted">
-              Enter your organization URL and a Personal Access Token to get
-              started.
+              Enter your organization URL and a Personal Access Token to get started.
             </p>
           </div>
         </div>
@@ -44,18 +40,14 @@ export function OnboardingPage() {
               autoCapitalize="off"
               spellCheck={false}
               className={cn(
-                "h-9 rounded-md border-border bg-surface text-[13px] text-fg",
-                "placeholder:text-fg-disabled",
-                "focus-visible:ring-1 focus-visible:ring-fg focus-visible:ring-offset-0",
-                errors.organizationUrl && "border-error"
+                'h-9 rounded-md border-border bg-surface text-[13px] text-fg',
+                'placeholder:text-fg-disabled',
+                'focus-visible:ring-1 focus-visible:ring-fg focus-visible:ring-offset-0',
+                errors.organizationUrl && 'border-error',
               )}
-              {...register("organizationUrl")}
+              {...register('organizationUrl')}
             />
-            {errors.organizationUrl && (
-              <span className="text-[11px] text-error">
-                {errors.organizationUrl.message}
-              </span>
-            )}
+            {errors.organizationUrl && <span className="text-[11px] text-error">{errors.organizationUrl.message}</span>}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -76,17 +68,17 @@ export function OnboardingPage() {
             <div className="relative">
               <Input
                 id="personalAccessToken"
-                type={showToken ? "text" : "password"}
+                type={showToken ? 'text' : 'password'}
                 placeholder="••••••••••••••••••••••••"
                 autoComplete="off"
                 spellCheck={false}
                 className={cn(
-                  "h-9 rounded-md border-border bg-surface pr-10 text-[13px] text-fg",
-                  "placeholder:text-fg-disabled",
-                  "focus-visible:ring-1 focus-visible:ring-fg focus-visible:ring-offset-0",
-                  errors.personalAccessToken && "border-error"
+                  'h-9 rounded-md border-border bg-surface pr-10 text-[13px] text-fg',
+                  'placeholder:text-fg-disabled',
+                  'focus-visible:ring-1 focus-visible:ring-fg focus-visible:ring-offset-0',
+                  errors.personalAccessToken && 'border-error',
                 )}
-                {...register("personalAccessToken")}
+                {...register('personalAccessToken')}
               />
               <button
                 type="button"
@@ -97,9 +89,7 @@ export function OnboardingPage() {
               </button>
             </div>
             {errors.personalAccessToken && (
-              <span className="text-[11px] text-error">
-                {errors.personalAccessToken.message}
-              </span>
+              <span className="text-[11px] text-error">{errors.personalAccessToken.message}</span>
             )}
           </div>
 
@@ -107,8 +97,8 @@ export function OnboardingPage() {
             type="submit"
             disabled={isConnecting}
             className={cn(
-              "mt-2 h-9 w-full rounded-md bg-accent text-[13px] font-medium text-accent-fg",
-              "hover:bg-accent-muted disabled:opacity-50 transition-colors"
+              'mt-2 h-9 w-full rounded-md bg-accent text-[13px] font-medium text-accent-fg',
+              'hover:bg-accent-muted disabled:opacity-50 transition-colors',
             )}
           >
             {isConnecting ? (
@@ -117,7 +107,7 @@ export function OnboardingPage() {
                 Connecting...
               </span>
             ) : (
-              "Connect"
+              'Connect'
             )}
           </Button>
         </form>

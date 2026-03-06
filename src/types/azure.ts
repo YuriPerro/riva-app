@@ -10,11 +10,11 @@ export interface Team {
 }
 
 export interface WorkItemFields {
-  "System.Title": string;
-  "System.WorkItemType": string;
-  "System.State": string;
-  "System.AssignedTo"?: { displayName: string; uniqueName: string } | null;
-  "System.IterationPath"?: string;
+  'System.Title': string;
+  'System.WorkItemType': string;
+  'System.State': string;
+  'System.AssignedTo'?: { displayName: string; uniqueName: string } | null;
+  'System.IterationPath'?: string;
 }
 
 export interface WorkItem {
@@ -24,19 +24,19 @@ export interface WorkItem {
 }
 
 export interface WorkItemDetailFields extends WorkItemFields {
-  "System.Description"?: string;
-  "System.CreatedDate"?: string;
-  "System.ChangedDate"?: string;
-  "System.CreatedBy"?: { displayName: string; uniqueName: string } | null;
-  "System.Tags"?: string;
-  "Microsoft.VSTS.Common.Priority"?: number;
-  "Microsoft.VSTS.Scheduling.RemainingWork"?: number;
-  "Microsoft.VSTS.Scheduling.CompletedWork"?: number;
-  "Microsoft.VSTS.Scheduling.Effort"?: number;
-  "Microsoft.VSTS.Scheduling.DueDate"?: string;
-  "Microsoft.VSTS.Scheduling.StartDate"?: string;
-  "Microsoft.VSTS.Scheduling.FinishDate"?: string;
-  "Microsoft.VSTS.CMMI.Blocked"?: string;
+  'System.Description'?: string;
+  'System.CreatedDate'?: string;
+  'System.ChangedDate'?: string;
+  'System.CreatedBy'?: { displayName: string; uniqueName: string } | null;
+  'System.Tags'?: string;
+  'Microsoft.VSTS.Common.Priority'?: number;
+  'Microsoft.VSTS.Scheduling.RemainingWork'?: number;
+  'Microsoft.VSTS.Scheduling.CompletedWork'?: number;
+  'Microsoft.VSTS.Scheduling.Effort'?: number;
+  'Microsoft.VSTS.Scheduling.DueDate'?: string;
+  'Microsoft.VSTS.Scheduling.StartDate'?: string;
+  'Microsoft.VSTS.Scheduling.FinishDate'?: string;
+  'Microsoft.VSTS.CMMI.Blocked'?: string;
 }
 
 export interface WorkItemDetail {
@@ -114,4 +114,41 @@ export interface PullRequest {
   isDraft: boolean;
   reviewers: PullRequestReviewer[];
   webUrl: string;
+}
+
+// ============================================================
+// Standup
+// ============================================================
+
+export interface StandupTransition {
+  workItemId: number;
+  title: string;
+  workItemType: string;
+  fromState: string;
+  toState: string;
+  changedDate: string;
+  webUrl: string;
+}
+
+export interface StandupItem {
+  id: number;
+  title: string;
+  workItemType: string;
+  state: string;
+  webUrl: string;
+}
+
+export interface StandupPR {
+  id: number;
+  title: string;
+  repo: string;
+  activityType: string;
+  webUrl: string;
+}
+
+export interface StandupData {
+  transitions: StandupTransition[];
+  today: StandupItem[];
+  todayPrs: StandupPR[];
+  blockers: StandupItem[];
 }

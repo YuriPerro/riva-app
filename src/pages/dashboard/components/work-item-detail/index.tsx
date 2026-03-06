@@ -11,64 +11,50 @@ import {
   CheckCircle2,
   ShieldAlert,
   Zap,
-} from "lucide-react";
-import { openUrl } from "@tauri-apps/plugin-opener";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
-import { ShineBorder } from "@/components/ui/shine-border";
-import { useWorkItemDetail } from "./use-work-item-detail";
-import { StatusField } from "./status-field";
-import { BranchField } from "./branch-field";
-import { DetailField } from "./detail-field";
-import type { WorkItemDetailDialogProps, PriorityLabel, DisplayDetail } from "./types";
+} from 'lucide-react';
+import { openUrl } from '@tauri-apps/plugin-opener';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
+import { ShineBorder } from '@/components/ui/shine-border';
+import { useWorkItemDetail } from './use-work-item-detail';
+import { StatusField } from './status-field';
+import { BranchField } from './branch-field';
+import { DetailField } from './detail-field';
+import type { WorkItemDetailDialogProps, PriorityLabel, DisplayDetail } from './types';
 
-type DevFieldKey = "effort" | "completedWork" | "remainingWork" | "dueDate" | "devStartDate" | "devEndDate" | "blocked";
+type DevFieldKey = 'effort' | 'completedWork' | 'remainingWork' | 'dueDate' | 'devStartDate' | 'devEndDate' | 'blocked';
 
 const DEV_FIELD_META: Record<DevFieldKey, { icon: React.ElementType; label: string }> = {
-  effort:        { icon: Zap,          label: "Effort" },
-  completedWork: { icon: CheckCircle2, label: "Completed Work" },
-  remainingWork: { icon: Hourglass,    label: "Remaining Work" },
-  dueDate:       { icon: Calendar,     label: "Due Date" },
-  devStartDate:  { icon: Calendar,     label: "Dev Start Date" },
-  devEndDate:    { icon: Calendar,     label: "Dev End Date" },
-  blocked:       { icon: ShieldAlert,  label: "Blocked" },
+  effort: { icon: Zap, label: 'Effort' },
+  completedWork: { icon: CheckCircle2, label: 'Completed Work' },
+  remainingWork: { icon: Hourglass, label: 'Remaining Work' },
+  dueDate: { icon: Calendar, label: 'Due Date' },
+  devStartDate: { icon: Calendar, label: 'Dev Start Date' },
+  devEndDate: { icon: Calendar, label: 'Dev End Date' },
+  blocked: { icon: ShieldAlert, label: 'Blocked' },
 };
 
 const DEV_FIELDS_BY_TYPE: Record<string, DevFieldKey[]> = {
-  Task:                   ["effort", "completedWork", "remainingWork", "dueDate", "blocked"],
-  Bug:                    ["effort", "completedWork", "remainingWork", "devStartDate", "devEndDate", "blocked"],
-  "Product Backlog Item": ["effort", "devStartDate", "devEndDate", "blocked"],
-  Feature:                ["effort", "devStartDate", "devEndDate", "blocked"],
-  Epic:                   ["effort", "devStartDate", "devEndDate", "blocked"],
+  Task: ['effort', 'completedWork', 'remainingWork', 'dueDate', 'blocked'],
+  Bug: ['effort', 'completedWork', 'remainingWork', 'devStartDate', 'devEndDate', 'blocked'],
+  'Product Backlog Item': ['effort', 'devStartDate', 'devEndDate', 'blocked'],
+  Feature: ['effort', 'devStartDate', 'devEndDate', 'blocked'],
+  Epic: ['effort', 'devStartDate', 'devEndDate', 'blocked'],
 };
 
-const DEFAULT_DEV_FIELDS: DevFieldKey[] = ["effort", "blocked"];
+const DEFAULT_DEV_FIELDS: DevFieldKey[] = ['effort', 'blocked'];
 
 const priorityConfig: Record<PriorityLabel, string> = {
-  Critical: "text-error",
-  High:     "text-warning",
-  Medium:   "text-info",
-  Low:      "text-fg-muted",
-  None:     "text-fg-disabled",
+  Critical: 'text-error',
+  High: 'text-warning',
+  Medium: 'text-info',
+  Low: 'text-fg-muted',
+  None: 'text-fg-disabled',
 };
 
 export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
   const { itemId, project, onClose } = props;
-  const {
-    detail,
-    theme,
-    states,
-    isLoading,
-    isUpdating,
-    updateState,
-    error,
-  } = useWorkItemDetail(project, itemId);
+  const { detail, theme, states, isLoading, isUpdating, updateState, error } = useWorkItemDetail(project, itemId);
 
   const isOpen = itemId !== null;
   const TypeIcon = theme.icon;
@@ -103,28 +89,19 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
           <>
             <DialogHeader className="mt-3">
               <span className="text-[14px] text-fg-disabled">#{itemId}</span>
-              <DialogTitle className="text-[17px] leading-snug">
-                {detail.title}
-              </DialogTitle>
-              <DialogDescription className="sr-only">
-                Work item details for {detail.title}
-              </DialogDescription>
+              <DialogTitle className="text-[17px] leading-snug">{detail.title}</DialogTitle>
+              <DialogDescription className="sr-only">Work item details for {detail.title}</DialogDescription>
               <div className="flex items-center gap-2 pt-1">
                 <div className="flex items-center gap-1.5">
                   <TypeIcon size={12} className={theme.className} />
-                  <span className={cn("text-[11px] font-medium", theme.className)}>
-                    {detail.type}
-                  </span>
+                  <span className={cn('text-[11px] font-medium', theme.className)}>{detail.type}</span>
                 </div>
                 {detail.tags.length > 0 && (
                   <>
                     <span className="text-fg-disabled">·</span>
                     <div className="flex flex-wrap items-center gap-1.5">
                       {detail.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full bg-elevated px-2 py-0.5 text-[11px] text-fg-secondary"
-                        >
+                        <span key={tag} className="rounded-full bg-elevated px-2 py-0.5 text-[11px] text-fg-secondary">
                           {tag}
                         </span>
                       ))}
@@ -164,24 +141,21 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
                   {(DEV_FIELDS_BY_TYPE[detail.type] ?? DEFAULT_DEV_FIELDS).map((key) => {
                     const meta = DEV_FIELD_META[key];
                     const raw = detail[key as keyof DisplayDetail] as string | null;
-                    const value = raw ?? "—";
+                    const value = raw ?? '—';
                     return (
                       <DetailField
                         key={key}
                         icon={meta.icon}
                         label={meta.label}
                         value={value}
-                        valueClassName={key === "blocked" && value === "Yes" ? "text-error" : undefined}
+                        valueClassName={key === 'blocked' && value === 'Yes' ? 'text-error' : undefined}
                       />
                     );
                   })}
                 </div>
               </div>
 
-              <BranchField
-                id={itemId!}
-                type={detail.type}
-              />
+              <BranchField id={itemId!} type={detail.type} />
 
               {detail.description && (
                 <div className="space-y-1.5">
@@ -193,7 +167,6 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
                 </div>
               )}
             </div>
-
           </>
         )}
       </DialogContent>

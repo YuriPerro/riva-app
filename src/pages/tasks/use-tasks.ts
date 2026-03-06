@@ -1,11 +1,11 @@
-import { useState, useMemo } from "react";
-import { openUrl } from "@tauri-apps/plugin-opener";
-import { useQuery } from "@tanstack/react-query";
-import { azure } from "@/lib/tauri";
-import { useSessionStore } from "@/store/session";
-import { getAssigneeInitials } from "@/utils/formatters";
-import { mapWorkItemType, mapWorkItemStatus } from "@/utils/mappers";
-import type { WorkItemType, WorkItemStatus } from "@/types/work-item";
+import { useState, useMemo } from 'react';
+import { openUrl } from '@tauri-apps/plugin-opener';
+import { useQuery } from '@tanstack/react-query';
+import { azure } from '@/lib/tauri';
+import { useSessionStore } from '@/store/session';
+import { getAssigneeInitials } from '@/utils/formatters';
+import { mapWorkItemType, mapWorkItemStatus } from '@/utils/mappers';
+import type { WorkItemType, WorkItemStatus } from '@/types/work-item';
 
 export type { WorkItemType, WorkItemStatus };
 
@@ -21,8 +21,8 @@ export interface TaskItem {
   url: string;
 }
 
-export type StatusFilter = "all" | WorkItemStatus;
-export type TypeFilter = "all" | WorkItemType;
+export type StatusFilter = 'all' | WorkItemStatus;
+export type TypeFilter = 'all' | WorkItemType;
 
 export interface TasksData {
   items: TaskItem[];
@@ -43,43 +43,51 @@ export interface TasksData {
 export function useTasks(): TasksData {
   const project = useSessionStore((s) => s.project);
   const team = useSessionStore((s) => s.team);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<number | null>(null);
 
-  const { data: items = [], isLoading, error } = useQuery({
-    queryKey: ["tasks", project, team],
-    queryFn: () => azure.getTasks(project!, team ?? undefined).then((raw) =>
-      raw.map((w): TaskItem => ({
-        id: w.id,
-        title: w.fields["System.Title"],
-        type: mapWorkItemType(w.fields["System.WorkItemType"]),
-        status: mapWorkItemStatus(w.fields["System.State"]),
-        rawType: w.fields["System.WorkItemType"],
-        rawState: w.fields["System.State"],
-        iterationPath: w.fields["System.IterationPath"],
-        assigneeInitials: getAssigneeInitials(w.fields["System.AssignedTo"] as { displayName: string } | null),
-        url: w.webUrl,
-      }))
-    ),
+  const {
+    data: items = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['tasks', project, team],
+    queryFn: () =>
+      azure.getTasks(project!, team ?? undefined).then((raw) =>
+        raw.map(
+          (w): TaskItem => ({
+            id: w.id,
+            title: w.fields['System.Title'],
+            type: mapWorkItemType(w.fields['System.WorkItemType']),
+            status: mapWorkItemStatus(w.fields['System.State']),
+            rawType: w.fields['System.WorkItemType'],
+            rawState: w.fields['System.State'],
+            iterationPath: w.fields['System.IterationPath'],
+            assigneeInitials: getAssigneeInitials(w.fields['System.AssignedTo'] as { displayName: string } | null),
+            url: w.webUrl,
+          }),
+        ),
+      ),
     enabled: !!project,
     refetchInterval: 30_000,
   });
 
-  const filtered = useMemo(() =>
-    items.filter((item) => {
-      if (statusFilter !== "all" && item.status !== statusFilter) return false;
-      if (typeFilter !== "all" && item.type !== typeFilter) return false;
-      return true;
-    }),
-    [items, statusFilter, typeFilter]
+  const filtered = useMemo(
+    () =>
+      items.filter((item) => {
+        if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+        if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+        return true;
+      }),
+    [items, statusFilter, typeFilter],
   );
 
   return {
     items,
     filtered,
     isLoading: !!project && isLoading,
-    error: error ? (typeof error === "string" ? error : "Failed to load work items") : null,
+    error: error ? (typeof error === 'string' ? error : 'Failed to load work items') : null,
     project,
     statusFilter,
     typeFilter,

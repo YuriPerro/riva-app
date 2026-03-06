@@ -1,11 +1,11 @@
-import * as React from "react";
+import * as React from 'react';
 
 interface StrictProviderProps<T> {
   value: T;
   children?: React.ReactNode;
 }
 
-function getStrictContext<T>(name = "a Provider") {
+function getStrictContext<T>(name = 'a Provider') {
   const Context = React.createContext<T | undefined>(undefined);
 
   const Provider = (props: StrictProviderProps<T>) => (

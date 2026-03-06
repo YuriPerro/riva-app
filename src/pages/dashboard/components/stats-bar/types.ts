@@ -1,4 +1,4 @@
-import type { DashboardStats } from "../../types";
+import type { DashboardStats } from '../../types';
 
 export interface StatsBarProps {
   stats: DashboardStats;

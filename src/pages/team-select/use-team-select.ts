@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { azure } from "@/lib/tauri";
-import type { Team } from "@/types/azure";
-import { Route } from "@/types/routes";
-import { useSessionStore } from "@/store/session";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { azure } from '@/lib/tauri';
+import type { Team } from '@/types/azure';
+import { Route } from '@/types/routes';
+import { useSessionStore } from '@/store/session';
 
 export const useTeamSelect = () => {
   const navigate = useNavigate();
@@ -19,9 +19,10 @@ export const useTeamSelect = () => {
       return;
     }
 
-    azure.getTeams(project)
+    azure
+      .getTeams(project)
       .then(setTeams)
-      .catch((e) => setError(typeof e === "string" ? e : "Failed to load teams"))
+      .catch((e) => setError(typeof e === 'string' ? e : 'Failed to load teams'))
       .finally(() => setIsLoading(false));
   }, [project, navigate]);
 
@@ -30,5 +31,5 @@ export const useTeamSelect = () => {
     navigate(Route.Dashboard, { replace: true });
   };
 
-  return { project: project ?? "", teams, isLoading, error, selectTeam };
+  return { project: project ?? '', teams, isLoading, error, selectTeam };
 };

@@ -1,6 +1,6 @@
-import { AlertCircle, Layers, Loader2 } from "lucide-react";
-import { GroupedItems } from "../grouped-items";
-import type { TasksContentProps } from "./types";
+import { AlertCircle, Layers, Loader2 } from 'lucide-react';
+import { GroupedItems } from '../grouped-items';
+import type { TasksContentProps } from './types';
 
 export function TasksContent(props: TasksContentProps) {
   const { isLoading, error, filtered, selectWorkItem, openItem } = props;

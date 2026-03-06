@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import { Plus, Search, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState, useRef, useEffect } from 'react';
+import { Plus, Search, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface FilterSelectorProps {
   options: string[];
@@ -10,33 +10,25 @@ interface FilterSelectorProps {
   placeholder?: string;
 }
 
-export function FilterSelector({
-  options,
-  selected,
-  onAdd,
-  onRemove,
-  placeholder = "Filter",
-}: FilterSelectorProps) {
+export function FilterSelector({ options, selected, onAdd, onRemove, placeholder = 'Filter' }: FilterSelectorProps) {
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const available = options.filter((o) => !selected.includes(o));
-  const filtered = search
-    ? available.filter((o) => o.toLowerCase().includes(search.toLowerCase()))
-    : available;
+  const filtered = search ? available.filter((o) => o.toLowerCase().includes(search.toLowerCase())) : available;
 
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
-        setSearch("");
+        setSearch('');
       }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
   useEffect(() => {
@@ -70,16 +62,14 @@ export function FilterSelector({
           <button
             onClick={() => setOpen((v) => !v)}
             className={cn(
-              "flex cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+              'flex cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors',
               open
-                ? "border-accent/40 bg-accent/10 text-accent"
-                : "border-border bg-surface text-fg-secondary hover:text-fg"
+                ? 'border-accent/40 bg-accent/10 text-accent'
+                : 'border-border bg-surface text-fg-secondary hover:text-fg',
             )}
           >
             <Plus size={10} />
-            {selected.length === 0 && (
-              <span>{placeholder}</span>
-            )}
+            {selected.length === 0 && <span>{placeholder}</span>}
           </button>
 
           {open && (
@@ -103,7 +93,7 @@ export function FilterSelector({
                       key={value}
                       onClick={() => {
                         onAdd(value);
-                        setSearch("");
+                        setSearch('');
                         setOpen(false);
                       }}
                       className="flex w-full cursor-pointer items-center px-3 py-2 text-left text-[12px] text-fg-secondary transition-colors hover:bg-elevated hover:text-fg"

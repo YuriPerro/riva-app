@@ -1,14 +1,14 @@
-import { GitPullRequest, GitBranch, CircleCheck, CircleX, ExternalLink } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { ReviewerDot } from "../reviewer-dot";
-import type { PRCardProps } from "./types";
+import { GitPullRequest, GitBranch, CircleCheck, CircleX, ExternalLink } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ReviewerDot } from '../reviewer-dot';
+import type { PRCardProps } from './types';
 
 export function PRCard(props: PRCardProps) {
   const { pr, onOpen, onApprove, onReject, isReviewing } = props;
-  const approved   = pr.reviewers.filter((r) => r.vote === "approved").length;
-  const rejected   = pr.reviewers.filter((r) => r.vote === "rejected").length;
-  const reqApproved = pr.reviewers.filter((r) => r.isRequired && r.vote === "approved").length;
-  const reqTotal   = pr.reviewers.filter((r) => r.isRequired).length;
+  const approved = pr.reviewers.filter((r) => r.vote === 'approved').length;
+  const rejected = pr.reviewers.filter((r) => r.vote === 'rejected').length;
+  const reqApproved = pr.reviewers.filter((r) => r.isRequired && r.vote === 'approved').length;
+  const reqTotal = pr.reviewers.filter((r) => r.isRequired).length;
 
   const allRequiredApproved = reqTotal > 0 && reqApproved === reqTotal;
   const hasRejection = rejected > 0;
@@ -18,10 +18,7 @@ export function PRCard(props: PRCardProps) {
       <div className="flex items-start gap-2.5">
         <GitPullRequest
           size={14}
-          className={cn(
-            "mt-0.5 shrink-0",
-            pr.status === "draft" ? "text-fg-disabled" : "text-accent"
-          )}
+          className={cn('mt-0.5 shrink-0', pr.status === 'draft' ? 'text-fg-disabled' : 'text-accent')}
         />
         <div className="flex-1 min-w-0">
           <button
@@ -31,11 +28,11 @@ export function PRCard(props: PRCardProps) {
             {pr.title}
           </button>
           <div className="mt-0.5 flex items-center gap-2 text-[11px] text-fg-disabled">
-            <span>{pr.repo} · #{pr.id}</span>
-            {pr.status === "draft" && (
-              <span className="rounded border border-border px-1.5 py-0.5 text-[10px]">
-                Draft
-              </span>
+            <span>
+              {pr.repo} · #{pr.id}
+            </span>
+            {pr.status === 'draft' && (
+              <span className="rounded border border-border px-1.5 py-0.5 text-[10px]">Draft</span>
             )}
           </div>
         </div>
@@ -89,26 +86,22 @@ export function PRCard(props: PRCardProps) {
                 <ReviewerDot key={i} reviewer={r} />
               ))}
               {pr.reviewers.length > 5 && (
-                <span className="ml-1 text-[10px] text-fg-disabled">
-                  +{pr.reviewers.length - 5}
-                </span>
+                <span className="ml-1 text-[10px] text-fg-disabled">+{pr.reviewers.length - 5}</span>
               )}
             </div>
           )}
 
           <span
             className={cn(
-              "shrink-0 rounded border px-1.5 py-0.5 text-[10px]",
+              'shrink-0 rounded border px-1.5 py-0.5 text-[10px]',
               hasRejection
-                ? "border-error/40 bg-error/10 text-error"
+                ? 'border-error/40 bg-error/10 text-error'
                 : allRequiredApproved
-                  ? "border-success/40 bg-success/10 text-success"
-                  : "border-border bg-elevated text-fg-disabled"
+                  ? 'border-success/40 bg-success/10 text-success'
+                  : 'border-border bg-elevated text-fg-disabled',
             )}
           >
-            {hasRejection
-              ? `${rejected} rejected`
-              : `${approved}/${pr.reviewers.length} approved`}
+            {hasRejection ? `${rejected} rejected` : `${approved}/${pr.reviewers.length} approved`}
           </span>
 
           <span className="shrink-0 text-[11px] text-fg-disabled">{pr.createdAgo}</span>

@@ -1,4 +1,4 @@
-import type { PipelineGroup } from "../../use-pipelines";
+import type { PipelineGroup } from '../../use-pipelines';
 
 export interface PipelineGroupCardProps {
   group: PipelineGroup;

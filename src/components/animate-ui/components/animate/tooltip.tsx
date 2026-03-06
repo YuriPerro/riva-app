@@ -37,18 +37,10 @@ type TooltipContentProps = Omit<TooltipContentPrimitiveProps, 'asChild'> & {
   layout?: boolean | 'position' | 'size' | 'preserve-aspect';
 };
 
-function TooltipContent({
-  className,
-  children,
-  layout = 'preserve-aspect',
-  ...props
-}: TooltipContentProps) {
+function TooltipContent({ className, children, layout = 'preserve-aspect', ...props }: TooltipContentProps) {
   return (
     <TooltipContentPrimitive
-      className={cn(
-        'z-50 w-fit bg-elevated text-fg border border-border rounded-md shadow-md',
-        className,
-      )}
+      className={cn('z-50 w-fit bg-elevated text-fg border border-border rounded-md shadow-md', className)}
       {...props}
     >
       <motion.div className="overflow-hidden px-3 py-1.5 text-xs text-balance">

@@ -1,13 +1,12 @@
-import { Loader2, AlertCircle, Users } from "lucide-react";
-import { TeamInitial } from "./components/team-initial";
-import { useTeamSelect } from "./use-team-select";
+import { Loader2, AlertCircle, Users } from 'lucide-react';
+import { TeamInitial } from './components/team-initial';
+import { useTeamSelect } from './use-team-select';
 
 export function TeamSelectPage() {
   const { project, teams, isLoading, error, selectTeam } = useTeamSelect();
 
   return (
     <div data-tauri-drag-region className="flex min-h-screen flex-col items-center overflow-y-auto bg-base px-6 py-14">
-
       <div className="w-full max-w-[560px]">
         <div className="mb-8 flex flex-col items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface">

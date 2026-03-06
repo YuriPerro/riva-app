@@ -1,10 +1,10 @@
-import type { ProjectInitialProps } from "./types";
+import type { ProjectInitialProps } from './types';
 
 export function ProjectInitial(props: ProjectInitialProps) {
   const initials = props.name
     .split(/[\s_-]/)
     .map((w) => w[0])
-    .join("")
+    .join('')
     .slice(0, 2)
     .toUpperCase();
 

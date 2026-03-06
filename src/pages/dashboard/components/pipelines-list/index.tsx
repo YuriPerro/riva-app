@@ -1,16 +1,16 @@
-import { CheckCircle2, XCircle, Loader2, MinusCircle, ArrowRight } from "lucide-react";
-import { openUrl } from "@tauri-apps/plugin-opener";
-import { useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { Route } from "@/types/routes";
-import type { PipelineStatus } from "../../types";
-import type { PipelinesListProps } from "./types";
+import { CheckCircle2, XCircle, Loader2, MinusCircle, ArrowRight } from 'lucide-react';
+import { openUrl } from '@tauri-apps/plugin-opener';
+import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { Route } from '@/types/routes';
+import type { PipelineStatus } from '../../types';
+import type { PipelinesListProps } from './types';
 
 const statusConfig: Record<PipelineStatus, { icon: React.ElementType; className: string; spin?: boolean }> = {
-  succeeded: { icon: CheckCircle2, className: "text-success" },
-  failed:    { icon: XCircle,      className: "text-error" },
-  running:   { icon: Loader2,      className: "text-running", spin: true },
-  cancelled: { icon: MinusCircle,  className: "text-neutral" },
+  succeeded: { icon: CheckCircle2, className: 'text-success' },
+  failed: { icon: XCircle, className: 'text-error' },
+  running: { icon: Loader2, className: 'text-running', spin: true },
+  cancelled: { icon: MinusCircle, className: 'text-neutral' },
 };
 
 export function PipelinesList(props: PipelinesListProps) {
@@ -20,9 +20,7 @@ export function PipelinesList(props: PipelinesListProps) {
   return (
     <div className="flex flex-col">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">
-          Pipelines
-        </span>
+        <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Pipelines</span>
         <button
           onClick={() => navigate(Route.Pipelines)}
           className="flex cursor-pointer items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary"
@@ -40,14 +38,11 @@ export function PipelinesList(props: PipelinesListProps) {
               key={pipeline.id}
               onClick={() => pipeline.url && openUrl(pipeline.url)}
               className={cn(
-                "group flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors",
-                "hover:bg-elevated cursor-pointer"
+                'group flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors',
+                'hover:bg-elevated cursor-pointer',
               )}
             >
-              <Icon
-                size={13}
-                className={cn("shrink-0", className, spin && "animate-spin")}
-              />
+              <Icon size={13} className={cn('shrink-0', className, spin && 'animate-spin')} />
 
               <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
                 <span className="truncate text-[13px] text-fg-secondary group-hover:text-fg">

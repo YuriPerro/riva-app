@@ -1,14 +1,14 @@
-import { useState, useMemo } from "react";
-import { openUrl } from "@tauri-apps/plugin-opener";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { azure } from "@/lib/tauri";
-import type { PullRequest } from "@/types/azure";
-import { useSessionStore } from "@/store/session";
-import { formatAgo, initials, stripRefs } from "@/utils/formatters";
+import { useState, useMemo } from 'react';
+import { openUrl } from '@tauri-apps/plugin-opener';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { azure } from '@/lib/tauri';
+import type { PullRequest } from '@/types/azure';
+import { useSessionStore } from '@/store/session';
+import { formatAgo, initials, stripRefs } from '@/utils/formatters';
 
-export type PRStatus = "active" | "draft";
-export type ReviewVote = "approved" | "rejected" | "waiting" | "none";
+export type PRStatus = 'active' | 'draft';
+export type ReviewVote = 'approved' | 'rejected' | 'waiting' | 'none';
 
 export interface Reviewer {
   displayName: string;
@@ -33,10 +33,10 @@ export interface PR {
 }
 
 function mapVote(vote: number): ReviewVote {
-  if (vote === 10 || vote === 5) return "approved";
-  if (vote === -10 || vote === -5) return "rejected";
-  if (vote === 0) return "waiting";
-  return "none";
+  if (vote === 10 || vote === 5) return 'approved';
+  if (vote === -10 || vote === -5) return 'rejected';
+  if (vote === 0) return 'waiting';
+  return 'none';
 }
 
 function mapPR(raw: PullRequest): PR {
@@ -50,7 +50,7 @@ function mapPR(raw: PullRequest): PR {
     author: raw.createdBy.displayName,
     authorInitials: initials(raw.createdBy.displayName),
     createdAgo: formatAgo(raw.creationDate),
-    status: raw.isDraft ? "draft" : "active",
+    status: raw.isDraft ? 'draft' : 'active',
     reviewers: raw.reviewers.map((r) => ({
       displayName: r.displayName,
       initials: initials(r.displayName),
@@ -61,18 +61,22 @@ function mapPR(raw: PullRequest): PR {
   };
 }
 
-export type PRFilter = "all" | "active" | "draft";
+export type PRFilter = 'all' | 'active' | 'draft';
 
 export type PullRequestsData = ReturnType<typeof usePullRequests>;
 
 export function usePullRequests() {
   const project = useSessionStore((s) => s.project);
   const queryClient = useQueryClient();
-  const [filter, setFilter] = useState<PRFilter>("all");
+  const [filter, setFilter] = useState<PRFilter>('all');
   const [repoFilters, setRepoFilters] = useState<string[]>([]);
 
-  const { data: prs = [], isLoading, error } = useQuery({
-    queryKey: ["pull-requests", project],
+  const {
+    data: prs = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['pull-requests', project],
     queryFn: () => azure.getPullRequests(project!).then((raw) => raw.map(mapPR)),
     enabled: !!project,
     refetchInterval: 30_000,
@@ -84,7 +88,7 @@ export function usePullRequests() {
   }, [prs]);
 
   const filtered = useMemo(() => {
-    let result = filter === "all" ? prs : prs.filter((pr) => pr.status === filter);
+    let result = filter === 'all' ? prs : prs.filter((pr) => pr.status === filter);
     if (repoFilters.length > 0) result = result.filter((pr) => repoFilters.includes(pr.repo));
     return result;
   }, [prs, filter, repoFilters]);
@@ -93,9 +97,9 @@ export function usePullRequests() {
     mutationFn: (params: { repoId: string; prId: number; vote: number }) =>
       azure.reviewPullRequest(project!, params.repoId, params.prId, params.vote),
     onSuccess: (_data, variables) => {
-      const label = variables.vote === 10 ? "approved" : variables.vote === -10 ? "rejected" : "updated";
+      const label = variables.vote === 10 ? 'approved' : variables.vote === -10 ? 'rejected' : 'updated';
       toast.success(`PR ${label}`);
-      queryClient.invalidateQueries({ queryKey: ["pull-requests", project] });
+      queryClient.invalidateQueries({ queryKey: ['pull-requests', project] });
     },
   });
 
@@ -103,7 +107,7 @@ export function usePullRequests() {
     prs,
     filtered,
     isLoading: !!project && isLoading,
-    error: error ? (typeof error === "string" ? error : "Failed to load pull requests") : null,
+    error: error ? (typeof error === 'string' ? error : 'Failed to load pull requests') : null,
     filter,
     setFilter,
     repos,
@@ -111,8 +115,7 @@ export function usePullRequests() {
     addRepoFilter: (repo: string) => setRepoFilters((prev) => [...prev, repo]),
     removeRepoFilter: (repo: string) => setRepoFilters((prev) => prev.filter((r) => r !== repo)),
     openPR: openUrl,
-    reviewPR: (repoId: string, prId: number, vote: number) =>
-      reviewMutation.mutate({ repoId, prId, vote }),
+    reviewPR: (repoId: string, prId: number, vote: number) => reviewMutation.mutate({ repoId, prId, vote }),
     isReviewing: reviewMutation.isPending,
   };
 }

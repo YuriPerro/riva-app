@@ -1,4 +1,4 @@
-import type { TaskItem } from "../../use-tasks";
+import type { TaskItem } from '../../use-tasks';
 
 export interface GroupedItemsProps {
   items: TaskItem[];

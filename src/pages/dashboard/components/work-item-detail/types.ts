@@ -4,7 +4,7 @@ export interface WorkItemDetailDialogProps {
   onClose: () => void;
 }
 
-export type PriorityLabel = "Critical" | "High" | "Medium" | "Low" | "None";
+export type PriorityLabel = 'Critical' | 'High' | 'Medium' | 'Low' | 'None';
 
 export type DisplayDetail = {
   title: string;

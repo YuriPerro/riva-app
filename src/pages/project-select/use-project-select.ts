@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { azure } from "@/lib/tauri";
-import type { Project } from "@/types/azure";
-import { Route } from "@/types/routes";
-import { useSessionStore } from "@/store/session";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { azure } from '@/lib/tauri';
+import type { Project } from '@/types/azure';
+import { Route } from '@/types/routes';
+import { useSessionStore } from '@/store/session';
 
 export const useProjectSelect = () => {
   const navigate = useNavigate();
@@ -13,9 +13,10 @@ export const useProjectSelect = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    azure.getProjects()
+    azure
+      .getProjects()
       .then(setProjects)
-      .catch((e) => setError(typeof e === "string" ? e : "Failed to load projects"))
+      .catch((e) => setError(typeof e === 'string' ? e : 'Failed to load projects'))
       .finally(() => setIsLoading(false));
   }, []);
 

@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import type { Variants } from "motion/react";
-import { motion, useAnimation } from "motion/react";
-import type { HTMLAttributes } from "react";
-import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
+import type { Variants } from 'motion/react';
+import { motion, useAnimation } from 'motion/react';
+import type { HTMLAttributes } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 export interface ZapHandle {
   startAnimation: () => void;
@@ -44,8 +44,8 @@ const ZapIcon = forwardRef<ZapHandle, ZapProps>(
       isControlledRef.current = true;
 
       return {
-        startAnimation: () => controls.start("animate"),
-        stopAnimation: () => controls.start("normal"),
+        startAnimation: () => controls.start('animate'),
+        stopAnimation: () => controls.start('normal'),
       };
     });
 
@@ -54,10 +54,10 @@ const ZapIcon = forwardRef<ZapHandle, ZapProps>(
         if (isControlledRef.current) {
           onMouseEnter?.(e);
         } else {
-          controls.start("animate");
+          controls.start('animate');
         }
       },
-      [controls, onMouseEnter]
+      [controls, onMouseEnter],
     );
 
     const handleMouseLeave = useCallback(
@@ -65,15 +65,15 @@ const ZapIcon = forwardRef<ZapHandle, ZapProps>(
         if (isControlledRef.current) {
           onMouseLeave?.(e);
         } else {
-          controls.start("normal");
+          controls.start('normal');
         }
       },
-      [controls, onMouseLeave]
+      [controls, onMouseLeave],
     );
 
     return (
       <div
-        className={cn("flex items-center justify-center", className)}
+        className={cn('flex items-center justify-center', className)}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         {...props}
@@ -97,9 +97,9 @@ const ZapIcon = forwardRef<ZapHandle, ZapProps>(
         </svg>
       </div>
     );
-  }
+  },
 );
 
-ZapIcon.displayName = "ZapIcon";
+ZapIcon.displayName = 'ZapIcon';
 
 export { ZapIcon };

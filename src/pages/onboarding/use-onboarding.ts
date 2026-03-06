@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
-import { credentials, session } from "@/lib/tauri";
-import { Route } from "@/types/routes";
-import { onboardingSchema, type OnboardingFormValues } from "./types";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
+import { credentials, session } from '@/lib/tauri';
+import { Route } from '@/types/routes';
+import { onboardingSchema, type OnboardingFormValues } from './types';
 
 export const useOnboarding = () => {
   const navigate = useNavigate();
@@ -15,8 +15,8 @@ export const useOnboarding = () => {
   const form = useForm<OnboardingFormValues>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
-      organizationUrl: "https://dev.azure.com/levesaude",
-      personalAccessToken: "",
+      organizationUrl: 'https://dev.azure.com/levesaude',
+      personalAccessToken: '',
     },
   });
 
@@ -32,9 +32,7 @@ export const useOnboarding = () => {
       // 4. Navigate to project selection
       navigate(Route.ProjectSelect, { replace: true });
     } catch (err) {
-      toast.error(
-        typeof err === "string" ? err : "Failed to connect. Check your URL and PAT."
-      );
+      toast.error(typeof err === 'string' ? err : 'Failed to connect. Check your URL and PAT.');
       setIsConnecting(false);
     }
   };

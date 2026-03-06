@@ -1,4 +1,4 @@
-import type { ReviewVote } from "../../use-pull-requests";
+import type { ReviewVote } from '../../use-pull-requests';
 
 export interface ReviewerDotProps {
   reviewer: {

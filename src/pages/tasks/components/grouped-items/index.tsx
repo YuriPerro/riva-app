@@ -1,28 +1,28 @@
-import { ExternalLink } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { getWorkItemTheme } from "@/utils/work-item-theme";
-import type { TaskItem, WorkItemStatus } from "../../use-tasks";
-import type { GroupedItemsProps } from "./types";
+import { ExternalLink } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { getWorkItemTheme } from '@/utils/work-item-theme';
+import type { TaskItem, WorkItemStatus } from '../../use-tasks';
+import type { GroupedItemsProps } from './types';
 
 const STATUS_COLOR: Record<WorkItemStatus, string> = {
-  "todo":        "text-fg-disabled",
-  "in-progress": "text-info",
-  "in-review":   "text-warning",
-  "done":        "text-success",
+  todo: 'text-fg-disabled',
+  'in-progress': 'text-info',
+  'in-review': 'text-warning',
+  done: 'text-success',
 };
 
 const STATUS_DOT: Record<WorkItemStatus, string> = {
-  "todo":        "bg-fg-disabled",
-  "in-progress": "bg-info",
-  "in-review":   "bg-warning",
-  "done":        "bg-success",
+  todo: 'bg-fg-disabled',
+  'in-progress': 'bg-info',
+  'in-review': 'bg-warning',
+  done: 'bg-success',
 };
 
 const STATUS_LABEL: Record<WorkItemStatus, string> = {
-  "todo":        "To Do",
-  "in-progress": "In Progress",
-  "in-review":   "In Review",
-  "done":        "Done",
+  todo: 'To Do',
+  'in-progress': 'In Progress',
+  'in-review': 'In Review',
+  done: 'Done',
 };
 
 export function GroupedItems(props: GroupedItemsProps) {
@@ -30,21 +30,21 @@ export function GroupedItems(props: GroupedItemsProps) {
 
   const groups = new Map<string, TaskItem[]>();
   for (const item of items) {
-    const key = item.iterationPath ?? "No Sprint";
+    const key = item.iterationPath ?? 'No Sprint';
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(item);
   }
 
   const sorted = [...groups.entries()].sort(([a], [b]) => {
-    if (a === "No Sprint") return 1;
-    if (b === "No Sprint") return -1;
+    if (a === 'No Sprint') return 1;
+    if (b === 'No Sprint') return -1;
     return a.localeCompare(b);
   });
 
   return (
     <div className="flex flex-col gap-4 pb-2">
       {sorted.map(([group, groupItems]) => {
-        const displayGroup = group.split("\\").pop() ?? group;
+        const displayGroup = group.split('\\').pop() ?? group;
 
         return (
           <div key={group}>
@@ -67,11 +67,11 @@ export function GroupedItems(props: GroupedItemsProps) {
                     key={item.id}
                     onClick={() => onSelect(item.id)}
                     className={cn(
-                      "group flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-elevated",
-                      idx !== groupItems.length - 1 && "border-b border-border"
+                      'group flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-elevated',
+                      idx !== groupItems.length - 1 && 'border-b border-border',
                     )}
                   >
-                    <Icon size={13} className={cn("shrink-0", itemTheme.className)} />
+                    <Icon size={13} className={cn('shrink-0', itemTheme.className)} />
 
                     <span className="flex-1 truncate text-[13px] text-fg-secondary group-hover:text-fg">
                       {item.title}
@@ -79,8 +79,8 @@ export function GroupedItems(props: GroupedItemsProps) {
 
                     <div className="flex shrink-0 items-center gap-3">
                       <div className="flex items-center gap-1.5">
-                        <span className={cn("h-1.5 w-1.5 rounded-full", STATUS_DOT[item.status])} />
-                        <span className={cn("text-[11px]", STATUS_COLOR[item.status])}>
+                        <span className={cn('h-1.5 w-1.5 rounded-full', STATUS_DOT[item.status])} />
+                        <span className={cn('text-[11px]', STATUS_COLOR[item.status])}>
                           {STATUS_LABEL[item.status]}
                         </span>
                       </div>

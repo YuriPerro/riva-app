@@ -1,17 +1,17 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { RouterProvider } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster, toast } from "sonner";
-import { TooltipProvider } from "@/components/animate-ui/components/animate/tooltip";
-import { router } from "./routes";
-import { themeManager } from "@/lib/theme-manager";
-import "./styles/globals.css";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster, toast } from 'sonner';
+import { TooltipProvider } from '@/components/animate-ui/components/animate/tooltip';
+import { AppRoutes } from './routes';
+import { themeManager } from '@/lib/theme-manager';
+import './styles/globals.css';
 
 themeManager.init();
 
 function handleGlobalError(err: unknown) {
-  toast.error(typeof err === "string" ? err : "Something went wrong");
+  toast.error(typeof err === 'string' ? err : 'Something went wrong');
 }
 
 const queryClient = new QueryClient({
@@ -27,25 +27,27 @@ const queryClient = new QueryClient({
   },
 });
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-    <TooltipProvider openDelay={300}>
-      <RouterProvider router={router} />
-    <Toaster
-      position="top-right"
-      theme="dark"
-      toastOptions={{
-        style: {
-          background: "var(--color-elevated)",
-          border: "1px solid var(--color-border)",
-          color: "var(--color-fg)",
-          fontSize: "13px",
-          borderRadius: "8px",
-        },
-      }}
-    />
-    </TooltipProvider>
+      <TooltipProvider openDelay={300}>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+        <Toaster
+          position="top-right"
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: 'var(--color-elevated)',
+              border: '1px solid var(--color-border)',
+              color: 'var(--color-fg)',
+              fontSize: '13px',
+              borderRadius: '8px',
+            },
+          }}
+        />
+      </TooltipProvider>
     </QueryClientProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef, useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Search, Check, Loader2 } from "lucide-react";
-import { azure } from "@/lib/tauri";
-import type { Project } from "@/types/azure";
-import { cn } from "@/lib/utils";
-import { initials } from "@/utils/formatters";
-import { fuzzyMatch } from "@/utils/search";
-import { useSessionStore } from "@/store/session";
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { ChevronDown, Search, Check, Loader2 } from 'lucide-react';
+import { azure } from '@/lib/tauri';
+import type { Project } from '@/types/azure';
+import { cn } from '@/lib/utils';
+import { initials } from '@/utils/formatters';
+import { fuzzyMatch } from '@/utils/search';
+import { useSessionStore } from '@/store/session';
 
 export function ProjectSwitcher() {
   const currentProject = useSessionStore((s) => s.project);
@@ -14,7 +14,7 @@ export function ProjectSwitcher() {
   const queryClient = useQueryClient();
 
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,7 +34,7 @@ export function ProjectSwitcher() {
     if (open) {
       setTimeout(() => searchRef.current?.focus(), 0);
     } else {
-      setSearch("");
+      setSearch('');
     }
   }, [open]);
 
@@ -43,17 +43,17 @@ export function ProjectSwitcher() {
     const handler = (e: MouseEvent) => {
       if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === 'Escape') setOpen(false);
     };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
   }, [open]);
 
   const selectProject = (name: string) => {
@@ -67,11 +67,9 @@ export function ProjectSwitcher() {
     setOpen(false);
   };
 
-  const filtered = useMemo(() =>
-    search
-      ? projects.filter((p) => fuzzyMatch(search, p.name))
-      : projects,
-    [search, projects]
+  const filtered = useMemo(
+    () => (search ? projects.filter((p) => fuzzyMatch(search, p.name)) : projects),
+    [search, projects],
   );
 
   return (
@@ -79,37 +77,30 @@ export function ProjectSwitcher() {
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[12px] transition-colors",
-          open
-            ? "border-border bg-elevated text-fg"
-            : "border-border bg-elevated text-fg-secondary hover:text-fg"
+          'flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[12px] transition-colors',
+          open ? 'border-border bg-elevated text-fg' : 'border-border bg-elevated text-fg-secondary hover:text-fg',
         )}
       >
         <span
           className={cn(
-            "flex h-4 w-4 shrink-0 items-center justify-center rounded text-[9px] font-bold",
-            "bg-fg-muted/15 text-fg-muted"
+            'flex h-4 w-4 shrink-0 items-center justify-center rounded text-[9px] font-bold',
+            'bg-fg-muted/15 text-fg-muted',
           )}
         >
-          {currentProject ? initials(currentProject) : "?"}
+          {currentProject ? initials(currentProject) : '?'}
         </span>
-        <span className="max-w-[100px] truncate">
-          {currentProject || "Select project"}
-        </span>
+        <span className="max-w-[100px] truncate">{currentProject || 'Select project'}</span>
         <ChevronDown
           size={11}
-          className={cn(
-            "shrink-0 text-fg-disabled transition-transform duration-150",
-            open && "rotate-180"
-          )}
+          className={cn('shrink-0 text-fg-disabled transition-transform duration-150', open && 'rotate-180')}
         />
       </button>
 
       {open && (
         <div
           className={cn(
-            "absolute right-0 top-full z-50 mt-1.5 w-56",
-            "rounded-lg border border-border bg-surface shadow-lg"
+            'absolute right-0 top-full z-50 mt-1.5 w-56',
+            'rounded-lg border border-border bg-surface shadow-lg',
           )}
         >
           <div className="flex items-center gap-2 border-b border-border px-3 py-2">
@@ -129,9 +120,7 @@ export function ProjectSwitcher() {
                 <Loader2 size={13} className="animate-spin text-fg-disabled" />
               </div>
             ) : filtered.length === 0 ? (
-              <p className="py-4 text-center text-[12px] text-fg-disabled">
-                No projects found
-              </p>
+              <p className="py-4 text-center text-[12px] text-fg-disabled">No projects found</p>
             ) : (
               filtered.map((project) => {
                 const active = project.name === currentProject;
@@ -140,26 +129,20 @@ export function ProjectSwitcher() {
                     key={project.id}
                     onClick={() => selectProject(project.name)}
                     className={cn(
-                      "flex w-full items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors",
-                      active
-                        ? "text-fg"
-                        : "text-fg-secondary hover:bg-elevated hover:text-fg"
+                      'flex w-full items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors',
+                      active ? 'text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg',
                     )}
                   >
                     <span
                       className={cn(
-                        "flex h-5 w-5 shrink-0 items-center justify-center rounded text-[9px] font-bold",
-                        active
-                          ? "bg-accent/20 text-accent"
-                          : "bg-base text-fg-muted"
+                        'flex h-5 w-5 shrink-0 items-center justify-center rounded text-[9px] font-bold',
+                        active ? 'bg-accent/20 text-accent' : 'bg-base text-fg-muted',
                       )}
                     >
                       {initials(project.name)}
                     </span>
                     <span className="flex-1 truncate">{project.name}</span>
-                    {active && (
-                      <Check size={11} className="shrink-0 text-accent" />
-                    )}
+                    {active && <Check size={11} className="shrink-0 text-accent" />}
                   </button>
                 );
               })

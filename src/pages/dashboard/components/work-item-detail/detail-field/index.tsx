@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
-import type { DetailFieldProps } from "./types";
+import { cn } from '@/lib/utils';
+import type { DetailFieldProps } from './types';
 
 export function DetailField(props: DetailFieldProps) {
   const { icon: Icon, label, value, valueClassName } = props;
@@ -10,9 +10,7 @@ export function DetailField(props: DetailFieldProps) {
         <Icon size={11} />
         {label}
       </div>
-      <span className={cn("text-[13px] text-fg-secondary", valueClassName)}>
-        {value}
-      </span>
+      <span className={cn('text-[13px] text-fg-secondary', valueClassName)}>{value}</span>
     </div>
   );
 }

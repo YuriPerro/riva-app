@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use reqwest::{Client, header};
 use serde::{Deserialize, Serialize};
@@ -774,5 +775,279 @@ pub async fn review_pull_request(
     }
 
     Ok(())
+}
+
+// ============================================================
+// Standup summary
+// ============================================================
+
+#[derive(Debug, Serialize)]
+pub struct StandupTransition {
+    #[serde(rename = "workItemId")]
+    pub work_item_id: u64,
+    pub title: String,
+    #[serde(rename = "workItemType")]
+    pub work_item_type: String,
+    #[serde(rename = "fromState")]
+    pub from_state: String,
+    #[serde(rename = "toState")]
+    pub to_state: String,
+    #[serde(rename = "changedDate")]
+    pub changed_date: String,
+    #[serde(rename = "webUrl")]
+    pub web_url: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct StandupItem {
+    pub id: u64,
+    pub title: String,
+    #[serde(rename = "workItemType")]
+    pub work_item_type: String,
+    pub state: String,
+    #[serde(rename = "webUrl")]
+    pub web_url: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct StandupPR {
+    pub id: u64,
+    pub title: String,
+    pub repo: String,
+    #[serde(rename = "activityType")]
+    pub activity_type: String,
+    #[serde(rename = "webUrl")]
+    pub web_url: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct StandupData {
+    pub transitions: Vec<StandupTransition>,
+    pub today: Vec<StandupItem>,
+    #[serde(rename = "todayPrs")]
+    pub today_prs: Vec<StandupPR>,
+    pub blockers: Vec<StandupItem>,
+}
+
+#[derive(Debug, Deserialize)]
+struct WiUpdate {
+    #[serde(default)]
+    fields: Option<std::collections::HashMap<String, serde_json::Value>>,
+    #[serde(rename = "revisedDate", default)]
+    revised_date: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct WiUpdatesResponse {
+    value: Vec<WiUpdate>,
+}
+
+async fn get_my_display_name(client: &Client, base: &str) -> Result<String, String> {
+    let url = format!("{}/_apis/connectionData?api-version=7.1", base);
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    let data: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+    data["authenticatedUser"]["providerDisplayName"]
+        .as_str()
+        .map(String::from)
+        .ok_or_else(|| "Could not resolve your display name".into())
+}
+
+async fn run_wiql(client: &Client, base: &str, project: &str, query: &str, top: u32) -> Result<Vec<u64>, String> {
+    let url = format!("{}/{}/_apis/wit/wiql?api-version=7.1&$top={}", base, encode_path_segment(project), top);
+    let body = serde_json::json!({ "query": query });
+    let resp = client.post(&url).json(&body).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    let refs: WiqlResponse = resp.json().await.map_err(|e| e.to_string())?;
+    Ok(refs.work_items.iter().map(|w| w.id).collect())
+}
+
+async fn batch_fetch_items(client: &Client, base: &str, project: &str, ids: &[u64]) -> Result<Vec<WorkItem>, String> {
+    if ids.is_empty() {
+        return Ok(vec![]);
+    }
+    let ids_str: Vec<String> = ids.iter().map(|id| id.to_string()).collect();
+    let fields = "System.Title,System.WorkItemType,System.State,System.AssignedTo,System.IterationPath";
+    let url = format!(
+        "{}/{}/_apis/wit/workitems?ids={}&fields={}&api-version=7.1",
+        base, project, ids_str.join(","), fields
+    );
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    let mut items = resp
+        .json::<WorkItemsBatchResponse>()
+        .await
+        .map(|r| r.value)
+        .map_err(|e| e.to_string())?;
+    for item in &mut items {
+        item.web_url = format!("{}/{}/_workitems/edit/{}", base, project, item.id);
+    }
+    Ok(items)
+}
+
+async fn get_state_transitions(
+    client: &Client,
+    base: &str,
+    project: &str,
+    item: &WorkItem,
+) -> Vec<StandupTransition> {
+    let url = format!(
+        "{}/{}/_apis/wit/workitems/{}/updates?api-version=7.1",
+        base, encode_path_segment(project), item.id
+    );
+    let resp = match client.get(&url).send().await {
+        Ok(r) if r.status().is_success() => r,
+        _ => return vec![],
+    };
+    let updates: WiUpdatesResponse = match resp.json().await {
+        Ok(u) => u,
+        Err(_) => return vec![],
+    };
+
+    let mut transitions = Vec::new();
+    for update in updates.value.iter().rev() {
+        if let Some(fields) = &update.fields {
+            if let Some(state_change) = fields.get("System.State") {
+                let old = state_change.get("oldValue").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                let new = state_change.get("newValue").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                if !old.is_empty() && !new.is_empty() {
+                    transitions.push(StandupTransition {
+                        work_item_id: item.id,
+                        title: item.fields.title.clone(),
+                        work_item_type: item.fields.work_item_type.clone(),
+                        from_state: old,
+                        to_state: new,
+                        changed_date: update.revised_date.clone().unwrap_or_default(),
+                        web_url: item.web_url.clone(),
+                    });
+                    break;
+                }
+            }
+        }
+    }
+    transitions
+}
+
+pub async fn get_standup_data(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    team: Option<&str>,
+    lookback_days: u32,
+) -> Result<StandupData, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let area_clause = match team {
+        Some(t) => match get_team_area_path(&client, base, project, t).await {
+            Some(ap) => format!("AND [System.AreaPath] UNDER '{}'", ap),
+            None => String::new(),
+        },
+        None => String::new(),
+    };
+
+    let changed_query = format!(
+        "SELECT [System.Id] FROM WorkItems \
+         WHERE [System.TeamProject] = @project \
+         AND [System.AssignedTo] = @Me {} \
+         AND [System.ChangedDate] >= @Today-{} \
+         ORDER BY [System.ChangedDate] DESC",
+        area_clause, lookback_days
+    );
+
+    let today_query = format!(
+        "SELECT [System.Id] FROM WorkItems \
+         WHERE [System.TeamProject] = @project \
+         AND [System.AssignedTo] = @Me {} \
+         AND [System.State] IN ('In Progress', 'Active', 'Doing', 'Committed') \
+         ORDER BY [System.ChangedDate] DESC",
+        area_clause
+    );
+
+    let blocked_query = format!(
+        "SELECT [System.Id] FROM WorkItems \
+         WHERE [System.TeamProject] = @project \
+         AND [System.AssignedTo] = @Me {} \
+         AND [Microsoft.VSTS.CMMI.Blocked] = 'Yes' \
+         ORDER BY [System.ChangedDate] DESC",
+        area_clause
+    );
+
+    let changed_ids = run_wiql(&client, base, project, &changed_query, 30).await?;
+    let today_ids = run_wiql(&client, base, project, &today_query, 30).await?;
+    let blocked_ids = run_wiql(&client, base, project, &blocked_query, 30).await.unwrap_or_default();
+
+    let (changed_items, today_items, blocked_items) = tokio::join!(
+        batch_fetch_items(&client, base, project, &changed_ids),
+        batch_fetch_items(&client, base, project, &today_ids),
+        batch_fetch_items(&client, base, project, &blocked_ids),
+    );
+    let changed_items = changed_items?;
+    let today_items = today_items?;
+    let blocked_items = blocked_items.unwrap_or_default();
+
+    let mut transitions = Vec::new();
+    for item in &changed_items {
+        let t = get_state_transitions(&client, base, project, item).await;
+        transitions.extend(t);
+    }
+
+    let transition_ids: HashSet<u64> = transitions.iter().map(|t| t.work_item_id).collect();
+
+    let today: Vec<StandupItem> = today_items
+        .iter()
+        .filter(|w| !transition_ids.contains(&w.id))
+        .map(|w| StandupItem {
+            id: w.id,
+            title: w.fields.title.clone(),
+            work_item_type: w.fields.work_item_type.clone(),
+            state: w.fields.state.clone(),
+            web_url: w.web_url.clone(),
+        })
+        .collect();
+
+    let blockers: Vec<StandupItem> = blocked_items
+        .iter()
+        .map(|w| StandupItem {
+            id: w.id,
+            title: w.fields.title.clone(),
+            work_item_type: w.fields.work_item_type.clone(),
+            state: w.fields.state.clone(),
+            web_url: w.web_url.clone(),
+        })
+        .collect();
+
+    let my_name = get_my_display_name(&client, base).await.unwrap_or_default();
+    let prs = get_pull_requests(org_url, pat, project).await.unwrap_or_default();
+
+    let mut today_prs = Vec::new();
+    for pr in &prs {
+        if pr.created_by.display_name == my_name {
+            today_prs.push(StandupPR {
+                id: pr.pull_request_id,
+                title: pr.title.clone(),
+                repo: pr.repository.name.clone(),
+                activity_type: "created".into(),
+                web_url: pr.web_url.clone(),
+            });
+        } else if pr.reviewers.iter().any(|r| r.display_name == my_name) {
+            today_prs.push(StandupPR {
+                id: pr.pull_request_id,
+                title: pr.title.clone(),
+                repo: pr.repository.name.clone(),
+                activity_type: "reviewing".into(),
+                web_url: pr.web_url.clone(),
+            });
+        }
+    }
+
+    Ok(StandupData {
+        transitions,
+        today,
+        today_prs,
+        blockers,
+    })
 }
 

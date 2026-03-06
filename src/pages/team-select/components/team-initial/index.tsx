@@ -1,10 +1,10 @@
-import type { TeamInitialProps } from "./types";
+import type { TeamInitialProps } from './types';
 
 export function TeamInitial(props: TeamInitialProps) {
   const initials = props.name
     .split(/[\s_-]/)
     .map((w) => w[0])
-    .join("")
+    .join('')
     .slice(0, 2)
     .toUpperCase();
 

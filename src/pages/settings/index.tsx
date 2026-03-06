@@ -1,6 +1,6 @@
-import { LogOut } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Button } from "@/components/ui/button";
+import { LogOut } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -10,11 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { ProjectSwitcher } from "@/components/layout/project-switcher";
-import { useSessionStore } from "@/store/session";
-import { ThemePicker } from "./components/theme-picker";
-import { useSettings } from "./use-settings";
+} from '@/components/ui/dialog';
+import { ProjectSwitcher } from '@/components/layout/project-switcher';
+import { useSessionStore } from '@/store/session';
+import { ThemePicker } from './components/theme-picker';
+import { useSettings } from './use-settings';
 
 export function SettingsPage() {
   const { isSigningOut, handleSignOut } = useSettings();
@@ -25,16 +25,19 @@ export function SettingsPage() {
       <PageHeader title="Settings" subtitle="Manage your account and preferences" />
 
       <div className="flex flex-col gap-4">
-
         <ThemePicker />
 
         <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-4">
           <div className="flex flex-col gap-1">
             <span className="text-sm font-medium text-fg">Project</span>
             <span className="text-sm text-fg-muted">
-              {currentProject
-                ? <>Currently working on <span className="text-fg">{currentProject}</span></>
-                : "No project selected"}
+              {currentProject ? (
+                <>
+                  Currently working on <span className="text-fg">{currentProject}</span>
+                </>
+              ) : (
+                'No project selected'
+              )}
             </span>
           </div>
           <ProjectSwitcher />
@@ -43,9 +46,7 @@ export function SettingsPage() {
         <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-4">
           <div className="flex flex-col gap-1">
             <span className="text-sm font-medium text-fg">Sign out</span>
-            <span className="text-sm text-fg-muted">
-              Clear your credentials and return to the login screen
-            </span>
+            <span className="text-sm text-fg-muted">Clear your credentials and return to the login screen</span>
           </div>
 
           <Dialog>
@@ -59,26 +60,21 @@ export function SettingsPage() {
               <DialogHeader>
                 <DialogTitle>Sign out of Forge?</DialogTitle>
                 <DialogDescription>
-                  Your stored credentials will be removed. You'll need to enter your
-                  organization URL and personal access token again to sign back in.
+                  Your stored credentials will be removed. You'll need to enter your organization URL and personal
+                  access token again to sign back in.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
                 <DialogClose asChild>
                   <Button variant="outline">Cancel</Button>
                 </DialogClose>
-                <Button
-                  variant="destructive"
-                  onClick={handleSignOut}
-                  disabled={isSigningOut}
-                >
-                  {isSigningOut ? "Signing out..." : "Sign out"}
+                <Button variant="destructive" onClick={handleSignOut} disabled={isSigningOut}>
+                  {isSigningOut ? 'Signing out...' : 'Sign out'}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
-
       </div>
     </div>
   );

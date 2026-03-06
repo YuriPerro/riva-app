@@ -1,6 +1,6 @@
-import { Star } from "lucide-react";
-import { RunRow } from "../run-row";
-import type { PipelineGroupCardProps } from "./types";
+import { Star } from 'lucide-react';
+import { RunRow } from '../run-row';
+import type { PipelineGroupCardProps } from './types';
 
 export function PipelineGroupCard(props: PipelineGroupCardProps) {
   const { group, onToggleFavorite, onOpenRun } = props;
@@ -12,17 +12,12 @@ export function PipelineGroupCard(props: PipelineGroupCardProps) {
           onClick={() => onToggleFavorite(group.definitionId)}
           className="cursor-pointer text-fg-disabled transition-colors hover:text-fg"
         >
-          <Star
-            size={12}
-            className={group.isFavorite ? "fill-current text-fg" : ""}
-          />
+          <Star size={12} className={group.isFavorite ? 'fill-current text-fg' : ''} />
         </button>
         <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-disabled">
           {group.definitionName}
         </span>
-        <span className="rounded-full bg-elevated px-1.5 py-0.5 text-[10px] text-fg-muted">
-          {group.runs.length}
-        </span>
+        <span className="rounded-full bg-elevated px-1.5 py-0.5 text-[10px] text-fg-muted">{group.runs.length}</span>
       </div>
 
       {group.runs.length === 0 ? (
@@ -42,10 +37,7 @@ export function PipelineGroupCard(props: PipelineGroupCardProps) {
 
           <div className="overflow-hidden rounded-lg border border-border bg-surface">
             {group.runs.map((run, idx) => (
-              <div
-                key={run.id}
-                className={idx !== group.runs.length - 1 ? "border-b border-border" : ""}
-              >
+              <div key={run.id} className={idx !== group.runs.length - 1 ? 'border-b border-border' : ''}>
                 <RunRow run={run} onClick={() => onOpenRun(run.url)} />
               </div>
             ))}

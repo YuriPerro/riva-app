@@ -1,6 +1,6 @@
-import { AlertCircle, Loader2, Zap } from "lucide-react";
-import { PipelineGroupCard } from "../pipeline-group-card";
-import type { PipelinesContentProps } from "./types";
+import { AlertCircle, Loader2, Zap } from 'lucide-react';
+import { PipelineGroupCard } from '../pipeline-group-card';
+import type { PipelinesContentProps } from './types';
 
 export function PipelinesContent(props: PipelinesContentProps) {
   const { isLoading, error, groups, toggleFavorite, openRun } = props;

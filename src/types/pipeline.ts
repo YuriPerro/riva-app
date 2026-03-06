@@ -1,1 +1,1 @@
-export type PipelineStatus = "succeeded" | "failed" | "running" | "cancelled";
+export type PipelineStatus = 'succeeded' | 'failed' | 'running' | 'cancelled';

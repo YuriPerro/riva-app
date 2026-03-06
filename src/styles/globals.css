@@ -1,10 +1,10 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "./themes/midnight.css";
-@import "./themes/ocean.css";
-@import "./themes/ember.css";
-@import "./themes/forest.css";
-@import "./themes/crimson.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import './themes/midnight.css';
+@import './themes/ocean.css';
+@import './themes/ember.css';
+@import './themes/forest.css';
+@import './themes/crimson.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -20,7 +20,7 @@
 }
 
 @theme {
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: 2px;
   --radius-md: 4px;
@@ -28,46 +28,46 @@
   --radius: 4px;
 
   /* Backgrounds */
-  --color-base:     #0a0a0a;
-  --color-surface:  #111111;
+  --color-base: #0a0a0a;
+  --color-surface: #111111;
   --color-elevated: #1a1a1a;
-  --color-overlay:  #222222;
+  --color-overlay: #222222;
 
   /* Borders */
-  --color-border:        #262626;
+  --color-border: #262626;
   --color-border-subtle: #1f1f1f;
 
   /* Foreground / Text */
-  --color-fg:           #fafafa;
+  --color-fg: #fafafa;
   --color-fg-secondary: #a1a1aa;
-  --color-fg-muted:     #71717a;
-  --color-fg-disabled:  #3f3f46;
+  --color-fg-muted: #71717a;
+  --color-fg-disabled: #3f3f46;
 
   /* Accent */
-  --color-accent:       #ff7e5f;
-  --color-accent-fg:    #ffffff;
+  --color-accent: #ff7e5f;
+  --color-accent-fg: #ffffff;
   --color-accent-muted: #ffb09e;
 
   /* Status */
   --color-success: #22c55e;
-  --color-error:   #ef4444;
+  --color-error: #ef4444;
   --color-warning: #eab308;
   --color-running: #8b5cf6;
-  --color-info:    #3b82f6;
+  --color-info: #3b82f6;
   --color-neutral: #71717a;
 
-  --color-background:             var(--color-base);
-  --color-foreground:             var(--color-fg);
-  --color-primary:                var(--color-accent);
-  --color-primary-foreground:     var(--color-accent-fg);
-  --color-secondary:              var(--color-elevated);
-  --color-secondary-foreground:   var(--color-fg);
-  --color-muted:                  var(--color-elevated);
-  --color-muted-foreground:       var(--color-fg-muted);
-  --color-destructive:            var(--color-error);
+  --color-background: var(--color-base);
+  --color-foreground: var(--color-fg);
+  --color-primary: var(--color-accent);
+  --color-primary-foreground: var(--color-accent-fg);
+  --color-secondary: var(--color-elevated);
+  --color-secondary-foreground: var(--color-fg);
+  --color-muted: var(--color-elevated);
+  --color-muted-foreground: var(--color-fg-muted);
+  --color-destructive: var(--color-error);
   --color-destructive-foreground: #ffffff;
-  --color-input:                  var(--color-border);
-  --color-ring:                   var(--color-accent);
+  --color-input: var(--color-border);
+  --color-ring: var(--color-accent);
 }
 
 *,
@@ -101,7 +101,7 @@ body {
 }
 
 .noise-bg::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -143,42 +143,42 @@ body {
 }
 
 /* Sonner toast type overrides */
-[data-sonner-toast][data-type="success"] {
+[data-sonner-toast][data-type='success'] {
   background: color-mix(in srgb, var(--color-success) 12%, var(--color-elevated)) !important;
   border-color: color-mix(in srgb, var(--color-success) 25%, transparent) !important;
   color: var(--color-success) !important;
 }
 
-[data-sonner-toast][data-type="error"] {
+[data-sonner-toast][data-type='error'] {
   background: color-mix(in srgb, var(--color-error) 12%, var(--color-elevated)) !important;
   border-color: color-mix(in srgb, var(--color-error) 25%, transparent) !important;
   color: var(--color-error) !important;
 }
 
-[data-sonner-toast][data-type="warning"] {
+[data-sonner-toast][data-type='warning'] {
   background: color-mix(in srgb, var(--color-warning) 12%, var(--color-elevated)) !important;
   border-color: color-mix(in srgb, var(--color-warning) 25%, transparent) !important;
   color: var(--color-warning) !important;
 }
 
-[data-sonner-toast][data-type="loading"] [data-icon],
-[data-sonner-toast][data-type="success"] [data-icon],
-[data-sonner-toast][data-type="error"] [data-icon],
-[data-sonner-toast][data-type="warning"] [data-icon] {
+[data-sonner-toast][data-type='loading'] [data-icon],
+[data-sonner-toast][data-type='success'] [data-icon],
+[data-sonner-toast][data-type='error'] [data-icon],
+[data-sonner-toast][data-type='warning'] [data-icon] {
   color: inherit !important;
 }
 
 @theme inline {
   --animate-shine: shine var(--duration) infinite linear;
   @keyframes shine {
-  0% {
-    background-position: 0% 0%;
+    0% {
+      background-position: 0% 0%;
     }
-  50% {
-    background-position: 100% 100%;
+    50% {
+      background-position: 100% 100%;
     }
-  to {
-    background-position: 0% 0%;
+    to {
+      background-position: 0% 0%;
     }
   }
 }

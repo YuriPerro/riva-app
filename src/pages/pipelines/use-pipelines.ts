@@ -1,15 +1,15 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
-import { openUrl } from "@tauri-apps/plugin-opener";
-import { useQuery } from "@tanstack/react-query";
-import { azure } from "@/lib/tauri";
-import type { PipelineRun, PipelineDefinition } from "@/types/azure";
-import { useSessionStore } from "@/store/session";
-import { formatAgo, formatDuration, stripRefs } from "@/utils/formatters";
-import { mapPipelineStatus } from "@/utils/mappers";
-import type { PipelineStatus } from "@/types/pipeline";
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { openUrl } from '@tauri-apps/plugin-opener';
+import { useQuery } from '@tanstack/react-query';
+import { azure } from '@/lib/tauri';
+import type { PipelineRun, PipelineDefinition } from '@/types/azure';
+import { useSessionStore } from '@/store/session';
+import { formatAgo, formatDuration, stripRefs } from '@/utils/formatters';
+import { mapPipelineStatus } from '@/utils/mappers';
+import type { PipelineStatus } from '@/types/pipeline';
 
 export type { PipelineStatus };
-export type StatusFilter = "all" | PipelineStatus;
+export type StatusFilter = 'all' | PipelineStatus;
 
 export interface PipelineRunItem {
   id: number;
@@ -38,7 +38,7 @@ function mapRun(raw: PipelineRun): PipelineRunItem {
     definitionId: raw.definition.id,
     definitionName: raw.definition.name,
     branch: stripRefs(raw.sourceBranch),
-    title: raw.triggerInfo?.["ci.message"] ?? null,
+    title: raw.triggerInfo?.['ci.message'] ?? null,
     status: mapPipelineStatus(raw),
     duration: formatDuration(raw.queueTime, raw.finishTime),
     ago: formatAgo(raw.finishTime ?? raw.queueTime),
@@ -76,10 +76,7 @@ function readFavorites(project: string | null): Set<number> {
 }
 
 function writeFavorites(project: string, favorites: Set<number>) {
-  localStorage.setItem(
-    `forge_favorite_pipelines_${project}`,
-    JSON.stringify([...favorites])
-  );
+  localStorage.setItem(`forge_favorite_pipelines_${project}`, JSON.stringify([...favorites]));
 }
 
 const MAX_RUNS_PER_DEFINITION = 3;
@@ -87,7 +84,7 @@ const MAX_RUNS_PER_DEFINITION = 3;
 export function usePipelines(): PipelinesData {
   const project = useSessionStore((s) => s.project);
   const teamId = useSessionStore((s) => s.teamId);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [definitionFilters, setDefinitionFilters] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<Set<number>>(() => readFavorites(project));
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -110,18 +107,22 @@ export function usePipelines(): PipelinesData {
         return next;
       });
     },
-    [project]
+    [project],
   );
 
   const { data: allDefinitions = [], isLoading: isLoadingDefs } = useQuery({
-    queryKey: ["pipeline-definitions", project],
+    queryKey: ['pipeline-definitions', project],
     queryFn: () => azure.getPipelineDefinitions(project!),
     enabled: !!project,
     refetchInterval: 60_000,
   });
 
-  const { data: runs = [], isLoading: isLoadingRuns, error } = useQuery({
-    queryKey: ["pipelines", project, teamId],
+  const {
+    data: runs = [],
+    isLoading: isLoadingRuns,
+    error,
+  } = useQuery({
+    queryKey: ['pipelines', project, teamId],
     queryFn: () => azure.getRecentPipelines(project!, teamId ?? undefined).then((raw) => raw.map(mapRun)),
     enabled: !!project,
     refetchInterval: 30_000,
@@ -143,7 +144,7 @@ export function usePipelines(): PipelinesData {
       .map((def: PipelineDefinition) => {
         const defRuns = (runsByDefId.get(def.id) ?? []).slice(0, MAX_RUNS_PER_DEFINITION);
 
-        const filtered = statusFilter === "all" ? defRuns : defRuns.filter((r) => r.status === statusFilter);
+        const filtered = statusFilter === 'all' ? defRuns : defRuns.filter((r) => r.status === statusFilter);
         if (definitionFilters.length > 0 && !definitionFilters.includes(def.name)) {
           return null;
         }
@@ -174,7 +175,7 @@ export function usePipelines(): PipelinesData {
     runs: allFilteredRuns,
     groups,
     isLoading: !!project && (isLoadingDefs || isLoadingRuns),
-    error: error ? (typeof error === "string" ? error : "Failed to load pipelines") : null,
+    error: error ? (typeof error === 'string' ? error : 'Failed to load pipelines') : null,
     statusFilter,
     setStatusFilter,
     definitions,

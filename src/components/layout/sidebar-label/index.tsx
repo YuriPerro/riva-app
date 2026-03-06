@@ -1,4 +1,4 @@
-import type { SidebarLabelProps } from "./types";
+import type { SidebarLabelProps } from './types';
 
 export function SidebarLabel(props: SidebarLabelProps) {
   if (props.collapsed) return null;

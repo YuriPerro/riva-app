@@ -2,6 +2,6 @@
 
 declare namespace React {
   interface HTMLAttributes<T> {
-    "data-tauri-drag-region"?: boolean;
+    'data-tauri-drag-region'?: boolean;
   }
 }

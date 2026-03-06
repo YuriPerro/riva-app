@@ -1,4 +1,4 @@
-import type { PR } from "../../use-pull-requests";
+import type { PR } from '../../use-pull-requests';
 
 export interface PRCardProps {
   pr: PR;

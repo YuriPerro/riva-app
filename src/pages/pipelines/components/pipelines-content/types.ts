@@ -1,3 +1,3 @@
-import type { PipelinesData } from "../../use-pipelines";
+import type { PipelinesData } from '../../use-pipelines';
 
 export type PipelinesContentProps = PipelinesData;

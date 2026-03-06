@@ -1,4 +1,4 @@
-import type { PipelineRunItem, PipelineStatus } from "../../use-pipelines";
+import type { PipelineRunItem, PipelineStatus } from '../../use-pipelines';
 
 export interface RunRowProps {
   run: PipelineRunItem;

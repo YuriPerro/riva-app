@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import type { ThemePreset } from "@/types/theme";
-import { themeManager } from "@/lib/theme-manager";
+import { create } from 'zustand';
+import type { ThemePreset } from '@/types/theme';
+import { themeManager } from '@/lib/theme-manager';
 
 interface ThemeState {
   theme: ThemePreset;
