@@ -1,7 +1,8 @@
-import { ArrowUpRight, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { mapWorkItemType, mapWorkItemStatus } from '@/utils/mappers';
 import { getWorkItemTheme } from '@/utils/work-item-theme';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import type { RelatedItemsProps, DisplayRelatedItem } from '../types';
 
 function RelatedRow(props: { item: DisplayRelatedItem; onSelect: (id: number) => void }) {
@@ -49,28 +50,34 @@ export function RelatedItems(props: RelatedItemsProps) {
   return (
     <div className="space-y-3">
       {hasParent && (
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
-            <ArrowUpRight size={11} />
+        <Collapsible defaultOpen={true}>
+          <CollapsibleTrigger className="group flex w-full cursor-pointer items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+            <ChevronRight size={11} className="transition-transform duration-200 group-data-[state=open]:rotate-90" />
             Parent
-          </div>
-          <RelatedRow item={parent} onSelect={onSelect} />
-        </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="mt-1">
+              <RelatedRow item={parent} onSelect={onSelect} />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       )}
 
       {hasChildren && (
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
-            <ChevronRight size={11} />
+        <Collapsible defaultOpen={false}>
+          <CollapsibleTrigger className="group flex w-full cursor-pointer items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
+            <ChevronRight size={11} className="transition-transform duration-200 group-data-[state=open]:rotate-90" />
             Children
             <span className="font-normal normal-case tracking-normal text-fg-disabled">({children.length})</span>
-          </div>
-          <div className="flex flex-col">
-            {children.map((child) => (
-              <RelatedRow key={child.id} item={child} onSelect={onSelect} />
-            ))}
-          </div>
-        </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="mt-1 flex flex-col">
+              {children.map((child) => (
+                <RelatedRow key={child.id} item={child} onSelect={onSelect} />
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       )}
     </div>
   );

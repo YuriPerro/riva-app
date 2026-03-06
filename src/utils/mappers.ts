@@ -14,9 +14,16 @@ export function mapWorkItemType(type: string): WorkItemType {
 
 export function mapWorkItemStatus(state: string): WorkItemStatus {
   const s = state.toLowerCase();
-  if (s.includes('progress') || s.includes('active') || s.includes('doing')) return 'in-progress';
-  if (s.includes('review') || s.includes('testing') || s.includes('qa')) return 'in-review';
-  if (s.includes('done') || s.includes('closed') || s.includes('resolved') || s.includes('completed') || s.includes('removed')) return 'done';
+
+  const isInProgress = s.includes('progress') || s.includes('active') || s.includes('doing') || s.includes('progresso') || s.includes('desenvolvimento');
+  if (isInProgress) return 'in-progress';
+
+  const isInReview = s.includes('review') || s.includes('testing') || s.includes('qa') || s.includes('deploy') || s.includes('revis') || s.includes('aguardando') || s.includes('homolog');
+  if (isInReview) return 'in-review';
+
+  const isDone = s.includes('done') || s.includes('closed') || s.includes('resolved') || s.includes('completed') || s.includes('removed') || s.includes('conclu') || s.includes('finalizado');
+  if (isDone) return 'done';
+
   return 'todo';
 }
 

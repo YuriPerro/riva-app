@@ -78,6 +78,6 @@ export function stripRefs(ref: string): string {
 }
 
 export function buildBranchName(id: number, type: string): string {
-  const prefix = type === 'bug' ? 'bug' : 'feat';
+  const prefix = type === 'bug' ? 'fix' : 'feat';
   return `${prefix}/${type}-${id}`;
 }
