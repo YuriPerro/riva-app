@@ -12,6 +12,8 @@ import type {
   PullRequest,
   StandupData,
   RelatedWorkItem,
+  ReleaseDefinition,
+  Release,
 } from '@/types/azure';
 
 export const azure = {
@@ -54,4 +56,20 @@ export const azure = {
 
   getWorkItemSummaries: (project: string, ids: number[]) =>
     invoke<RelatedWorkItem[]>(TauriCommand.GetWorkItemSummaries, { project, ids }),
+
+  getMyUniqueName: () => invoke<string>(TauriCommand.GetMyUniqueName),
+
+  getReleaseDefinitions: (project: string) =>
+    invoke<ReleaseDefinition[]>(TauriCommand.GetReleaseDefinitions, { project }),
+
+  getReleases: (project: string, definitionIds: number[]) =>
+    invoke<Release[]>(TauriCommand.GetReleases, { project, definitionIds }),
+
+  updateReleaseApproval: (project: string, approvalId: number, status: string, comments?: string) =>
+    invoke<void>(TauriCommand.UpdateReleaseApproval, {
+      project,
+      approvalId,
+      status,
+      comments: comments ?? '',
+    }),
 };

@@ -3,6 +3,7 @@ export enum Route {
   Tasks = '/tasks',
   Pipelines = '/pipelines',
   PullRequests = '/pull-requests',
+  Releases = '/releases',
   Settings = '/settings',
   Onboarding = '/onboarding',
   ProjectSelect = '/project-select',

@@ -899,6 +899,241 @@ pub async fn review_pull_request(
 }
 
 // ============================================================
+// Releases (VSRM)
+// ============================================================
+
+fn vsrm_url(org_url: &str) -> String {
+    let base = org_url.trim_end_matches('/');
+    base.replace("https://dev.azure.com/", "https://vsrm.dev.azure.com/")
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReleaseDefinitionRef {
+    pub id: u64,
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReleaseDefinitionEnvironment {
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub rank: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReleaseDefinition {
+    pub id: u64,
+    pub name: String,
+    #[serde(default)]
+    pub environments: Vec<ReleaseDefinitionEnvironment>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReleaseDefinitionsResponse {
+    value: Vec<ReleaseDefinition>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReleaseIdentity {
+    #[serde(rename = "displayName")]
+    pub display_name: String,
+    #[serde(rename = "uniqueName", default)]
+    pub unique_name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReleaseEnvironmentDeployStep {
+    #[serde(rename = "lastModifiedOn", default)]
+    pub last_modified_on: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReleaseApprovalIdentity {
+    #[serde(rename = "displayName", default)]
+    pub display_name: String,
+    #[serde(rename = "uniqueName", default)]
+    pub unique_name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReleaseApproval {
+    pub id: u64,
+    #[serde(default)]
+    pub status: String,
+    #[serde(rename = "approvalType", default)]
+    pub approval_type: String,
+    #[serde(default)]
+    pub approver: Option<ReleaseApprovalIdentity>,
+    #[serde(rename = "createdOn", default)]
+    pub created_on: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReleaseEnvironment {
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub rank: u32,
+    #[serde(default)]
+    pub status: String,
+    #[serde(rename = "deploySteps", default)]
+    pub deploy_steps: Vec<serde_json::Value>,
+    #[serde(rename = "preDeployApprovals", default)]
+    pub pre_deploy_approvals: Vec<ReleaseApproval>,
+    #[serde(rename = "postDeployApprovals", default)]
+    pub post_deploy_approvals: Vec<ReleaseApproval>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Release {
+    pub id: u64,
+    pub name: String,
+    #[serde(rename = "releaseDefinition")]
+    pub release_definition: ReleaseDefinitionRef,
+    #[serde(rename = "createdBy")]
+    pub created_by: ReleaseIdentity,
+    #[serde(rename = "createdOn")]
+    pub created_on: String,
+    #[serde(default)]
+    pub environments: Vec<ReleaseEnvironment>,
+    #[serde(rename = "webUrl", default, skip_deserializing)]
+    pub web_url: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReleasesResponse {
+    value: Vec<serde_json::Value>,
+}
+
+pub async fn get_release_definitions(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+) -> Result<Vec<ReleaseDefinition>, String> {
+    let client = build_client(pat)?;
+    let vsrm = vsrm_url(org_url);
+    let url = format!(
+        "{}/{}/_apis/release/definitions?$expand=environments&api-version=7.1",
+        vsrm,
+        encode_path_segment(project),
+    );
+
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+
+    resp.json::<ReleaseDefinitionsResponse>()
+        .await
+        .map(|r| r.value)
+        .map_err(|e| e.to_string())
+}
+
+async fn fetch_releases_for_definition(
+    client: &Client,
+    vsrm: &str,
+    project: &str,
+    definition_id: u64,
+) -> Result<Vec<Release>, String> {
+    let url = format!(
+        "{}/{}/_apis/release/releases?definitionId={}&$top=3&$expand=environments,approvals&api-version=7.1",
+        vsrm,
+        encode_path_segment(project),
+        definition_id,
+    );
+
+    let resp = client.get(&url).send().await.map_err(|e| format!("HTTP error: {}", e))?;
+    if !resp.status().is_success() {
+        return Ok(vec![]);
+    }
+
+    let body = resp.text().await.map_err(|e| e.to_string())?;
+    let raw_values = serde_json::from_str::<ReleasesResponse>(&body)
+        .map(|r| r.value)
+        .unwrap_or_default();
+
+    let mut releases: Vec<Release> = Vec::new();
+    for val in raw_values {
+        if let Ok(r) = serde_json::from_value::<Release>(val) {
+            releases.push(r);
+        }
+    }
+    Ok(releases)
+}
+
+pub async fn get_releases(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    definition_ids: &[u64],
+) -> Result<Vec<Release>, String> {
+    let client = build_client(pat)?;
+    let vsrm = vsrm_url(org_url);
+
+    let fetches: Vec<_> = definition_ids
+        .iter()
+        .map(|&id| fetch_releases_for_definition(&client, &vsrm, project, id))
+        .collect();
+
+    let results = futures::future::join_all(fetches).await;
+
+    let base = org_url.trim_end_matches('/');
+    let mut all_releases: Vec<Release> = Vec::new();
+    for result in results {
+        if let Ok(mut batch) = result {
+            for r in &mut batch {
+                r.web_url = format!(
+                    "{}/{}/_releaseProgress?_a=release-pipeline-progress&releaseId={}",
+                    base,
+                    encode_path_segment(project),
+                    r.id,
+                );
+            }
+            all_releases.append(&mut batch);
+        }
+    }
+
+    Ok(all_releases)
+}
+
+pub async fn update_release_approval(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    approval_id: u64,
+    status: &str,
+    comments: &str,
+) -> Result<(), String> {
+    let client = build_client(pat)?;
+    let vsrm = vsrm_url(org_url);
+    let url = format!(
+        "{}/{}/_apis/release/approvals/{}?api-version=7.1",
+        vsrm,
+        encode_path_segment(project),
+        approval_id,
+    );
+
+    let body = serde_json::json!({
+        "status": status,
+        "comments": comments,
+    });
+
+    let resp = client
+        .patch(&url)
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+
+    Ok(())
+}
+
+// ============================================================
 // Standup summary
 // ============================================================
 
@@ -974,6 +1209,21 @@ async fn get_my_display_name(client: &Client, base: &str) -> Result<String, Stri
         .as_str()
         .map(String::from)
         .ok_or_else(|| "Could not resolve your display name".into())
+}
+
+pub async fn get_my_unique_name(org_url: &str, pat: &str) -> Result<String, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!("{}/_apis/connectionData?api-version=7.1", base);
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    let data: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+    data["authenticatedUser"]["properties"]["Account"]["$value"]
+        .as_str()
+        .map(String::from)
+        .ok_or_else(|| "Could not resolve your unique name".into())
 }
 
 async fn run_wiql(client: &Client, base: &str, project: &str, team: Option<&str>, query: &str, top: u32) -> Result<Vec<u64>, String> {

@@ -1,0 +1,271 @@
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { azure } from '@/lib/tauri';
+import type { Release, ReleaseDefinition, ReleaseApproval } from '@/types/azure';
+import { useSessionStore } from '@/store/session';
+import { formatAgo } from '@/utils/formatters';
+import { mapReleaseEnvironmentStatus, mapApprovalStatus } from '@/utils/mappers';
+import type { ReleaseItem, ReleaseApprovalItem, ReleaseGroup, ReleasesData, ReleaseStatusFilter } from './types';
+
+function readFavorites(project: string | null): Set<number> {
+  if (!project) return new Set();
+  try {
+    const raw = localStorage.getItem(`forge_favorite_releases_${project}`);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as number[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeFavorites(project: string, favorites: Set<number>) {
+  localStorage.setItem(`forge_favorite_releases_${project}`, JSON.stringify([...favorites]));
+}
+
+function mapApprovals(approvals: ReleaseApproval[], type: 'preDeploy' | 'postDeploy'): ReleaseApprovalItem[] {
+  return approvals
+    .filter((a) => a.approver !== null)
+    .map((a) => ({
+      id: a.id,
+      approvalType: type,
+      status: mapApprovalStatus(a.status),
+      approverName: a.approver!.displayName,
+      approverUniqueName: a.approver!.uniqueName,
+    }));
+}
+
+function mapRelease(raw: Release): ReleaseItem {
+  const lastEnvWithDeploy = [...raw.environments]
+    .reverse()
+    .find((e) => e.deploySteps.length > 0);
+  const steps = lastEnvWithDeploy?.deploySteps ?? [];
+  const lastDeployTime = steps[steps.length - 1]?.lastModifiedOn;
+
+  return {
+    id: raw.id,
+    name: raw.name,
+    definitionId: raw.releaseDefinition.id,
+    definitionName: raw.releaseDefinition.name,
+    createdBy: raw.createdBy.displayName,
+    createdOn: raw.createdOn,
+    ago: formatAgo(lastDeployTime ?? raw.createdOn),
+    environments: raw.environments
+      .sort((a, b) => a.rank - b.rank)
+      .map((env) => {
+        const allApprovals = [
+          ...mapApprovals(env.preDeployApprovals ?? [], 'preDeploy'),
+          ...mapApprovals(env.postDeployApprovals ?? [], 'postDeploy'),
+        ];
+        let status = mapReleaseEnvironmentStatus(env.status);
+        const isRejectedByApi = env.status.toLowerCase() === 'rejected';
+        const hasRejectedApproval = allApprovals.some((a) => a.status === 'rejected');
+        if (isRejectedByApi && !hasRejectedApproval) {
+          status = 'failed';
+        }
+        return {
+          name: env.name,
+          status,
+          lastDeployedOn: env.deploySteps[env.deploySteps.length - 1]?.lastModifiedOn,
+          approvals: allApprovals,
+        };
+      }),
+    url: raw.webUrl,
+  };
+}
+
+const MAX_RELEASES_PER_DEFINITION = 3;
+
+export function useReleases(): ReleasesData {
+  const project = useSessionStore((s) => s.project);
+  const queryClient = useQueryClient();
+  const [definitionFilters, setDefinitionFilters] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<ReleaseStatusFilter>('all');
+  const [environmentFilters, setEnvironmentFilters] = useState<string[]>([]);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [favorites, setFavorites] = useState<Set<number>>(() => readFavorites(project));
+  const [selectedRelease, setSelectedRelease] = useState<ReleaseItem | null>(null);
+
+  useEffect(() => {
+    setFavorites(readFavorites(project));
+    setShowFavoritesOnly(false);
+  }, [project]);
+
+  const toggleFavorite = useCallback(
+    (definitionId: number) => {
+      if (!project) return;
+      setFavorites((prev) => {
+        const next = new Set(prev);
+        if (next.has(definitionId)) {
+          next.delete(definitionId);
+        } else {
+          next.add(definitionId);
+        }
+        writeFavorites(project, next);
+        return next;
+      });
+    },
+    [project],
+  );
+
+  const { data: currentUserUniqueName = null } = useQuery({
+    queryKey: ['my-unique-name'],
+    queryFn: () => azure.getMyUniqueName(),
+    staleTime: Infinity,
+  });
+
+  const { data: allDefinitions = [], isLoading: isLoadingDefs } = useQuery({
+    queryKey: ['release-definitions', project],
+    queryFn: () => azure.getReleaseDefinitions(project!),
+    enabled: !!project,
+    refetchInterval: 60_000,
+  });
+
+  const definitionIds = useMemo(() => allDefinitions.map((d) => d.id), [allDefinitions]);
+
+  const {
+    data: releases = [],
+    isLoading: isLoadingReleases,
+    error,
+  } = useQuery({
+    queryKey: ['releases', project, definitionIds],
+    queryFn: () => azure.getReleases(project!, definitionIds).then((raw) => raw.map(mapRelease)),
+    enabled: !!project && definitionIds.length > 0,
+    refetchInterval: 30_000,
+  });
+
+  const definitions = useMemo(() => {
+    return allDefinitions.map((d) => d.name).sort((a, b) => a.localeCompare(b));
+  }, [allDefinitions]);
+
+  const allEnvironmentNames = useMemo(() => {
+    const names = new Set<string>();
+    for (const def of allDefinitions) {
+      for (const env of def.environments) {
+        names.add(env.name);
+      }
+    }
+    return [...names].sort((a, b) => a.localeCompare(b));
+  }, [allDefinitions]);
+
+  const baseGroups = useMemo(() => {
+    const releasesByDefId = new Map<number, ReleaseItem[]>();
+    for (const release of releases) {
+      if (!releasesByDefId.has(release.definitionId)) releasesByDefId.set(release.definitionId, []);
+      releasesByDefId.get(release.definitionId)!.push(release);
+    }
+
+    return allDefinitions
+      .map((def: ReleaseDefinition) => {
+        const defReleases = (releasesByDefId.get(def.id) ?? []).slice(0, MAX_RELEASES_PER_DEFINITION);
+
+        if (definitionFilters.length > 0 && !definitionFilters.includes(def.name)) {
+          return null;
+        }
+
+        const isFavorite = favorites.has(def.id);
+        if (showFavoritesOnly && !isFavorite) return null;
+
+        if (environmentFilters.length > 0) {
+          const hasMatchingEnv = defReleases.some((r) =>
+            r.environments.some((e) => environmentFilters.includes(e.name)),
+          );
+          if (!hasMatchingEnv) return null;
+        }
+
+        const environmentNames = def.environments
+          .sort((a, b) => a.rank - b.rank)
+          .map((e) => e.name);
+
+        return {
+          definitionId: def.id,
+          definitionName: def.name,
+          environmentNames,
+          releases: defReleases,
+          isFavorite,
+        };
+      })
+      .filter((g): g is ReleaseGroup => g !== null)
+      .sort((a, b) => {
+        if (a.isFavorite !== b.isFavorite) return a.isFavorite ? -1 : 1;
+        const aHasReleases = a.releases.length > 0;
+        const bHasReleases = b.releases.length > 0;
+        if (aHasReleases !== bHasReleases) return aHasReleases ? -1 : 1;
+        return a.definitionName.localeCompare(b.definitionName);
+      });
+  }, [allDefinitions, releases, definitionFilters, favorites, showFavoritesOnly, environmentFilters]);
+
+  const groups = useMemo(() => {
+    if (statusFilter === 'all') return baseGroups;
+    return baseGroups
+      .map((g) => {
+        const filtered = g.releases.filter((r) =>
+          r.environments.some((e) => e.status === statusFilter),
+        );
+        if (filtered.length === 0) return null;
+        return { ...g, releases: filtered };
+      })
+      .filter((g): g is ReleaseGroup => g !== null);
+  }, [baseGroups, statusFilter]);
+
+  const countByStatus = useCallback(
+    (s: ReleaseStatusFilter): number => {
+      if (s === 'all') return baseGroups.length;
+      return baseGroups.filter((g) =>
+        g.releases.some((r) => r.environments.some((e) => e.status === s)),
+      ).length;
+    },
+    [baseGroups],
+  );
+
+  const approvalMutation = useMutation({
+    mutationFn: (params: { approvalId: number; status: 'approved' | 'rejected' }) =>
+      azure.updateReleaseApproval(project!, params.approvalId, params.status),
+    onSuccess: (_data, variables) => {
+      const label = variables.status === 'approved' ? 'Approved' : 'Rejected';
+      toast.success(`${label} successfully`);
+      queryClient.invalidateQueries({ queryKey: ['releases', project] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : String(err));
+    },
+  });
+
+  const approveRelease = useCallback(
+    (approvalId: number) => approvalMutation.mutate({ approvalId, status: 'approved' }),
+    [approvalMutation],
+  );
+
+  const rejectRelease = useCallback(
+    (approvalId: number) => approvalMutation.mutate({ approvalId, status: 'rejected' }),
+    [approvalMutation],
+  );
+
+  return {
+    groups,
+    isLoading: !!project && (isLoadingDefs || isLoadingReleases),
+    error: error ? (error instanceof Error ? error.message : typeof error === 'string' ? error : String(error)) : null,
+    definitions,
+    definitionFilters,
+    addDefinitionFilter: (d) => setDefinitionFilters((prev) => [...prev, d]),
+    removeDefinitionFilter: (d) => setDefinitionFilters((prev) => prev.filter((x) => x !== d)),
+    statusFilter,
+    setStatusFilter,
+    environmentFilters,
+    addEnvironmentFilter: (e) => setEnvironmentFilters((prev) => [...prev, e]),
+    removeEnvironmentFilter: (e) => setEnvironmentFilters((prev) => prev.filter((x) => x !== e)),
+    allEnvironmentNames,
+    countByStatus,
+    selectedRelease,
+    selectRelease: setSelectedRelease,
+    closeReleaseDetail: () => setSelectedRelease(null),
+    favorites,
+    toggleFavorite,
+    showFavoritesOnly,
+    setShowFavoritesOnly,
+    approveRelease,
+    rejectRelease,
+    isApproving: approvalMutation.isPending,
+    currentUserUniqueName,
+  };
+}

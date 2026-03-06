@@ -1,6 +1,6 @@
 mod azure;
 
-use azure::{PipelineDefinition, PipelineRun, Project, PullRequest, RelatedWorkItem, SprintIteration, StandupData, Team, WorkItem, WorkItemDetail, WorkItemTypeState};
+use azure::{PipelineDefinition, PipelineRun, Project, PullRequest, Release, ReleaseDefinition, RelatedWorkItem, SprintIteration, StandupData, Team, WorkItem, WorkItemDetail, WorkItemTypeState};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
@@ -243,6 +243,43 @@ async fn get_work_item_summaries(
     azure::get_work_item_summaries(&org_url, &pat, &project, ids).await
 }
 
+#[tauri::command]
+async fn get_my_unique_name(state: State<'_, AppState>) -> Result<String, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::get_my_unique_name(&org_url, &pat).await
+}
+
+#[tauri::command]
+async fn get_release_definitions(
+    state: State<'_, AppState>,
+    project: String,
+) -> Result<Vec<ReleaseDefinition>, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::get_release_definitions(&org_url, &pat, &project).await
+}
+
+#[tauri::command]
+async fn get_releases(
+    state: State<'_, AppState>,
+    project: String,
+    definition_ids: Vec<u64>,
+) -> Result<Vec<Release>, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::get_releases(&org_url, &pat, &project, &definition_ids).await
+}
+
+#[tauri::command]
+async fn update_release_approval(
+    state: State<'_, AppState>,
+    project: String,
+    approval_id: u64,
+    status: String,
+    comments: String,
+) -> Result<(), String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::update_release_approval(&org_url, &pat, &project, approval_id, &status, &comments).await
+}
+
 // ============================================================
 // App entry point
 // ============================================================
@@ -275,6 +312,10 @@ pub fn run() {
             review_pull_request,
             get_standup_data,
             get_work_item_summaries,
+            get_my_unique_name,
+            get_release_definitions,
+            get_releases,
+            update_release_approval,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application")

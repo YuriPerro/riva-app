@@ -9,6 +9,7 @@ const DashboardPage = lazy(() => import('@/pages/dashboard').then((m) => ({ defa
 const TasksPage = lazy(() => import('@/pages/tasks').then((m) => ({ default: m.TasksPage })));
 const PipelinesPage = lazy(() => import('@/pages/pipelines').then((m) => ({ default: m.PipelinesPage })));
 const PullRequestsPage = lazy(() => import('@/pages/pull-requests').then((m) => ({ default: m.PullRequestsPage })));
+const ReleasesPage = lazy(() => import('@/pages/releases').then((m) => ({ default: m.ReleasesPage })));
 const SettingsPage = lazy(() => import('@/pages/settings').then((m) => ({ default: m.SettingsPage })));
 const OnboardingPage = lazy(() => import('@/pages/onboarding').then((m) => ({ default: m.OnboardingPage })));
 const ProjectSelectPage = lazy(() => import('@/pages/project-select').then((m) => ({ default: m.ProjectSelectPage })));
@@ -73,6 +74,14 @@ export function AppRoutes() {
             element={
               <LazyPage>
                 <PullRequestsPage />
+              </LazyPage>
+            }
+          />
+          <Route
+            path="releases"
+            element={
+              <LazyPage>
+                <ReleasesPage />
               </LazyPage>
             }
           />

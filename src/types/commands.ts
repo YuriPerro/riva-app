@@ -21,4 +21,8 @@ export enum TauriCommand {
   ReviewPullRequest = 'review_pull_request',
   GetStandupData = 'get_standup_data',
   GetWorkItemSummaries = 'get_work_item_summaries',
+  GetMyUniqueName = 'get_my_unique_name',
+  GetReleaseDefinitions = 'get_release_definitions',
+  GetReleases = 'get_releases',
+  UpdateReleaseApproval = 'update_release_approval',
 }

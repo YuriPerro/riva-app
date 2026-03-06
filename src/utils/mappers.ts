@@ -2,6 +2,7 @@ import type { PipelineRun } from '@/types/azure';
 import type { WorkItemType } from '@/types/work-item';
 import type { WorkItemStatus } from '@/types/work-item';
 import type { PipelineStatus } from '@/types/pipeline';
+import type { ReleaseEnvironmentStatus, ReleaseApprovalStatus } from '@/types/release';
 
 export function mapWorkItemType(type: string): WorkItemType {
   const t = type.toLowerCase();
@@ -33,4 +34,35 @@ export function mapPipelineStatus(run: PipelineRun): PipelineStatus {
   if (run.result === 'failed') return 'failed';
   if (run.result === 'succeeded') return 'succeeded';
   return 'cancelled';
+}
+
+const RELEASE_ENV_STATUS_MAP: Record<string, ReleaseEnvironmentStatus> = {
+  succeeded: 'succeeded',
+  inprogress: 'inProgress',
+  rejected: 'rejected',
+  failed: 'failed',
+  canceled: 'cancelled',
+  cancelled: 'cancelled',
+  partiallysucceeded: 'partiallySucceeded',
+  notstarted: 'notStarted',
+  queued: 'inProgress',
+  scheduled: 'notStarted',
+  undefined: 'notStarted',
+};
+
+export function mapReleaseEnvironmentStatus(status: string): ReleaseEnvironmentStatus {
+  return RELEASE_ENV_STATUS_MAP[status.toLowerCase()] ?? 'notStarted';
+}
+
+const APPROVAL_STATUS_MAP: Record<string, ReleaseApprovalStatus> = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+  reassigned: 'reassigned',
+  skipped: 'skipped',
+  canceled: 'canceled',
+};
+
+export function mapApprovalStatus(status: string): ReleaseApprovalStatus {
+  return APPROVAL_STATUS_MAP[status.toLowerCase()] ?? 'pending';
 }

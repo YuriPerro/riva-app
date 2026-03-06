@@ -129,6 +129,67 @@ export interface PullRequest {
 }
 
 // ============================================================
+// Releases
+// ============================================================
+
+export interface ReleaseDefinitionEnvironment {
+  name: string;
+  rank: number;
+}
+
+export interface ReleaseDefinition {
+  id: number;
+  name: string;
+  environments: ReleaseDefinitionEnvironment[];
+}
+
+export interface ReleaseDefinitionRef {
+  id: number;
+  name: string;
+}
+
+export interface ReleaseIdentity {
+  displayName: string;
+  uniqueName: string;
+}
+
+export interface ReleaseEnvironmentDeployStep {
+  lastModifiedOn?: string;
+}
+
+export interface ReleaseApprovalIdentity {
+  displayName: string;
+  uniqueName: string;
+}
+
+export interface ReleaseApproval {
+  id: number;
+  status: string;
+  approvalType: string;
+  approver: ReleaseApprovalIdentity | null;
+  createdOn?: string;
+}
+
+export interface ReleaseEnvironment {
+  name: string;
+  rank: number;
+  status: string;
+  deploySteps: ReleaseEnvironmentDeployStep[];
+  preDeployApprovals: ReleaseApproval[];
+  postDeployApprovals: ReleaseApproval[];
+}
+
+export interface Release {
+  id: number;
+  name: string;
+  releaseDefinition: ReleaseDefinitionRef;
+  createdBy: ReleaseIdentity;
+  createdOn: string;
+  environments: ReleaseEnvironment[];
+  webUrl: string;
+}
+
+// ============================================================
 // Standup
 // ============================================================
 

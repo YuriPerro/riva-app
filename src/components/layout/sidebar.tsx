@@ -6,6 +6,7 @@ import { HomeIcon, type HomeIconHandle } from '@/components/ui/home';
 import { LayersIcon, type LayersIconHandle } from '@/components/ui/layers';
 import { ZapIcon, type ZapHandle } from '@/components/ui/zap';
 import { GitPullRequestIcon, type GitPullRequestIconHandle } from '@/components/ui/git-pull-request';
+import { RocketIcon, type RocketHandle } from '@/components/ui/rocket';
 import { SettingsIcon, type SettingsIconHandle } from '@/components/ui/settings';
 import { ShineBorder } from '@/components/ui/shine-border';
 import { Route } from '@/types/routes';
@@ -22,6 +23,7 @@ export const Sidebar = memo(function Sidebar() {
   const layersRef = useRef<LayersIconHandle>(null);
   const zapRef = useRef<ZapHandle>(null);
   const prRef = useRef<GitPullRequestIconHandle>(null);
+  const rocketRef = useRef<RocketHandle>(null);
   const settingsRef = useRef<SettingsIconHandle>(null);
 
   return (
@@ -85,6 +87,14 @@ export const Sidebar = memo(function Sidebar() {
           iconRef={prRef}
           icon={<GitPullRequestIcon ref={prRef} size={18} />}
         />
+        <NavItem
+          to={Route.Releases}
+          label="Releases"
+          collapsed={collapsed}
+          index={4}
+          iconRef={rocketRef}
+          icon={<RocketIcon ref={rocketRef} size={18} />}
+        />
       </nav>
 
       <div className={cn('flex flex-col px-2 pt-2', collapsed ? 'gap-5' : 'gap-1')}>
@@ -92,7 +102,7 @@ export const Sidebar = memo(function Sidebar() {
           to={Route.Settings}
           label="Settings"
           collapsed={collapsed}
-          index={4}
+          index={5}
           iconRef={settingsRef}
           icon={<SettingsIcon ref={settingsRef} size={18} />}
         />
@@ -105,7 +115,7 @@ export const Sidebar = memo(function Sidebar() {
           )}
         >
           <span className="shrink-0">{collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}</span>
-          <SidebarLabel collapsed={collapsed} delay={5 * STAGGER_MS}>
+          <SidebarLabel collapsed={collapsed} delay={6 * STAGGER_MS}>
             Collapse
           </SidebarLabel>
         </button>
