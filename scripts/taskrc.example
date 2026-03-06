@@ -1,0 +1,27 @@
+# task.sh configuration
+# Copy to scripts/taskrc or .taskrc in your project root
+
+# Max retries for implementation loop
+# MAX_IMPL_RETRIES=3
+
+# Max retries for quality review loop
+# MAX_QUALITY_RETRIES=2
+
+# Working directory for pipeline artifacts
+# TASK_DIR=".task"
+
+# Path to project instructions file
+# CLAUDE_MD="CLAUDE.md"
+
+# Override test command (auto-detected if empty)
+# TEST_COMMAND="bun test"
+
+# Models per stage
+# Opus  = implementation (heavy lifting)
+# Sonnet = planning & quality (reasoning)
+# Haiku  = review & commit (fast & cheap)
+# MODEL_SPEC="claude-sonnet-4-6"
+# MODEL_IMPL="claude-opus-4-6"
+# MODEL_REVIEW="claude-haiku-4-5-20251001"
+# MODEL_QUALITY="claude-sonnet-4-6"
+# MODEL_COMMIT="claude-haiku-4-5-20251001"
