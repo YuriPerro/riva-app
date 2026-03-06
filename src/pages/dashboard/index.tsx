@@ -75,7 +75,14 @@ export function DashboardPage() {
         <PipelinesList pipelines={pipelines} />
       </div>
 
-      {project && <WorkItemDetailDialog itemId={selectedWorkItemId} project={project} onClose={closeWorkItemDetail} />}
+      {project && (
+        <WorkItemDetailDialog
+          itemId={selectedWorkItemId}
+          project={project}
+          onClose={closeWorkItemDetail}
+          onNavigate={selectWorkItem}
+        />
+      )}
 
       <StandupDialog
         open={standupOpen}

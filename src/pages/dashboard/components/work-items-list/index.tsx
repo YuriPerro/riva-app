@@ -45,9 +45,21 @@ export function WorkItemsList(props: WorkItemsListProps) {
                 'hover:bg-elevated cursor-pointer',
               )}
             >
-              <Icon size={13} className={cn('shrink-0', itemTheme.className)} />
+              <Icon size={13} className={cn('shrink-0 mt-0.5 self-start', itemTheme.className)} />
 
-              <span className="flex-1 truncate text-[13px] text-fg-secondary group-hover:text-fg">{item.title}</span>
+              <div className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate text-[13px] text-fg-secondary group-hover:text-fg">{item.title}</span>
+                {item.parentTitle && item.parentType && (
+                  <span className="flex items-center gap-1 truncate text-[10px] text-fg-disabled">
+                    {(() => {
+                      const parentTheme = getWorkItemTheme(item.parentType!);
+                      const ParentIcon = parentTheme.icon;
+                      return <ParentIcon size={9} className={parentTheme.className} />;
+                    })()}
+                    {item.parentTitle}
+                  </span>
+                )}
+              </div>
 
               <div className="flex items-center gap-2 shrink-0">
                 <span className={cn('text-[11px]', status.className)}>{status.label}</span>

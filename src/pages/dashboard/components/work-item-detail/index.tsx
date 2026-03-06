@@ -20,6 +20,7 @@ import { useWorkItemDetail } from './use-work-item-detail';
 import { StatusField } from './status-field';
 import { BranchField } from './branch-field';
 import { DetailField } from './detail-field';
+import { RelatedItems } from './related-items';
 import type { WorkItemDetailDialogProps, PriorityLabel, DisplayDetail } from './types';
 
 type DevFieldKey = 'effort' | 'completedWork' | 'remainingWork' | 'dueDate' | 'devStartDate' | 'devEndDate' | 'blocked';
@@ -53,7 +54,7 @@ const priorityConfig: Record<PriorityLabel, string> = {
 };
 
 export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
-  const { itemId, project, onClose } = props;
+  const { itemId, project, onClose, onNavigate } = props;
   const { detail, theme, states, isLoading, isUpdating, updateState, error } = useWorkItemDetail(project, itemId);
 
   const isOpen = itemId !== null;
@@ -156,6 +157,12 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
               </div>
 
               <BranchField id={itemId!} type={detail.type} />
+
+              <RelatedItems
+                parent={detail.parent}
+                children={detail.children}
+                onSelect={(id) => onNavigate?.(id)}
+              />
 
               {detail.description && (
                 <div className="space-y-1.5">

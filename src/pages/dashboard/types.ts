@@ -12,6 +12,9 @@ export type WorkItem = {
   assigneeInitials: string;
   iterationPath?: string;
   url: string;
+  parentId?: number | null;
+  parentTitle?: string;
+  parentType?: WorkItemType;
 };
 
 export type Pipeline = {

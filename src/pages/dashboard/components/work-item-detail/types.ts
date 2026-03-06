@@ -2,9 +2,17 @@ export interface WorkItemDetailDialogProps {
   itemId: number | null;
   project: string;
   onClose: () => void;
+  onNavigate?: (id: number) => void;
 }
 
 export type PriorityLabel = 'Critical' | 'High' | 'Medium' | 'Low' | 'None';
+
+export type DisplayRelatedItem = {
+  id: number;
+  title: string;
+  workItemType: string;
+  state: string;
+};
 
 export type DisplayDetail = {
   title: string;
@@ -26,4 +34,12 @@ export type DisplayDetail = {
   devStartDate: string | null;
   devEndDate: string | null;
   blocked: string;
+  parent: DisplayRelatedItem | null;
+  children: DisplayRelatedItem[];
 };
+
+export interface RelatedItemsProps {
+  parent: DisplayRelatedItem | null;
+  children: DisplayRelatedItem[];
+  onSelect: (id: number) => void;
+}

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { azure } from '@/lib/tauri';
-import type { PullRequest as ApiPullRequest } from '@/types/azure';
+import type { PullRequest as ApiPullRequest, RelatedWorkItem } from '@/types/azure';
 import { Route } from '@/types/routes';
 import { useSessionStore } from '@/store/session';
 import { formatAgo, formatBuildReason, formatDuration, getAssigneeInitials, initials, stripRefs } from '@/utils/formatters';
@@ -60,15 +60,35 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
       })()
     : null;
 
-  const workItems: WorkItem[] = rawItems.map((w) => ({
-    id: w.id,
-    title: w.fields['System.Title'],
-    type: mapWorkItemType(w.fields['System.WorkItemType']),
-    status: mapWorkItemStatus(w.fields['System.State']),
-    assigneeInitials: getAssigneeInitials(w.fields['System.AssignedTo'] as { displayName: string } | null),
-    iterationPath: w.fields['System.IterationPath'],
-    url: w.webUrl,
-  }));
+  const parentIds = rawItems
+    .map((w) => w.fields['System.Parent'])
+    .filter((id): id is number => id != null);
+
+  const uniqueParentIds = [...new Set(parentIds)];
+
+  let parentMap = new Map<number, RelatedWorkItem>();
+  if (uniqueParentIds.length > 0) {
+    const parentSummaries = await azure.getWorkItemSummaries(project, uniqueParentIds);
+    parentMap = new Map(parentSummaries.map((s) => [s.id, s]));
+  }
+
+  const workItems: WorkItem[] = rawItems.map((w) => {
+    const parentId = w.fields['System.Parent'] ?? null;
+    const parentInfo = parentId ? parentMap.get(parentId) : undefined;
+
+    return {
+      id: w.id,
+      title: w.fields['System.Title'],
+      type: mapWorkItemType(w.fields['System.WorkItemType']),
+      status: mapWorkItemStatus(w.fields['System.State']),
+      assigneeInitials: getAssigneeInitials(w.fields['System.AssignedTo'] as { displayName: string } | null),
+      iterationPath: w.fields['System.IterationPath'],
+      url: w.webUrl,
+      parentId,
+      parentTitle: parentInfo?.title,
+      parentType: parentInfo ? mapWorkItemType(parentInfo.workItemType) : undefined,
+    };
+  });
 
   const pipelines: Pipeline[] = rawPipelines.map((p) => ({
     id: p.id,

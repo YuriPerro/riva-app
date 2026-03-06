@@ -17,6 +17,7 @@ function getStrictContext<T>(name = 'a Provider') {
     if (ctx === undefined) {
       throw new Error(`useContext must be used within ${name}`);
     }
+
     return ctx;
   };
 

@@ -5,8 +5,8 @@ import { azure } from '@/lib/tauri';
 import { formatDate, extractDisplayName, sanitizeHtml, parseTags } from '@/utils/formatters';
 import { mapWorkItemType } from '@/utils/mappers';
 import { getWorkItemTheme } from '@/utils/work-item-theme';
-import type { WorkItemDetail } from '@/types/azure';
-import type { DisplayDetail, PriorityLabel } from './types';
+import type { WorkItemDetail, RelatedWorkItem } from '@/types/azure';
+import type { DisplayDetail, DisplayRelatedItem, PriorityLabel } from './types';
 
 const PRIORITY_LABELS: Record<number, PriorityLabel> = {
   1: 'Critical',
@@ -14,6 +14,15 @@ const PRIORITY_LABELS: Record<number, PriorityLabel> = {
   3: 'Medium',
   4: 'Low',
 };
+
+function mapRelated(item: RelatedWorkItem): DisplayRelatedItem {
+  return {
+    id: item.id,
+    title: item.title,
+    workItemType: item.workItemType,
+    state: item.state,
+  };
+}
 
 function mapToDisplay(detail: WorkItemDetail): DisplayDetail {
   const fields = detail.fields;
@@ -50,6 +59,8 @@ function mapToDisplay(detail: WorkItemDetail): DisplayDetail {
       ? formatDate(fields['Microsoft.VSTS.Scheduling.FinishDate'])
       : null,
     blocked: fields['Microsoft.VSTS.CMMI.Blocked'] === 'Yes' ? 'Yes' : 'No',
+    parent: detail.parent ? mapRelated(detail.parent) : null,
+    children: (detail.children ?? []).map(mapRelated),
   };
 }
 

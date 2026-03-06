@@ -15,6 +15,7 @@ export interface WorkItemFields {
   'System.State': string;
   'System.AssignedTo'?: { displayName: string; uniqueName: string } | null;
   'System.IterationPath'?: string;
+  'System.Parent'?: number | null;
 }
 
 export interface WorkItem {
@@ -39,10 +40,20 @@ export interface WorkItemDetailFields extends WorkItemFields {
   'Microsoft.VSTS.CMMI.Blocked'?: string;
 }
 
+export interface RelatedWorkItem {
+  id: number;
+  title: string;
+  workItemType: string;
+  state: string;
+  webUrl: string;
+}
+
 export interface WorkItemDetail {
   id: number;
   fields: WorkItemDetailFields;
   webUrl: string;
+  parent?: RelatedWorkItem | null;
+  children: RelatedWorkItem[];
 }
 
 export interface WorkItemTypeState {

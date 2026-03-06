@@ -83,7 +83,14 @@ export function TasksPage() {
         openItem={openItem}
       />
 
-      {project && <WorkItemDetailDialog itemId={selectedWorkItemId} project={project} onClose={closeWorkItemDetail} />}
+      {project && (
+        <WorkItemDetailDialog
+          itemId={selectedWorkItemId}
+          project={project}
+          onClose={closeWorkItemDetail}
+          onNavigate={selectWorkItem}
+        />
+      )}
     </div>
   );
 }

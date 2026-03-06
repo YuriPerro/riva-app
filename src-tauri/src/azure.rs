@@ -99,6 +99,8 @@ pub struct WorkItemFields {
     pub assigned_to: Option<serde_json::Value>,
     #[serde(rename = "System.IterationPath", default)]
     pub iteration_path: Option<String>,
+    #[serde(rename = "System.Parent", default)]
+    pub parent_id: Option<u64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -283,12 +285,27 @@ pub struct WorkItemDetailFields {
     pub blocked: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RelatedWorkItem {
+    pub id: u64,
+    pub title: String,
+    #[serde(rename = "workItemType")]
+    pub work_item_type: String,
+    pub state: String,
+    #[serde(rename = "webUrl", default)]
+    pub web_url: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WorkItemDetail {
     pub id: u64,
     pub fields: WorkItemDetailFields,
     #[serde(rename = "webUrl", default, skip_deserializing)]
     pub web_url: String,
+    #[serde(skip_deserializing, default)]
+    pub parent: Option<RelatedWorkItem>,
+    #[serde(skip_deserializing, default)]
+    pub children: Vec<RelatedWorkItem>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -427,7 +444,7 @@ pub async fn get_my_work_items(
     // Batch fetch work item details (up to 50 items)
     let ids: Vec<String> = refs.work_items.iter().take(50).map(|w| w.id.to_string()).collect();
     let ids_str = ids.join(",");
-    let fields = "System.Title,System.WorkItemType,System.State,System.AssignedTo,System.IterationPath";
+    let fields = "System.Title,System.WorkItemType,System.State,System.AssignedTo,System.IterationPath,System.Parent";
     let batch_url = format!(
         "{}/{}/_apis/wit/workitems?ids={}&fields={}&api-version=7.1",
         base, project, ids_str, fields
@@ -643,6 +660,53 @@ pub async fn get_current_sprint(
     Ok(None)
 }
 
+fn parse_work_item_id_from_url(url: &str) -> Option<u64> {
+    url.rsplit('/').next().and_then(|s| s.parse::<u64>().ok())
+}
+
+async fn fetch_related_summaries(
+    client: &reqwest::Client,
+    base: &str,
+    project: &str,
+    ids: &[u64],
+) -> Vec<RelatedWorkItem> {
+    if ids.is_empty() {
+        return vec![];
+    }
+    let ids_str: String = ids.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(",");
+    let fields = "System.Title,System.WorkItemType,System.State";
+    let url = format!(
+        "{}/{}/_apis/wit/workitems?ids={}&fields={}&api-version=7.1",
+        base,
+        encode_path_segment(project),
+        ids_str,
+        fields
+    );
+    let resp = match client.get(&url).send().await {
+        Ok(r) if r.status().is_success() => r,
+        _ => return vec![],
+    };
+    let body: serde_json::Value = match resp.json().await {
+        Ok(v) => v,
+        _ => return vec![],
+    };
+    let items = body["value"].as_array().cloned().unwrap_or_default();
+    items
+        .iter()
+        .filter_map(|v| {
+            let id = v["id"].as_u64()?;
+            let fields = &v["fields"];
+            Some(RelatedWorkItem {
+                id,
+                title: fields["System.Title"].as_str().unwrap_or("").to_string(),
+                work_item_type: fields["System.WorkItemType"].as_str().unwrap_or("").to_string(),
+                state: fields["System.State"].as_str().unwrap_or("").to_string(),
+                web_url: format!("{}/{}/_workitems/edit/{}", base, project, id),
+            })
+        })
+        .collect()
+}
+
 pub async fn get_work_item_detail(
     org_url: &str,
     pat: &str,
@@ -651,20 +715,70 @@ pub async fn get_work_item_detail(
 ) -> Result<WorkItemDetail, String> {
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
+
     let url = format!(
-        "{}/{}/_apis/wit/workitems/{}?api-version=7.1",
-        base, project, id
+        "{}/{}/_apis/wit/workitems/{}?$expand=relations&api-version=7.1",
+        base,
+        encode_path_segment(project),
+        id
     );
-
     let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
-
     if !resp.status().is_success() {
         return Err(api_error(resp).await);
     }
 
-    let mut item: WorkItemDetail = resp.json().await.map_err(|e| e.to_string())?;
+    let raw: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+
+    let mut parent_id: Option<u64> = None;
+    let mut child_ids: Vec<u64> = vec![];
+
+    if let Some(relations) = raw["relations"].as_array() {
+        for rel in relations {
+            let rel_type = rel["rel"].as_str().unwrap_or("");
+            let rel_url = rel["url"].as_str().unwrap_or("");
+            match rel_type {
+                "System.LinkTypes.Hierarchy-Reverse" => {
+                    parent_id = parse_work_item_id_from_url(rel_url);
+                }
+                "System.LinkTypes.Hierarchy-Forward" => {
+                    if let Some(child_id) = parse_work_item_id_from_url(rel_url) {
+                        child_ids.push(child_id);
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
+    let mut item: WorkItemDetail = serde_json::from_value(raw).map_err(|e| e.to_string())?;
     item.web_url = format!("{}/{}/_workitems/edit/{}", base, project, item.id);
+
+    let mut all_ids: Vec<u64> = child_ids.clone();
+    if let Some(pid) = parent_id {
+        all_ids.push(pid);
+    }
+    let summaries = fetch_related_summaries(&client, base, project, &all_ids).await;
+    let summary_map: std::collections::HashMap<u64, RelatedWorkItem> =
+        summaries.into_iter().map(|s| (s.id, s)).collect();
+
+    item.parent = parent_id.and_then(|pid| summary_map.get(&pid).cloned());
+    item.children = child_ids
+        .iter()
+        .filter_map(|cid| summary_map.get(cid).cloned())
+        .collect();
+
     Ok(item)
+}
+
+pub async fn get_work_item_summaries(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    ids: Vec<u64>,
+) -> Result<Vec<RelatedWorkItem>, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    Ok(fetch_related_summaries(&client, base, project, &ids).await)
 }
 
 pub async fn get_work_item_type_states(
@@ -887,7 +1001,7 @@ async fn batch_fetch_items(client: &Client, base: &str, project: &str, ids: &[u6
         return Ok(vec![]);
     }
     let ids_str: Vec<String> = ids.iter().map(|id| id.to_string()).collect();
-    let fields = "System.Title,System.WorkItemType,System.State,System.AssignedTo,System.IterationPath";
+    let fields = "System.Title,System.WorkItemType,System.State,System.AssignedTo,System.IterationPath,System.Parent";
     let url = format!(
         "{}/{}/_apis/wit/workitems?ids={}&fields={}&api-version=7.1",
         base, project, ids_str.join(","), fields
