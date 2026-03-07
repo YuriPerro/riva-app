@@ -20,7 +20,7 @@ AUTO_COMMIT=true
 
 MODEL_SPEC="claude-sonnet-4-6"
 MODEL_IMPL="claude-opus-4-6"
-MODEL_REVIEW="claude-haiku-4-5-20251001"
+MODEL_REVIEW="claude-sonnet-4-6"
 MODEL_QUALITY="claude-sonnet-4-6"
 MODEL_COMMIT="claude-haiku-4-5-20251001"
 
@@ -76,6 +76,36 @@ model_label() {
   esac
 }
 
+SPINNER_PID=""
+
+start_spinner() {
+  local agent="$1"
+  local label="$2"
+  local frames=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
+  local i=0
+  local start=$SECONDS
+  (
+    while true; do
+      local elapsed=$((SECONDS - start))
+      printf "\r${CYAN}%s${RESET} ${BOLD}%s${RESET} %s ${BLUE}%s${RESET}  " "${frames[$((i % ${#frames[@]}))]}" "$agent" "$label" "$(format_elapsed $elapsed)" >&2
+      i=$((i + 1))
+      sleep 0.12
+    done
+  ) &
+  SPINNER_PID=$!
+}
+
+stop_spinner() {
+  if [ -n "$SPINNER_PID" ]; then
+    kill "$SPINNER_PID" 2>/dev/null
+    wait "$SPINNER_PID" 2>/dev/null || true
+    printf "\r\033[K" >&2
+    SPINNER_PID=""
+  fi
+}
+
+trap 'stop_spinner' EXIT
+
 run_claude() {
   local label="$1"; shift
   local model="$1"; shift
@@ -84,11 +114,15 @@ run_claude() {
   local output
   local call_start=$SECONDS
   CLAUDE_CALLS=$((CLAUDE_CALLS + 1))
-  echo -e "${BOLD}${CYAN}[agent]${RESET} ${BOLD}$agent_name${RESET} → $label" >&2
+
+  start_spinner "$agent_name" "$label"
 
   if ! output=$(claude --model "$model" "$@" 2>>"$ERROR_LOG"); then
+    stop_spinner
     error "Claude falhou na etapa '$label'. Veja $ERROR_LOG"
   fi
+
+  stop_spinner
 
   if [ -z "$output" ]; then
     error "Claude retornou vazio na etapa '$label'. Veja $ERROR_LOG"

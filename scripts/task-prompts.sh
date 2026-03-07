@@ -85,6 +85,13 @@ $(claude_md_section "PADRÕES DO PROJETO:")
 ## O QUE FOI IMPLEMENTADO (git diff):
 $diff
 
+## REGRAS DE REVISÃO:
+- A spec é a fonte de verdade. Se a spec define um padrão (ex: styling, estrutura), a implementação DEVE seguir a spec mesmo que pareça conflitar com CLAUDE.md.
+- "Design tokens only" refere-se a CORES (hex, rgb, hsl). Valores utilitários do Tailwind (sizing, spacing, font-size como text-xs, min-w-[260px]) NÃO são violações.
+- Tailwind opacity modifiers (bg-warning/15, border-warning/20) NÃO são valores arbitrários — são sintaxe nativa do Tailwind.
+- Só reprove por problemas FUNCIONAIS ou violações CLARAS da spec. Não reprove por preferências estilísticas.
+- Se 90%+ dos critérios foram atendidos e os problemas restantes são cosméticos, APROVE com observações.
+
 ## SUA TAREFA:
 Compare o que foi implementado com a spec. Responda APENAS com um dos formatos abaixo:
 
@@ -92,7 +99,13 @@ Compare o que foi implementado com a spec. Responda APENAS com um dos formatos a
 RESULTADO: APROVADO
 Justificativa: [1-2 linhas do que foi bem implementado]
 
-### Se REPROVADO:
+### Se APROVADO COM OBSERVAÇÕES:
+RESULTADO: APROVADO
+Justificativa: [o que foi bem implementado]
+Observações menores:
+- [melhoria opcional, não bloqueante]
+
+### Se REPROVADO (apenas para falhas funcionais ou critérios claramente não atendidos):
 RESULTADO: REPROVADO
 Problemas encontrados:
 - [problema específico 1 — seja cirúrgico, aponte arquivo e linha se possível]
@@ -100,7 +113,7 @@ Problemas encontrados:
 Itens da spec não atendidos:
 - [critério não cumprido]
 
-Seja objetivo. Não aprove código que claramente não atende a spec.
+Seja pragmático. Aprove implementações que atendem a spec funcionalmente. Só reprove por falhas reais.
 EOF
 }
 
