@@ -1,0 +1,21 @@
+[data-theme='catppuccin'] {
+  --color-base: #1E1E2E;
+  --color-surface: #252536;
+  --color-elevated: #313244;
+  --color-overlay: #45475A;
+  --color-border: #45475A;
+  --color-border-subtle: #383a4c;
+  --color-fg: #CDD6F4;
+  --color-fg-secondary: #BAC2DE;
+  --color-fg-muted: #6C7086;
+  --color-fg-disabled: #45475A;
+  --color-accent: #CBA6F7;
+  --color-accent-fg: #1E1E2E;
+  --color-accent-muted: #DFC3FA;
+  --color-success: #A6E3A1;
+  --color-error: #F38BA8;
+  --color-warning: #F9E2AF;
+  --color-running: #89B4FA;
+  --color-info: #89DCEB;
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+}

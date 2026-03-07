@@ -1,0 +1,16 @@
+[data-theme='monochrome'] {
+  --color-base: #000000;
+  --color-surface: #0a0a0a;
+  --color-elevated: #171717;
+  --color-overlay: #1f1f1f;
+  --color-border: #292929;
+  --color-border-subtle: #1f1f1f;
+  --color-fg: #ededed;
+  --color-fg-secondary: #a1a1a1;
+  --color-fg-muted: #707070;
+  --color-fg-disabled: #454545;
+  --color-accent: #ededed;
+  --color-accent-fg: #000000;
+  --color-accent-muted: #a1a1a1;
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+}

@@ -25,7 +25,10 @@ export function FocusScore() {
     <div className="flex flex-col gap-2">
       <h3 className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Focus Score</h3>
       <div className="grid grid-cols-3 gap-3">
-        <div className="relative flex flex-row items-center justify-center gap-5 rounded-md border border-border-subtle bg-surface px-3 py-4">
+        <div
+          className="relative flex flex-row items-center justify-center gap-5 rounded-md border border-border-subtle bg-surface px-3 py-4 opacity-0"
+          style={{ animation: 'card-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) 100ms forwards' }}
+        >
           <button
             onClick={() => openDrawer('score')}
             className="absolute top-2.5 right-2.5 cursor-pointer text-fg-disabled hover:text-fg-muted"
@@ -64,15 +67,23 @@ export function FocusScore() {
           </div>
         </div>
 
-        {data.streak >= 7 ? (
-          <ElectricBorder color="var(--color-accent)" speed={0.3} chaos={0.07} borderRadius={1}>
-            <StreakCard data={data} dayLabels={dayLabels} electric onInfoClick={() => openDrawer('streak')} />
-          </ElectricBorder>
-        ) : (
-          <StreakCard data={data} dayLabels={dayLabels} onInfoClick={() => openDrawer('streak')} />
-        )}
+        <div
+          className="h-full opacity-0"
+          style={{ animation: 'card-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) 175ms forwards' }}
+        >
+          {data.streak >= 7 ? (
+            <ElectricBorder color="var(--color-accent)" speed={0.3} chaos={0.07} borderRadius={1}>
+              <StreakCard data={data} dayLabels={dayLabels} electric onInfoClick={() => openDrawer('streak')} />
+            </ElectricBorder>
+          ) : (
+            <StreakCard data={data} dayLabels={dayLabels} onInfoClick={() => openDrawer('streak')} />
+          )}
+        </div>
 
-        <div className="relative flex flex-col justify-between rounded-md border border-border-subtle bg-surface px-3 py-4">
+        <div
+          className="relative flex flex-col justify-between rounded-md border border-border-subtle bg-surface px-3 py-4 opacity-0"
+          style={{ animation: 'card-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) 250ms forwards' }}
+        >
           <button
             onClick={() => openDrawer('activity')}
             className="absolute top-2.5 right-2.5 cursor-pointer text-fg-disabled hover:text-fg-muted"

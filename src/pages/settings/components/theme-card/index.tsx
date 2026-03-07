@@ -46,8 +46,8 @@ export function ThemeCard(props: ThemeCardProps) {
           </span>
           <div className="flex gap-1">
             <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: preset.accent }} />
-            <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: preset.base }} />
-            <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: preset.surface }} />
+            <div className="h-2.5 w-2.5 rounded-full border border-fg-disabled/30" style={{ backgroundColor: preset.base }} />
+            <div className="h-2.5 w-2.5 rounded-full border border-fg-disabled/30" style={{ backgroundColor: preset.surface }} />
           </div>
         </div>
       </div>

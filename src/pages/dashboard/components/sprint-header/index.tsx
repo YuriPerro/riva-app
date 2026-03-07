@@ -44,8 +44,11 @@ export function SprintHeader(props: SprintHeaderProps) {
       </div>
       <div className="h-1 w-full rounded-full bg-border">
         <div
-          className={cn('h-full rounded-full transition-all', fillColor[sprint.status])}
-          style={{ width: `${progressPercent}%` }}
+          className={cn('h-full origin-left rounded-full', fillColor[sprint.status])}
+          style={{
+            width: `${progressPercent}%`,
+            animation: 'bar-fill 800ms cubic-bezier(0.22, 1, 0.36, 1) forwards',
+          }}
         />
       </div>
     </div>

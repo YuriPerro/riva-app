@@ -40,7 +40,7 @@ export const Sidebar = memo(function Sidebar() {
           <SidebarLabel collapsed={collapsed} delay={0}>
             <span className="flex items-center gap-2">
               <span className="text-[13px] font-semibold text-fg">Forge</span>
-              <span className="relative overflow-hidden rounded-sm border border-border px-1.5 py-0.5 text-[10px] text-white/50">
+              <span className="relative overflow-hidden rounded-sm border border-border px-1.5 py-0.5 text-[10px] text-fg-muted">
                 <ShineBorder
                   shineColor={['var(--color-accent)', 'var(--color-accent-muted)', 'var(--color-accent)']}
                   className="opacity-50"

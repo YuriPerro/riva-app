@@ -22,7 +22,10 @@ export function StatsBar(props: StatsBarProps) {
           <div
             key={i}
             onClick={() => navigate(item.path)}
-            className="flex flex-1 items-center gap-3 rounded-md border border-border-subtle px-3 py-2.5 cursor-pointer transition-colors hover:bg-elevated hover:border-border"
+            className="flex flex-1 items-center gap-3 rounded-md border border-border-subtle px-3 py-2.5 cursor-pointer transition-colors hover:bg-elevated hover:border-border opacity-0"
+            style={{
+              animation: `card-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) ${100 + i * 75}ms forwards`,
+            }}
           >
             <Icon size={15} className="text-fg shrink-0" />
             <div className="flex flex-col gap-0.5">

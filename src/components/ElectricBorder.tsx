@@ -308,7 +308,7 @@ const ElectricBorder: React.FC<ElectricBorderProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-visible isolate ${className ?? ''}`}
+      className={`relative h-full overflow-visible isolate ${className ?? ''}`}
       style={{ '--electric-border-color': resolvedColor, borderRadius, ...style } as CSSProperties}
     >
       <div className="relative rounded-[inherit] z-[0] h-full">{children}</div>

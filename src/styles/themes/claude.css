@@ -1,0 +1,31 @@
+@import '@fontsource/outfit/400.css';
+@import '@fontsource/outfit/500.css';
+@import '@fontsource/outfit/600.css';
+@import '@fontsource/outfit/700.css';
+
+[data-theme='claude'] {
+  --color-base: hsl(60 2.7027% 14.5098%);
+  --color-surface: hsl(60 1.1494% 17.0588%);
+  --color-elevated: hsl(60 2.1277% 18.4314%);
+  --color-overlay: hsl(48 10.6383% 9.2157%);
+  --color-border: hsl(60 5.0847% 23.1373%);
+  --color-border-subtle: hsl(52.5 5.1282% 30.5882%);
+  --color-fg: hsl(60 6.6667% 94.1176%);
+  --color-fg-secondary: hsl(60 5.4545% 89.2157%);
+  --color-fg-muted: hsl(51.4286 8.8608% 69.0196%);
+  --color-fg-disabled: hsl(46.1538 9.7744% 73.9216%);
+  --color-accent: hsl(14.7692 63.1068% 59.6078%);
+  --color-accent-fg: hsl(60 2.5641% 7.6471%);
+  --color-accent-muted: hsl(15.1111 55.5556% 52.3529%);
+  --color-success: #6dbe64;
+  --color-error: hsl(0 84.2365% 60.1961%);
+  --color-warning: #d4a843;
+  --color-running: hsl(251.4545 84.6154% 74.5098%);
+  --color-info: #5a9fd4;
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius: 8px;
+}

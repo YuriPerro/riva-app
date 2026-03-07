@@ -1,0 +1,35 @@
+[data-theme='red-dead'] {
+  --color-base: hsl(210 10% 4%);
+  --color-surface: hsl(210 10% 7%);
+  --color-elevated: hsl(210 10% 12%);
+  --color-overlay: hsl(210 10% 15%);
+  --color-border: hsl(210 10% 16%);
+  --color-border-subtle: hsl(210 10% 14%);
+  --color-fg: hsl(0 0% 98%);
+  --color-fg-secondary: hsl(210 10% 90%);
+  --color-fg-muted: hsl(210 10% 65%);
+  --color-fg-disabled: hsl(210 10% 40%);
+  --color-accent: hsl(356 84% 48%);
+  --color-accent-fg: hsl(0 0% 100%);
+  --color-accent-muted: hsl(356 84% 80%);
+  --color-success: hsl(142 70% 45%);
+  --color-error: hsl(0 62% 30%);
+  --color-warning: hsl(47 95% 55%);
+  --color-running: hsl(356 84% 48%);
+  --color-info: hsl(210 10% 80%);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius: 4px;
+
+  --shadow-2xs: 0px 2px 8px 0px hsl(0 0% 0% / 0.20);
+  --shadow-xs: 0px 2px 8px 0px hsl(0 0% 0% / 0.20);
+  --shadow-sm: 0px 2px 8px 0px hsl(0 0% 0% / 0.40), 0px 1px 2px -1px hsl(0 0% 0% / 0.40);
+  --shadow: 0px 2px 8px 0px hsl(0 0% 0% / 0.40), 0px 1px 2px -1px hsl(0 0% 0% / 0.40);
+  --shadow-md: 0px 2px 8px 0px hsl(0 0% 0% / 0.40), 0px 2px 4px -1px hsl(0 0% 0% / 0.40);
+  --shadow-lg: 0px 2px 8px 0px hsl(0 0% 0% / 0.40), 0px 4px 6px -1px hsl(0 0% 0% / 0.40);
+  --shadow-xl: 0px 2px 8px 0px hsl(0 0% 0% / 0.40), 0px 8px 10px -1px hsl(0 0% 0% / 0.40);
+  --shadow-2xl: 0px 2px 8px 0px hsl(0 0% 0% / 1.00);
+}

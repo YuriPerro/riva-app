@@ -1,10 +1,27 @@
+import { useState } from 'react';
 import { themeManager } from '@/lib/theme-manager';
 import { useThemeStore } from '@/store/theme';
+import { ThemePreset } from '@/types/theme';
 import { ThemeCard } from '../theme-card';
+import { SunburnDialog } from '../sunburn-dialog';
 
 export function ThemePicker() {
   const currentTheme = useThemeStore((s) => s.theme);
   const setTheme = useThemeStore((s) => s.setTheme);
+  const [sunburnDialogOpen, setSunburnDialogOpen] = useState(false);
+
+  function handleThemeSelect(id: ThemePreset) {
+    if (id === ThemePreset.Sunburn) {
+      setSunburnDialogOpen(true);
+      return;
+    }
+    setTheme(id);
+  }
+
+  function handleSunburnConfirm() {
+    setSunburnDialogOpen(false);
+    setTheme(ThemePreset.Sunburn);
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -18,10 +35,16 @@ export function ThemePicker() {
             key={preset.id}
             preset={preset}
             active={currentTheme === preset.id}
-            onSelect={() => setTheme(preset.id)}
+            onSelect={() => handleThemeSelect(preset.id)}
           />
         ))}
       </div>
+
+      <SunburnDialog
+        open={sunburnDialogOpen}
+        onConfirm={handleSunburnConfirm}
+        onCancel={() => setSunburnDialogOpen(false)}
+      />
     </div>
   );
 }

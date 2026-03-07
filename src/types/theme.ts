@@ -1,9 +1,13 @@
 export enum ThemePreset {
   Midnight = 'midnight',
   Phosphor = 'phosphor',
-  Cobalt = 'cobalt',
-  Vapor = 'vapor',
+  Dracula = 'dracula',
+  Monochrome = 'monochrome',
   Crimson = 'crimson',
+  Catppuccin = 'catppuccin',
+  Sunburn = 'sunburn',
+  Claude = 'claude',
+  RedDead = 'red-dead',
 }
 
 export interface ThemePresetConfig {

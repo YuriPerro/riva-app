@@ -2,9 +2,13 @@
 @import 'tw-animate-css';
 @import './themes/midnight.css';
 @import './themes/phosphor.css';
-@import './themes/cobalt.css';
-@import './themes/vapor.css';
+@import './themes/dracula.css';
+@import './themes/monochrome.css';
 @import './themes/crimson.css';
+@import './themes/catppuccin.css';
+@import './themes/sunburn.css';
+@import './themes/claude.css';
+@import './themes/red-dead.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -139,6 +143,26 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
   }
 }
 

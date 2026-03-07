@@ -8,7 +8,7 @@ import { EnvironmentRow } from '../environment-row';
 import type { ReleaseDetailDialogProps } from './types';
 
 export function ReleaseDetailDialog(props: ReleaseDetailDialogProps) {
-  const { release, onClose, onApprove, onReject, isApproving, myPendingApproval } = props;
+  const { release, onClose, onApprove, onReject, isApproving, currentUserUniqueName, myPendingApproval } = props;
   const isOpen = release !== null;
 
   return (
