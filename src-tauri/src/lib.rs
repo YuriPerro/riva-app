@@ -1,6 +1,6 @@
 mod azure;
 
-use azure::{PipelineDefinition, PipelineRun, Project, PullRequest, Release, ReleaseDefinition, RelatedWorkItem, SprintIteration, StandupData, Team, WorkItem, WorkItemDetail, WorkItemTypeState};
+use azure::{PipelineDefinition, PipelineRun, Project, PullRequest, Release, ReleaseDefinition, RelatedWorkItem, SprintIteration, StandupData, Team, UserActivitySummary, WorkItem, WorkItemDetail, WorkItemTypeState};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
@@ -280,6 +280,17 @@ async fn update_release_approval(
     azure::update_release_approval(&org_url, &pat, &project, approval_id, &status, &comments).await
 }
 
+#[tauri::command]
+async fn get_user_activity_dates(
+    state: State<'_, AppState>,
+    project: String,
+    team: Option<String>,
+    lookback_days: Option<u32>,
+) -> Result<UserActivitySummary, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::get_user_activity_dates(&org_url, &pat, &project, team.as_deref(), lookback_days).await
+}
+
 // ============================================================
 // App entry point
 // ============================================================
@@ -316,6 +327,7 @@ pub fn run() {
             get_release_definitions,
             get_releases,
             update_release_approval,
+            get_user_activity_dates,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application")

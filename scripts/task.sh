@@ -183,7 +183,7 @@ if should_run "TEST"; then
       TEST_OUTPUT=$(cat "$TASK_DIR/test-output.txt")
       FIX_PROMPT=$(prompt_test_fix "$SPEC_CONTENT" "$TEST_OUTPUT" "$CURRENT_DIFF")
 
-      run_claude "test-fix" "$MODEL_IMPL" \
+      run_claude "test-fix" "$MODEL_FIX" \
         -p "$FIX_PROMPT" \
         --allowedTools "Read,Write,Edit,MultiEdit,Bash,Glob,Grep" \
         --output-format text > /dev/null
@@ -232,7 +232,7 @@ if should_run "QUALITY"; then
       PREVIOUS_QUALITY="$QUALITY_RESULT"
 
       QUALITY_FIX_PROMPT=$(prompt_quality_fix "$SPEC_CONTENT" "$QUALITY_RESULT" "$FINAL_DIFF")
-      run_claude "quality-fix-$QUALITY_ATTEMPT" "$MODEL_IMPL" \
+      run_claude "quality-fix-$QUALITY_ATTEMPT" "$MODEL_FIX" \
         -p "$QUALITY_FIX_PROMPT" \
         --allowedTools "Read,Write,Edit,MultiEdit,Bash,Glob,Grep" \
         --output-format text > /dev/null

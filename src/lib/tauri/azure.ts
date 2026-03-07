@@ -14,6 +14,7 @@ import type {
   RelatedWorkItem,
   ReleaseDefinition,
   Release,
+  UserActivitySummary,
 } from '@/types/azure';
 
 export const azure = {
@@ -71,5 +72,12 @@ export const azure = {
       approvalId,
       status,
       comments: comments ?? '',
+    }),
+
+  getUserActivityDates: (project: string, team?: string, lookbackDays?: number) =>
+    invoke<UserActivitySummary>(TauriCommand.GetUserActivityDates, {
+      project,
+      team: team ?? null,
+      lookbackDays: lookbackDays ?? null,
     }),
 };

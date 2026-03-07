@@ -20,6 +20,7 @@ AUTO_COMMIT=true
 
 MODEL_SPEC="claude-sonnet-4-6"
 MODEL_IMPL="claude-opus-4-6"
+MODEL_FIX="claude-sonnet-4-6"
 MODEL_REVIEW="claude-sonnet-4-6"
 MODEL_QUALITY="claude-sonnet-4-6"
 MODEL_COMMIT="claude-haiku-4-5-20251001"

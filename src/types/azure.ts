@@ -168,6 +168,7 @@ export interface ReleaseApproval {
   approvalType: string;
   approver: ReleaseApprovalIdentity | null;
   createdOn?: string;
+  modifiedOn?: string;
 }
 
 export interface ReleaseEnvironment {
@@ -218,6 +219,12 @@ export interface StandupPR {
   activityType: string;
   webUrl: string;
 }
+
+export type UserActivitySummary = {
+  activeDates: string[];
+  thisWeekCount: number;
+  lastWeekCount: number;
+};
 
 export interface StandupData {
   transitions: StandupTransition[];

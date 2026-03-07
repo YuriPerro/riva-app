@@ -25,4 +25,5 @@ export enum TauriCommand {
   GetReleaseDefinitions = 'get_release_definitions',
   GetReleases = 'get_releases',
   UpdateReleaseApproval = 'update_release_approval',
+  GetUserActivityDates = 'get_user_activity_dates',
 }

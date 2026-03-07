@@ -851,7 +851,7 @@ pub async fn update_work_item_state(
 async fn get_my_user_id(org_url: &str, pat: &str) -> Result<String, String> {
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
-    let url = format!("{}/_apis/connectionData?api-version=7.1", base);
+    let url = format!("{}/_apis/connectionData?api-version=7.1-preview.1", base);
 
     let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
 
@@ -943,6 +943,7 @@ pub struct ReleaseIdentity {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct ReleaseEnvironmentDeployStep {
     #[serde(rename = "lastModifiedOn", default)]
     pub last_modified_on: Option<String>,
@@ -967,6 +968,8 @@ pub struct ReleaseApproval {
     pub approver: Option<ReleaseApprovalIdentity>,
     #[serde(rename = "createdOn", default)]
     pub created_on: Option<String>,
+    #[serde(rename = "modifiedOn", default)]
+    pub modified_on: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -1198,32 +1201,46 @@ struct WiUpdatesResponse {
     value: Vec<WiUpdate>,
 }
 
-async fn get_my_display_name(client: &Client, base: &str) -> Result<String, String> {
-    let url = format!("{}/_apis/connectionData?api-version=7.1", base);
+struct MyIdentity {
+    id: String,
+    display_name: String,
+    unique_name: String,
+}
+
+async fn get_my_identity(client: &Client, base: &str) -> Result<MyIdentity, String> {
+    let url = format!("{}/_apis/connectionData?api-version=7.1-preview.1", base);
     let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
     if !resp.status().is_success() {
         return Err(api_error(resp).await);
     }
     let data: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
-    data["authenticatedUser"]["providerDisplayName"]
+    let auth = &data["authenticatedUser"];
+    let id = auth["id"]
         .as_str()
-        .map(String::from)
-        .ok_or_else(|| "Could not resolve your display name".into())
+        .unwrap_or_default()
+        .to_string();
+    let display_name = auth["providerDisplayName"]
+        .as_str()
+        .unwrap_or_default()
+        .to_string();
+    let unique_name = auth["properties"]["Account"]["$value"]
+        .as_str()
+        .unwrap_or_default()
+        .to_string();
+    if unique_name.is_empty() {
+        return Err("Could not resolve your identity".into());
+    }
+    Ok(MyIdentity { id, display_name, unique_name })
+}
+
+async fn get_my_display_name(client: &Client, base: &str) -> Result<String, String> {
+    get_my_identity(client, base).await.map(|i| i.display_name)
 }
 
 pub async fn get_my_unique_name(org_url: &str, pat: &str) -> Result<String, String> {
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
-    let url = format!("{}/_apis/connectionData?api-version=7.1", base);
-    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
-    if !resp.status().is_success() {
-        return Err(api_error(resp).await);
-    }
-    let data: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
-    data["authenticatedUser"]["properties"]["Account"]["$value"]
-        .as_str()
-        .map(String::from)
-        .ok_or_else(|| "Could not resolve your unique name".into())
+    get_my_identity(&client, base).await.map(|i| i.unique_name)
 }
 
 async fn run_wiql(client: &Client, base: &str, project: &str, team: Option<&str>, query: &str, top: u32) -> Result<Vec<u64>, String> {
@@ -1478,6 +1495,332 @@ pub async fn get_standup_data(
         today,
         today_prs,
         blockers,
+    })
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserActivitySummary {
+    pub active_dates: Vec<String>,
+    pub this_week_count: u32,
+    pub last_week_count: u32,
+}
+
+#[derive(Debug, Deserialize)]
+struct GitRepository {
+    pub id: String,
+    #[allow(dead_code)]
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct GitRepositoriesResponse {
+    pub value: Vec<GitRepository>,
+}
+
+#[derive(Debug, Deserialize)]
+struct GitPush {
+    pub date: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct GitPushesResponse {
+    pub value: Vec<GitPush>,
+}
+
+fn date_only(iso: &str) -> Option<String> {
+    if iso.len() >= 10 {
+        Some(iso[..10].to_string())
+    } else {
+        None
+    }
+}
+
+fn monday_of_week(iso_date: &str) -> Option<String> {
+    let parts: Vec<&str> = iso_date.split('-').collect();
+    if parts.len() < 3 { return None; }
+    let y: i64 = parts[0].parse().ok()?;
+    let m: u64 = parts[1].parse().ok()?;
+    let d: u64 = parts[2].parse().ok()?;
+
+    let a = (14 - m) / 12;
+    let yy = y - a as i64;
+    let mm = m + 12 * a - 2;
+    let day_of_week = ((d as i64 + yy + yy / 4 - yy / 100 + yy / 400 + (31 * mm as i64) / 12) % 7) as i64;
+    let dow = if day_of_week == 0 { 6 } else { day_of_week - 1 };
+
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let _ = SystemTime::now().duration_since(UNIX_EPOCH);
+
+    let epoch_days = days_from_ymd(y, m as u32, d as u32)?;
+    let monday_days = epoch_days - dow;
+    days_to_ymd(monday_days)
+}
+
+fn days_from_ymd(y: i64, m: u32, d: u32) -> Option<i64> {
+    let y2 = if m <= 2 { y - 1 } else { y };
+    let era = if y2 >= 0 { y2 } else { y2 - 399 } / 400;
+    let yoe = (y2 - era * 400) as u64;
+    let doy = (153 * (if m > 2 { m as u64 - 3 } else { m as u64 + 9 }) + 2) / 5 + d as u64 - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    Some(era * 146097 + doe as i64 - 719468)
+}
+
+fn days_to_ymd(days: i64) -> Option<String> {
+    let z = days + 719468;
+    let era = if z >= 0 { z } else { z - 146096 } / 146097;
+    let doe = (z - era * 146097) as u64;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = yoe as i64 + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = if m <= 2 { y + 1 } else { y };
+    Some(format!("{:04}-{:02}-{:02}", y, m, d))
+}
+
+fn today_date() -> String {
+    let cutoff = cutoff_iso(0);
+    cutoff[..10].to_string()
+}
+
+fn week_counts(dates: &[String], activities: &[(String, u32)]) -> (u32, u32) {
+    let today = today_date();
+    let this_monday = monday_of_week(&today).unwrap_or_default();
+
+    let this_monday_days = {
+        let parts: Vec<&str> = this_monday.split('-').collect();
+        if parts.len() == 3 {
+            days_from_ymd(
+                parts[0].parse().unwrap_or(0),
+                parts[1].parse().unwrap_or(1),
+                parts[2].parse().unwrap_or(1),
+            ).unwrap_or(0)
+        } else { 0 }
+    };
+    let last_monday_days = this_monday_days - 7;
+    let last_monday = days_to_ymd(last_monday_days).unwrap_or_default();
+
+    let mut this_week: u32 = 0;
+    let mut last_week: u32 = 0;
+
+    for (date, count) in activities {
+        if *date >= this_monday && *date <= today {
+            this_week += count;
+        } else if *date >= last_monday && *date < this_monday {
+            last_week += count;
+        }
+    }
+
+    let _ = dates;
+    (this_week, last_week)
+}
+
+pub async fn get_user_activity_dates(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    team: Option<&str>,
+    lookback_days: Option<u32>,
+) -> Result<UserActivitySummary, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let days = lookback_days.unwrap_or(14);
+    let cutoff = cutoff_iso(days);
+    let cutoff_date = &cutoff[..10];
+
+    let identity = get_my_identity(&client, base).await?;
+
+    let work_item_dates = {
+        let area_clause = match team {
+            Some(t) => match get_team_area_path(&client, base, project, t).await {
+                Some(ap) => format!("AND [System.AreaPath] UNDER '{}'", ap),
+                None => String::new(),
+            },
+            None => String::new(),
+        };
+
+        let query = format!(
+            "SELECT [System.Id] FROM WorkItems \
+             WHERE [System.TeamProject] = @project \
+             AND [System.AssignedTo] = @Me {} \
+             AND [System.ChangedDate] >= @Today-{} \
+             ORDER BY [System.ChangedDate] DESC",
+            area_clause, days
+        );
+
+        let ids = run_wiql(&client, base, project, team, &query, 200).await.unwrap_or_default();
+        let items = batch_fetch_items(&client, base, project, &ids).await.unwrap_or_default();
+
+        let mut dates_with_counts: Vec<(String, u32)> = Vec::new();
+        for item in &items {
+            let url = format!(
+                "{}/{}/_apis/wit/workitems/{}/updates?api-version=7.1",
+                base, encode_path_segment(project), item.id
+            );
+            let resp = match client.get(&url).send().await {
+                Ok(r) if r.status().is_success() => r,
+                _ => continue,
+            };
+            let updates: WiUpdatesResponse = match resp.json().await {
+                Ok(u) => u,
+                Err(_) => continue,
+            };
+            for update in &updates.value {
+                if let Some(fields) = &update.fields {
+                    let has_state_change = fields.get("System.State").is_some();
+                    if !has_state_change { continue; }
+
+                    let change_date = fields
+                        .get("System.ChangedDate")
+                        .and_then(|v| v.get("newValue"))
+                        .and_then(|v| v.as_str())
+                        .unwrap_or(update.revised_date.as_deref().unwrap_or(""));
+
+                    if let Some(d) = date_only(change_date) {
+                        if d.as_str() >= cutoff_date {
+                            dates_with_counts.push((d, 1));
+                        }
+                    }
+                }
+            }
+        }
+        dates_with_counts
+    };
+
+    let pr_dates = {
+        let active_url = format!(
+            "{}/{}/_apis/git/pullrequests?searchCriteria.status=active&$top=100&api-version=7.1",
+            base, encode_path_segment(project)
+        );
+        let completed_url = format!(
+            "{}/{}/_apis/git/pullrequests?searchCriteria.status=completed&searchCriteria.minTime={}&$top=100&api-version=7.1",
+            base, encode_path_segment(project), cutoff
+        );
+
+        let (active_resp, completed_resp) = tokio::join!(
+            client.get(&active_url).send(),
+            client.get(&completed_url).send(),
+        );
+
+        let mut dates: Vec<(String, u32)> = Vec::new();
+        let my_name_lower = identity.unique_name.to_lowercase();
+
+        for resp in [active_resp, completed_resp] {
+            if let Ok(r) = resp {
+                if r.status().is_success() {
+                    if let Ok(prs) = r.json::<PullRequestsResponse>().await {
+                        for pr in &prs.value {
+                            if pr.created_by.unique_name.to_lowercase() == my_name_lower {
+                                if let Some(d) = date_only(&pr.creation_date) {
+                                    if d.as_str() >= cutoff_date {
+                                        dates.push((d, 1));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        dates
+    };
+
+    let push_dates = {
+        let repos_url = format!(
+            "{}/{}/_apis/git/repositories?api-version=7.1",
+            base, encode_path_segment(project)
+        );
+        let repos: Vec<GitRepository> = match client.get(&repos_url).send().await {
+            Ok(r) if r.status().is_success() => {
+                r.json::<GitRepositoriesResponse>().await.map(|r| r.value).unwrap_or_default()
+            }
+            _ => Vec::new(),
+        };
+
+        let push_fetches: Vec<_> = repos.iter().map(|repo| {
+            let url = format!(
+                "{}/{}/_apis/git/repositories/{}/pushes?searchCriteria.pusherId={}&searchCriteria.fromDate={}&$top=50&api-version=7.1",
+                base, encode_path_segment(project), &repo.id, &identity.id, &cutoff
+            );
+            client.get(&url).send()
+        }).collect();
+
+        let results = futures::future::join_all(push_fetches).await;
+
+        let mut dates: Vec<(String, u32)> = Vec::new();
+        for result in results {
+            if let Ok(r) = result {
+                if r.status().is_success() {
+                    if let Ok(pushes) = r.json::<GitPushesResponse>().await {
+                        for push in &pushes.value {
+                            if let Some(d) = date_only(&push.date) {
+                                if d.as_str() >= cutoff_date {
+                                    dates.push((d, 1));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        dates
+    };
+
+    let approval_dates = {
+        let defs = get_release_definitions(org_url, pat, project).await.unwrap_or_default();
+        let def_ids: Vec<u64> = defs.iter().map(|d| d.id).collect();
+        let releases = if def_ids.is_empty() {
+            Vec::new()
+        } else {
+            get_releases(org_url, pat, project, &def_ids).await.unwrap_or_default()
+        };
+
+        let my_name_lower = identity.unique_name.to_lowercase();
+        let mut dates: Vec<(String, u32)> = Vec::new();
+        for release in &releases {
+            for env in &release.environments {
+                for approval in env.pre_deploy_approvals.iter().chain(env.post_deploy_approvals.iter()) {
+                    if approval.status.to_lowercase() == "approved" {
+                        if let Some(approver) = &approval.approver {
+                            if approver.unique_name.to_lowercase() == my_name_lower {
+                                let date_str = approval.modified_on.as_deref()
+                                    .or(approval.created_on.as_deref())
+                                    .unwrap_or("");
+                                if let Some(d) = date_only(date_str) {
+                                    if d.as_str() >= cutoff_date {
+                                        dates.push((d, 1));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        dates
+    };
+
+    let mut all_activities: Vec<(String, u32)> = Vec::new();
+    all_activities.extend(work_item_dates);
+    all_activities.extend(pr_dates);
+    all_activities.extend(push_dates);
+    all_activities.extend(approval_dates);
+
+    let unique_dates: Vec<String> = {
+        let set: HashSet<String> = all_activities.iter().map(|(d, _)| d.clone()).collect();
+        let mut v: Vec<String> = set.into_iter().collect();
+        v.sort();
+        v
+    };
+
+    let (this_week_count, last_week_count) = week_counts(&unique_dates, &all_activities);
+
+    Ok(UserActivitySummary {
+        active_dates: unique_dates,
+        this_week_count,
+        last_week_count,
     })
 }
 

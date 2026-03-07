@@ -7,6 +7,7 @@ import { StatsBar } from './components/stats-bar';
 import { WorkItemsList } from './components/work-items-list';
 import { PipelinesList } from './components/pipelines-list';
 import { WorkItemDetailDialog } from './components/work-item-detail';
+import { FocusScore } from './components/focus-score';
 import { StandupDialog } from './components/standup-dialog';
 
 export function DashboardPage() {
@@ -69,6 +70,8 @@ export function DashboardPage() {
         <SprintHeader sprint={sprint} />
         <StatsBar stats={stats} />
       </div>
+
+      <FocusScore />
 
       <div className="grid grid-cols-2 gap-6">
         <WorkItemsList items={workItems} onSelect={selectWorkItem} />
