@@ -133,6 +133,13 @@ export const useDashboard = (): DashboardData => {
     refetchInterval: 30_000,
   });
 
+  const { isLoading: focusScoreLoading } = useQuery({
+    queryKey: ['user-activity', project, team],
+    queryFn: () => azure.getUserActivityDates(project!, team ?? undefined, 30),
+    enabled: !!project,
+    staleTime: 300_000,
+  });
+
   const standupQuery = useQuery({
     queryKey: ['standup', project, team, standupPeriod],
     queryFn: () => azure.getStandupData(project!, team ?? undefined, standupPeriod),
@@ -158,7 +165,7 @@ export const useDashboard = (): DashboardData => {
     workItems: data?.workItems ?? [],
     pipelines: data?.pipelines ?? [],
     pullRequests: data?.pullRequests ?? [],
-    isLoading: enabled && isLoading,
+    isLoading: enabled && (isLoading || focusScoreLoading),
     error: error ? (typeof error === 'string' ? error : 'Failed to load dashboard data') : null,
     selectedWorkItemId,
     selectWorkItem: setSelectedWorkItemId,

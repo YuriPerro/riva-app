@@ -1,5 +1,8 @@
-import { Flame, TrendingUp, TrendingDown, Info } from 'lucide-react';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/animate-ui/components/animate/tooltip';
+import { TrendingUp, TrendingDown, Info } from 'lucide-react';
+import ElectricBorder from '@/components/ElectricBorder';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { StreakCard } from './components/streak-card';
+import { FocusScoreDrawer } from './components/focus-score-drawer';
 import { useFocusScore } from './use-focus-score';
 
 const RING_SIZE = 80;
@@ -8,40 +11,27 @@ const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 export function FocusScore() {
-  const { data, label, strokeColor, delta, maxItems, dayLabels, isLoading } = useFocusScore();
+  const {
+    data, tier, label, strokeColor, delta, maxItems, dayLabels,
+    activeCard, openDrawer, closeDrawer,
+    streakPts, comparisonPts, consistencyPts,
+  } = useFocusScore();
 
   const strokeDashoffset = RING_CIRCUMFERENCE * (1 - data.score / 100);
   const thisWeekWidth = (data.thisWeekItems / maxItems) * 100;
   const lastWeekWidth = (data.lastWeekItems / maxItems) * 100;
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-2">
-        <h3 className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Focus Score</h3>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="h-[120px] animate-pulse rounded-md border border-border-subtle bg-surface" />
-          <div className="h-[120px] animate-pulse rounded-md border border-border-subtle bg-surface" />
-          <div className="h-[120px] animate-pulse rounded-md border border-border-subtle bg-surface" />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col gap-2">
       <h3 className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Focus Score</h3>
       <div className="grid grid-cols-3 gap-3">
         <div className="relative flex flex-row items-center justify-center gap-5 rounded-md border border-border-subtle bg-surface px-3 py-4">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="absolute top-2.5 right-2.5 cursor-pointer text-fg-disabled hover:text-fg-muted">
-                <Info size={12} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Weighted score based on streak length, week-over-week activity, and daily consistency
-            </TooltipContent>
-          </Tooltip>
+          <button
+            onClick={() => openDrawer('score')}
+            className="absolute top-2.5 right-2.5 cursor-pointer text-fg-disabled hover:text-fg-muted"
+          >
+            <Info size={12} />
+          </button>
           <svg width={RING_SIZE} height={RING_SIZE} className="-rotate-90">
             <circle
               cx={RING_SIZE / 2}
@@ -74,48 +64,21 @@ export function FocusScore() {
           </div>
         </div>
 
-        <div className="relative flex flex-col justify-between rounded-md border border-border-subtle bg-surface px-3 py-4">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="absolute top-2.5 right-2.5 cursor-pointer text-fg-disabled hover:text-fg-muted">
-                <Info size={12} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Consecutive days with activity: state changes, PRs, pushes, or approvals</TooltipContent>
-          </Tooltip>
-          <div className="flex flex-1 items-center justify-around">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1">
-                <Flame size={14} className="text-(--primary)" />
-                <span className="text-[25px] font-bold tabular-nums text-fg">{data.streak}</span>
-              </div>
-
-              <span className="text-[11px] text-fg-muted">day streak</span>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <div className="text-[11px] text-fg-muted">Best: {data.bestStreak} days</div>
-              <div className="flex items-center gap-1.5">
-                {data.weekDays.map((active, i) => (
-                  <div key={i} className="flex flex-col items-center gap-1">
-                    <div className={`h-2 w-2 rounded-full ${active ? 'bg-accent' : 'bg-border'}`} />
-                    <span className="text-[9px] text-fg-disabled">{dayLabels[i]}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        {data.streak >= 7 ? (
+          <ElectricBorder color="var(--color-accent)" speed={0.3} chaos={0.07} borderRadius={1}>
+            <StreakCard data={data} dayLabels={dayLabels} electric onInfoClick={() => openDrawer('streak')} />
+          </ElectricBorder>
+        ) : (
+          <StreakCard data={data} dayLabels={dayLabels} onInfoClick={() => openDrawer('streak')} />
+        )}
 
         <div className="relative flex flex-col justify-between rounded-md border border-border-subtle bg-surface px-3 py-4">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="absolute top-2.5 right-2.5 cursor-pointer text-fg-disabled hover:text-fg-muted">
-                <Info size={12} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Total activities this week vs last week (state changes, PRs, pushes, approvals)</TooltipContent>
-          </Tooltip>
+          <button
+            onClick={() => openDrawer('activity')}
+            className="absolute top-2.5 right-2.5 cursor-pointer text-fg-disabled hover:text-fg-muted"
+          >
+            <Info size={12} />
+          </button>
           <div className="flex flex-col gap-2.5">
             <div className="flex flex-col gap-1">
               <span className="text-[11px] text-fg-muted">This Week</span>
@@ -156,6 +119,21 @@ export function FocusScore() {
           </div>
         </div>
       </div>
+
+      <Sheet open={activeCard !== null} onOpenChange={(open) => !open && closeDrawer()}>
+        <SheetContent side="right" className="overflow-y-auto border-border bg-surface">
+          <FocusScoreDrawer
+            activeCard={activeCard}
+            data={data}
+            tier={tier}
+            label={label}
+            delta={delta}
+            streakPts={streakPts}
+            comparisonPts={comparisonPts}
+            consistencyPts={consistencyPts}
+          />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

@@ -1,17 +1,9 @@
-import { AlertCircle, Loader2, Zap } from 'lucide-react';
+import { AlertCircle, Zap } from 'lucide-react';
 import { PipelineGroupCard } from '../pipeline-group-card';
 import type { PipelinesContentProps } from './types';
 
 export function PipelinesContent(props: PipelinesContentProps) {
-  const { isLoading, error, groups, toggleFavorite, openRun } = props;
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 size={16} className="animate-spin text-fg-disabled" />
-      </div>
-    );
-  }
+  const { error, groups, toggleFavorite, openRun } = props;
 
   if (error) {
     return (

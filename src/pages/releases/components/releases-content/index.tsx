@@ -1,17 +1,9 @@
-import { AlertCircle, Loader2, Rocket } from 'lucide-react';
+import { AlertCircle, Rocket } from 'lucide-react';
 import { ReleaseGroupCard } from '../release-group-card';
 import type { ReleasesContentProps } from './types';
 
 export function ReleasesContent(props: ReleasesContentProps) {
-  const { isLoading, error, groups, toggleFavorite, selectRelease } = props;
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 size={16} className="animate-spin text-fg-disabled" />
-      </div>
-    );
-  }
+  const { error, groups, toggleFavorite, selectRelease } = props;
 
   if (error) {
     return (

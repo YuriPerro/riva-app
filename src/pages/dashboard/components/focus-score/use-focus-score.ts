@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { azure } from '@/lib/tauri';
 import { useSessionStore } from '@/store/session';
-import type { FocusScoreData, ScoreTier } from './types';
+import type { FocusScoreData, ScoreTier, ActiveCard } from './types';
 
 const STORAGE_KEY = 'forge_best_streak';
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -41,6 +42,20 @@ function toDateString(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+function isWeekend(date: Date): boolean {
+  const day = date.getDay();
+  return day === 0 || day === 6;
+}
+
+function prevWorkday(date: Date): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() - 1);
+  while (isWeekend(d)) {
+    d.setDate(d.getDate() - 1);
+  }
+  return d;
+}
+
 function computeStreak(activeDates: string[]): number {
   if (activeDates.length === 0) return 0;
 
@@ -50,14 +65,16 @@ function computeStreak(activeDates: string[]): number {
   const todayStr = toDateString(today);
 
   let current = new Date(today);
-  if (!dateSet.has(todayStr)) {
-    current.setDate(current.getDate() - 1);
+  if (isWeekend(current)) {
+    current = prevWorkday(current);
+  } else if (!dateSet.has(todayStr)) {
+    current = prevWorkday(current);
   }
 
   let streak = 0;
   while (dateSet.has(toDateString(current))) {
     streak++;
-    current.setDate(current.getDate() - 1);
+    current = prevWorkday(current);
   }
   return streak;
 }
@@ -72,13 +89,17 @@ function computeBestStreak(activeDates: string[]): number {
   for (let i = 1; i < sorted.length; i++) {
     const prev = new Date(sorted[i - 1]);
     const curr = new Date(sorted[i]);
-    const diffMs = curr.getTime() - prev.getTime();
-    const diffDays = Math.round(diffMs / 86400000);
 
-    if (diffDays === 1) {
+    const expected = prevWorkday(curr);
+    expected.setHours(0, 0, 0, 0);
+    prev.setHours(0, 0, 0, 0);
+
+    const isConsecutiveWorkday = prev.getTime() === expected.getTime();
+
+    if (isConsecutiveWorkday) {
       current++;
       if (current > best) best = current;
-    } else if (diffDays > 1) {
+    } else {
       current = 1;
     }
   }
@@ -100,11 +121,19 @@ function computeWeekDays(activeDates: string[]): boolean[] {
   return days;
 }
 
-function computeScore(streak: number, thisWeek: number, lastWeek: number, activeDaysThisWeek: number): number {
+type ScoreBreakdown = {
+  streakPts: number;
+  comparisonPts: number;
+  consistencyPts: number;
+  total: number;
+};
+
+function computeScore(streak: number, thisWeek: number, lastWeek: number, activeDaysThisWeek: number): ScoreBreakdown {
   const streakPts = Math.min(40, streak * 4);
-  const comparisonPts = Math.min(30, (thisWeek / Math.max(lastWeek, 1)) * 30);
+  const comparisonPts = Math.min(30, Math.round((thisWeek / Math.max(lastWeek, 1)) * 30));
   const consistencyPts = Math.min(30, activeDaysThisWeek * 6);
-  return Math.min(100, Math.round(streakPts + comparisonPts + consistencyPts));
+  const total = Math.min(100, Math.round(streakPts + comparisonPts + consistencyPts));
+  return { streakPts, comparisonPts, consistencyPts, total };
 }
 
 function getStoredBestStreak(): number {
@@ -131,7 +160,7 @@ function buildFocusData(activeDates: string[], thisWeekCount: number, lastWeekCo
 
   const weekDays = computeWeekDays(activeDates);
   const activeDaysThisWeek = weekDays.filter(Boolean).length;
-  const score = computeScore(streak, thisWeekCount, lastWeekCount, activeDaysThisWeek);
+  const { total: score } = computeScore(streak, thisWeekCount, lastWeekCount, activeDaysThisWeek);
 
   return {
     score,
@@ -146,6 +175,7 @@ function buildFocusData(activeDates: string[], thisWeekCount: number, lastWeekCo
 export function useFocusScore() {
   const project = useSessionStore((s) => s.project);
   const team = useSessionStore((s) => s.team);
+  const [activeCard, setActiveCard] = useState<ActiveCard>(null);
 
   const { data: activityData, isLoading } = useQuery({
     queryKey: ['user-activity', project, team],
@@ -163,6 +193,11 @@ export function useFocusScore() {
   const strokeColor = TIER_COLORS[tier];
   const delta = data.thisWeekItems - data.lastWeekItems;
   const maxItems = Math.max(data.thisWeekItems, data.lastWeekItems, 1);
+  const activeDaysThisWeek = data.weekDays.filter(Boolean).length;
+  const { streakPts, comparisonPts, consistencyPts } = computeScore(data.streak, data.thisWeekItems, data.lastWeekItems, activeDaysThisWeek);
+
+  const openDrawer = (card: ActiveCard) => setActiveCard(card);
+  const closeDrawer = () => setActiveCard(null);
 
   return {
     data,
@@ -173,5 +208,11 @@ export function useFocusScore() {
     maxItems,
     dayLabels: DAY_LABELS,
     isLoading,
+    activeCard,
+    openDrawer,
+    closeDrawer,
+    streakPts,
+    comparisonPts,
+    consistencyPts,
   };
 }

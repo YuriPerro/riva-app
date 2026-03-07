@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -68,7 +69,9 @@ export type PullRequestsData = ReturnType<typeof usePullRequests>;
 export function usePullRequests() {
   const project = useSessionStore((s) => s.project);
   const queryClient = useQueryClient();
-  const [filter, setFilter] = useState<PRFilter>('all');
+  const [searchParams] = useSearchParams();
+  const initialFilter = (searchParams.get('status') ?? 'all') as PRFilter;
+  const [filter, setFilter] = useState<PRFilter>(initialFilter);
   const [repoFilters, setRepoFilters] = useState<string[]>([]);
 
   const {

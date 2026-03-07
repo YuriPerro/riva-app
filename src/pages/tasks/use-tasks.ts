@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useQuery } from '@tanstack/react-query';
 import { azure } from '@/lib/tauri';
@@ -43,8 +44,11 @@ export interface TasksData {
 export function useTasks(): TasksData {
   const project = useSessionStore((s) => s.project);
   const team = useSessionStore((s) => s.team);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+  const [searchParams] = useSearchParams();
+  const initialStatus = (searchParams.get('status') ?? 'all') as StatusFilter;
+  const initialType = (searchParams.get('type') ?? 'all') as TypeFilter;
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(initialStatus);
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>(initialType);
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<number | null>(null);
 
   const {

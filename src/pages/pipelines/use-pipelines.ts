@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useQuery } from '@tanstack/react-query';
 import { azure } from '@/lib/tauri';
@@ -84,7 +85,9 @@ const MAX_RUNS_PER_DEFINITION = 3;
 export function usePipelines(): PipelinesData {
   const project = useSessionStore((s) => s.project);
   const teamId = useSessionStore((s) => s.teamId);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [searchParams] = useSearchParams();
+  const initialStatus = (searchParams.get('status') ?? 'all') as StatusFilter;
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(initialStatus);
   const [definitionFilters, setDefinitionFilters] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<Set<number>>(() => readFavorites(project));
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);

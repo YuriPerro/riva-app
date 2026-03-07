@@ -12,7 +12,7 @@ export function AppLayout() {
         <div className="flex flex-1 flex-col overflow-hidden rounded-xl bg-surface noise-bg">
           <main
             key={location.pathname}
-            className="flex-1 overflow-auto p-6"
+            className="flex flex-1 flex-col overflow-auto p-6"
             style={{ animation: 'page-enter 250ms ease-out' }}
           >
             <Outlet />

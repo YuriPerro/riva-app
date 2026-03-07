@@ -1,14 +1,17 @@
 import { ListTodo, GitPullRequest, Workflow, GitPullRequestArrow } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Route } from '@/types/routes';
 import type { StatsBarProps } from './types';
 
 export function StatsBar(props: StatsBarProps) {
   const { stats } = props;
+  const navigate = useNavigate();
 
   const items = [
-    { value: stats.myTasks, label: 'my tasks', icon: ListTodo },
-    { value: stats.inReview, label: 'in review', icon: GitPullRequest },
-    { value: stats.pipelinesRunning, label: 'pipelines running', icon: Workflow },
-    { value: stats.openPRs, label: 'open PRs', icon: GitPullRequestArrow },
+    { value: stats.myTasks, label: 'my tasks', icon: ListTodo, path: Route.Tasks },
+    { value: stats.inReview, label: 'in review', icon: GitPullRequest, path: `${Route.Tasks}?status=in-review` },
+    { value: stats.pipelinesRunning, label: 'pipelines running', icon: Workflow, path: `${Route.Pipelines}?status=running` },
+    { value: stats.openPRs, label: 'open PRs', icon: GitPullRequestArrow, path: `${Route.PullRequests}?status=active` },
   ];
 
   return (
@@ -18,6 +21,7 @@ export function StatsBar(props: StatsBarProps) {
         return (
           <div
             key={i}
+            onClick={() => navigate(item.path)}
             className="flex flex-1 items-center gap-3 rounded-md border border-border-subtle px-3 py-2.5 cursor-pointer transition-colors hover:bg-elevated hover:border-border"
           >
             <Icon size={15} className="text-fg shrink-0" />

@@ -9,6 +9,8 @@ export type FocusScoreData = {
 
 export type ScoreTier = 'success' | 'warning' | 'error';
 
+export type ActiveCard = 'score' | 'streak' | 'activity' | null;
+
 export interface FocusScoreProps {
   data: FocusScoreData;
 }

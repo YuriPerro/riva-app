@@ -1,18 +1,21 @@
-import { AlertCircle, GitPullRequest, Loader2 } from 'lucide-react';
+import { useMemo } from 'react';
+import { AlertCircle, GitPullRequest } from 'lucide-react';
 import type { PR } from '../../use-pull-requests';
 import { PRCard } from '../pr-card';
 import type { PullRequestsContentProps } from './types';
 
-export function PullRequestsContent(props: PullRequestsContentProps) {
-  const { isLoading, error, filtered, openPR, reviewPR, isReviewing } = props;
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 size={16} className="animate-spin text-fg-disabled" />
-      </div>
-    );
+function groupByRepo(prs: PR[]) {
+  const groups = new Map<string, PR[]>();
+  for (const pr of prs) {
+    if (!groups.has(pr.repo)) groups.set(pr.repo, []);
+    groups.get(pr.repo)!.push(pr);
   }
+  return groups;
+}
+
+export function PullRequestsContent(props: PullRequestsContentProps) {
+  const { error, filtered, openPR, reviewPR, isReviewing } = props;
+  const repoGroups = useMemo(() => groupByRepo(filtered), [filtered]);
 
   if (error) {
     return (
@@ -30,12 +33,6 @@ export function PullRequestsContent(props: PullRequestsContentProps) {
         <span className="text-[13px] text-fg-disabled">No pull requests found</span>
       </div>
     );
-  }
-
-  const repoGroups = new Map<string, PR[]>();
-  for (const pr of filtered) {
-    if (!repoGroups.has(pr.repo)) repoGroups.set(pr.repo, []);
-    repoGroups.get(pr.repo)!.push(pr);
   }
 
   return (

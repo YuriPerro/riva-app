@@ -1,4 +1,5 @@
-import { Loader2, Circle, GitPullRequest } from 'lucide-react';
+import { Circle, ClipboardList, GitPullRequest } from 'lucide-react';
+import { LoadingState } from '@/components/ui/loading-state';
 import { StandupSection } from '../standup-section';
 import { TransitionGroupView } from '../transition-group-view';
 import { TypeIcon } from '../type-icon';
@@ -9,9 +10,17 @@ export function StandupContent(props: StandupContentProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-10">
-        <Loader2 size={14} className="animate-spin text-fg-disabled" />
-      </div>
+      <LoadingState
+        icon={<ClipboardList size={28} />}
+        title="Loading Standup"
+        phrases={[
+          'Summoning yesterday\'s work...',
+          'Finding what you actually did...',
+          'Generating believable updates...',
+          'Checking if you pushed code...',
+        ]}
+        compact
+      />
     );
   }
 
