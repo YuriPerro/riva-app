@@ -27,7 +27,7 @@ export function PageHeader({
     <div className="flex items-center justify-between pb-2">
       <div className="flex items-center gap-2">
         <TeamSwitcher />
-
+        {actions}
         <button
           onClick={handleRefresh}
           className={cn(
@@ -37,13 +37,13 @@ export function PageHeader({
         >
           <RefreshCw size={13} className={cn(spinning && 'animate-spin')} />
         </button>
-
-        {actions}
       </div>
 
-      <div className="flex flex-col items-end">
-        <h2 className="text-4xl font-black text-fg/70">{title}</h2>
-        {subtitle && <p className="text-[12px] text-fg-muted pr-1">{subtitle}</p>}
+      <div className="flex items-center gap-3">
+        <div className="flex flex-col items-end">
+          <h2 className="text-4xl font-black text-fg/70">{title}</h2>
+          {subtitle && <p className="text-[12px] text-fg-muted pr-1">{subtitle}</p>}
+        </div>
       </div>
     </div>
   );
