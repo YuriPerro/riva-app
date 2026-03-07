@@ -8,6 +8,7 @@ import type { StandupData, StandupTransition } from '@/types/azure';
 import { mapWorkItemStatus } from '@/utils/mappers';
 import { PeriodSelector } from '../standup-period-selector';
 import { StandupContent } from '../standup-content';
+import { StandupAiSummary } from '../standup-ai-summary';
 import type { StandupDialogProps, TransitionGroup } from './types';
 
 dayjs.extend(isTodayPlugin);
@@ -125,13 +126,18 @@ export function StandupDialog(props: StandupDialogProps) {
   const hasTodayContent =
     todayGroups.length > 0 || (standup?.today.length ?? 0) > 0 || (standup?.todayPrs.length ?? 0) > 0;
 
+  const clipboardText = useMemo(() => {
+    if (!standup) return '';
+    return formatForClipboard(standup);
+  }, [standup]);
+
   const handleCopy = useCallback(async () => {
-    if (!standup) return;
-    await navigator.clipboard.writeText(formatForClipboard(standup));
+    if (!clipboardText) return;
+    await navigator.clipboard.writeText(clipboardText);
     setCopied(true);
     toast.success('Standup copied');
     setTimeout(() => setCopied(false), 2000);
-  }, [standup]);
+  }, [clipboardText]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -165,6 +171,9 @@ export function StandupDialog(props: StandupDialogProps) {
             todayGroups={todayGroups}
             hasTodayContent={hasTodayContent}
           />
+          {!isLoading && !isEmpty && (
+            <StandupAiSummary clipboardText={clipboardText} disabled={isEmpty} />
+          )}
         </div>
       </DialogContent>
     </Dialog>

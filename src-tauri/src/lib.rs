@@ -1,4 +1,5 @@
 mod azure;
+mod openai;
 
 use azure::{PipelineDefinition, PipelineRun, Project, PullRequest, Release, ReleaseDefinition, RelatedWorkItem, SprintIteration, StandupData, Team, UserActivitySummary, WorkItem, WorkItemDetail, WorkItemTypeState};
 use serde::{Deserialize, Serialize};
@@ -292,6 +293,32 @@ async fn get_user_activity_dates(
 }
 
 // ============================================================
+// OpenAI commands
+// ============================================================
+
+#[tauri::command]
+fn save_openai_key(key: String) -> Result<(), String> {
+    openai::save_api_key(&key)
+}
+
+#[tauri::command]
+fn load_openai_key() -> Result<Option<String>, String> {
+    openai::load_api_key()
+}
+
+#[tauri::command]
+fn clear_openai_key() -> Result<(), String> {
+    openai::clear_api_key()
+}
+
+#[tauri::command]
+async fn generate_standup_summary(prompt: String) -> Result<String, String> {
+    let api_key = openai::load_api_key()?
+        .ok_or_else(|| "No OpenAI API key configured. Add one in Settings.".to_string())?;
+    openai::generate_standup(&api_key, &prompt).await
+}
+
+// ============================================================
 // App entry point
 // ============================================================
 
@@ -328,6 +355,10 @@ pub fn run() {
             get_releases,
             update_release_approval,
             get_user_activity_dates,
+            save_openai_key,
+            load_openai_key,
+            clear_openai_key,
+            generate_standup_summary,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application")

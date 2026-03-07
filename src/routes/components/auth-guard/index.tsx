@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { credentials, session } from '@/lib/tauri';
+import { credentials, session, openai } from '@/lib/tauri';
 import { Route } from '@/types/routes';
+import { useOpenAiStore } from '@/store/openai';
 
 export function AuthGuard() {
   const [checked, setChecked] = useState(false);
@@ -17,6 +18,10 @@ export function AuthGuard() {
         setAuthed(true);
       })
       .finally(() => setChecked(true));
+
+    openai.loadKey().then((key) => {
+      if (key) useOpenAiStore.getState().setApiKey(key);
+    });
   }, []);
 
   if (!checked) {
