@@ -6,7 +6,7 @@ import type { Release, ReleaseDefinition, ReleaseApproval } from '@/types/azure'
 import { useSessionStore } from '@/store/session';
 import { formatAgo } from '@/utils/formatters';
 import { mapReleaseEnvironmentStatus, mapApprovalStatus } from '@/utils/mappers';
-import type { ReleaseItem, ReleaseApprovalItem, ReleaseGroup, ReleasesData, ReleaseStatusFilter } from './types';
+import type { ReleaseItem, ReleaseApprovalItem, ReleaseEnvironmentItem, ReleaseGroup, ReleasesData, ReleaseStatusFilter } from './types';
 
 function readFavorites(project: string | null): Set<number> {
   if (!project) return new Set();
@@ -72,6 +72,21 @@ function mapRelease(raw: Release): ReleaseItem {
       }),
     url: raw.webUrl,
   };
+}
+
+function findMyPendingApproval(
+  environments: ReleaseEnvironmentItem[],
+  currentUser: string | null,
+): ReleaseApprovalItem | null {
+  if (!currentUser) return null;
+  for (const env of environments) {
+    for (const approval of env.approvals) {
+      if (approval.status === 'pending' && approval.approverUniqueName === currentUser) {
+        return approval;
+      }
+    }
+  }
+  return null;
 }
 
 const MAX_RELEASES_PER_DEFINITION = 3;
@@ -241,6 +256,11 @@ export function useReleases(): ReleasesData {
     [approvalMutation],
   );
 
+  const myPendingApproval = useMemo(
+    () => (selectedRelease ? findMyPendingApproval(selectedRelease.environments, currentUserUniqueName) : null),
+    [selectedRelease, currentUserUniqueName],
+  );
+
   return {
     groups,
     isLoading: !!project && (isLoadingDefs || isLoadingReleases),
@@ -267,5 +287,6 @@ export function useReleases(): ReleasesData {
     rejectRelease,
     isApproving: approvalMutation.isPending,
     currentUserUniqueName,
+    myPendingApproval,
   };
 }

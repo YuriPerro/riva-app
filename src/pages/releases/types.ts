@@ -63,4 +63,5 @@ export interface ReleasesData {
   rejectRelease: (approvalId: number) => void;
   isApproving: boolean;
   currentUserUniqueName: string | null;
+  myPendingApproval: ReleaseApprovalItem | null;
 }

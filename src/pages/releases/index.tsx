@@ -117,6 +117,7 @@ export function ReleasesPage() {
         onReject={releases.rejectRelease}
         isApproving={releases.isApproving}
         currentUserUniqueName={releases.currentUserUniqueName}
+        myPendingApproval={releases.myPendingApproval}
       />
     </div>
   );

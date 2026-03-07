@@ -7,22 +7,9 @@ import { formatDate } from '@/utils/formatters';
 import { EnvironmentRow } from '../environment-row';
 import type { ReleaseDetailDialogProps } from './types';
 
-function findMyPendingApproval(release: ReleaseDetailDialogProps['release'], currentUser: string | null) {
-  if (!release || !currentUser) return null;
-  for (const env of release.environments) {
-    for (const approval of env.approvals) {
-      if (approval.status === 'pending' && approval.approverUniqueName === currentUser) {
-        return approval;
-      }
-    }
-  }
-  return null;
-}
-
 export function ReleaseDetailDialog(props: ReleaseDetailDialogProps) {
-  const { release, onClose, onApprove, onReject, isApproving, currentUserUniqueName } = props;
+  const { release, onClose, onApprove, onReject, isApproving, myPendingApproval } = props;
   const isOpen = release !== null;
-  const myPendingApproval = findMyPendingApproval(release, currentUserUniqueName);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
