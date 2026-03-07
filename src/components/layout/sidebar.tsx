@@ -9,6 +9,7 @@ import { GitPullRequestIcon, type GitPullRequestIconHandle } from '@/components/
 import { RocketIcon, type RocketHandle } from '@/components/ui/rocket';
 import { SettingsIcon, type SettingsIconHandle } from '@/components/ui/settings';
 import { ShineBorder } from '@/components/ui/shine-border';
+import { SidebarGame } from '@/components/sidebar-game';
 import { Route } from '@/types/routes';
 import { SidebarLabel } from './sidebar-label';
 import { NavItem } from './nav-item';
@@ -96,6 +97,8 @@ export const Sidebar = memo(function Sidebar() {
           icon={<RocketIcon ref={rocketRef} size={18} />}
         />
       </nav>
+
+      {!collapsed && <SidebarGame />}
 
       <div className={cn('flex flex-col px-2 pt-2', collapsed ? 'gap-5' : 'gap-1')}>
         <NavItem
