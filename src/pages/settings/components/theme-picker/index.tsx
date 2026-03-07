@@ -1,6 +1,6 @@
 import { themeManager } from '@/lib/theme-manager';
 import { useThemeStore } from '@/store/theme';
-import { ThemeCard } from './theme-card';
+import { ThemeCard } from '../theme-card';
 
 export function ThemePicker() {
   const currentTheme = useThemeStore((s) => s.theme);
