@@ -119,6 +119,7 @@ EOF
 
 prompt_quality() {
   local diff="$1"
+  local previous_quality="${2:-}"
 
   cat <<EOF
 Você é um engenheiro sênior fazendo code review com foco em qualidade.
@@ -127,6 +128,17 @@ $(claude_md_section "PADRÕES DO PROJETO:")
 
 ## CÓDIGO IMPLEMENTADO (git diff):
 $diff
+
+$([ -n "$previous_quality" ] && cat <<PREV
+## REVIEW ANTERIOR (já corrigido pelo dev):
+$previous_quality
+
+IMPORTANTE: Os problemas acima JÁ FORAM CORRIGIDOS. Sua tarefa é:
+1. Verificar se as correções foram aplicadas corretamente
+2. Se sim, APROVE — NÃO levante problemas novos que não existiam no review anterior
+3. Só reprove se alguma correção introduziu um bug novo ou se um problema anterior não foi resolvido
+PREV
+)
 
 ## AVALIE os seguintes pontos e responda no formato abaixo:
 
@@ -150,8 +162,9 @@ Problemas críticos:
 - Erros silenciados sem log (catch vazio)
 - Lógica de negócio duplicada
 - Variáveis/funções não utilizadas
+- Violações de arquitetura e convenções do projeto (CLAUDE.md)
 
-Ignore: estilo pessoal, preferências de nomenclatura sem impacto real, otimizações prematuras.
+Ignore: otimizações prematuras, sugestões que contradizem problemas apontados anteriormente.
 EOF
 }
 

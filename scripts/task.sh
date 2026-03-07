@@ -208,6 +208,7 @@ if should_run "QUALITY"; then
   step "ETAPA 4 · Revisão de Qualidade"
 
   QUALITY_APPROVED=false
+  PREVIOUS_QUALITY=""
   FINAL_DIFF=$(get_full_diff)
 
   while [ $QUALITY_ATTEMPT -lt $MAX_QUALITY_RETRIES ] && [ "$QUALITY_APPROVED" = false ]; do
@@ -215,7 +216,7 @@ if should_run "QUALITY"; then
     STAGE_START=$SECONDS
     log "Rodando senior code review (tentativa $QUALITY_ATTEMPT)..."
 
-    QUALITY_PROMPT=$(prompt_quality "$FINAL_DIFF")
+    QUALITY_PROMPT=$(prompt_quality "$FINAL_DIFF" "$PREVIOUS_QUALITY")
     QUALITY_RESULT=$(run_claude "quality-$QUALITY_ATTEMPT" "$MODEL_QUALITY" -p "$QUALITY_PROMPT" --output-format text)
     echo "$QUALITY_RESULT" > "$QUALITY_FILE"
 
@@ -228,6 +229,7 @@ if should_run "QUALITY"; then
       QUALITY_APPROVED=true
     else
       warn "Code review: REPROVADO — corrigindo problemas..."
+      PREVIOUS_QUALITY="$QUALITY_RESULT"
 
       QUALITY_FIX_PROMPT=$(prompt_quality_fix "$SPEC_CONTENT" "$QUALITY_RESULT" "$FINAL_DIFF")
       run_claude "quality-fix-$QUALITY_ATTEMPT" "$MODEL_IMPL" \
