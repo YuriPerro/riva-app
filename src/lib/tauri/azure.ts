@@ -45,6 +45,9 @@ export const azure = {
   updateWorkItemState: (project: string, id: number, newState: string) =>
     invoke<WorkItemDetail>(TauriCommand.UpdateWorkItemState, { project, id, newState }),
 
+  updateWorkItemTitle: (project: string, id: number, title: string) =>
+    invoke<WorkItemDetail>(TauriCommand.UpdateWorkItemTitle, { project, id, title }),
+
   reviewPullRequest: (project: string, repoId: string, prId: number, vote: number) =>
     invoke<void>(TauriCommand.ReviewPullRequest, { project, repoId, prId, vote }),
 

@@ -17,6 +17,7 @@ MAX_QUALITY_RETRIES=3
 CLAUDE_MD="CLAUDE.md"
 TEST_COMMAND=""
 AUTO_COMMIT=true
+FAST_MODE=false
 
 MODEL_SPEC="claude-sonnet-4-6"
 MODEL_IMPL="claude-opus-4-6"
@@ -159,6 +160,20 @@ is_approved() {
 save_state() { echo "$1" > "$STATE_FILE"; }
 get_state()  { [ -f "$STATE_FILE" ] && cat "$STATE_FILE" || echo ""; }
 clear_state() { rm -f "$STATE_FILE"; }
+
+ask_review_action() {
+  local stage_name="$1"
+  echo ""
+  echo -e "${YELLOW}$stage_name reprovado. O que fazer?${RESET}"
+  echo -e "  ${BOLD}c${RESET} — corrigir automaticamente (agente)"
+  echo -e "  ${BOLD}i${RESET} — ignorar e continuar"
+  echo -e "  ${BOLD}e${RESET} — editar manualmente (\$EDITOR)"
+  echo -e "  ${BOLD}a${RESET} — abortar pipeline"
+  echo ""
+  echo -ne "${YELLOW}[c/i/e/a]:${RESET} "
+  read -r ACTION
+  echo "$ACTION"
+}
 
 snapshot_untracked() {
   PREEXISTING_UNTRACKED=$(git ls-files --others --exclude-standard 2>/dev/null | sort)

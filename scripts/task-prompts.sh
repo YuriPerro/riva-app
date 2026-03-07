@@ -43,20 +43,40 @@ EOF
 prompt_implementation() {
   local spec_content="$1"
   local previous_review="$2"
+  local current_diff="${3:-}"
 
-  cat <<EOF
-Você é um desenvolvedor sênior Node.js/TypeScript implementando uma task.
+  if [ -n "$previous_review" ] && [ -n "$current_diff" ]; then
+    cat <<EOF
+Você é um desenvolvedor sênior Node.js/TypeScript CORRIGINDO uma implementação existente.
 
 $(claude_md_section "REGRAS E ARQUITETURA DO PROJETO (LEIA PRIMEIRO):")
 
 ## SPEC DA TASK:
 $spec_content
 
-$([ -n "$previous_review" ] && cat <<REVIEW
-## PROBLEMAS DA TENTATIVA ANTERIOR (corrija estes):
+## CÓDIGO ATUAL (já implementado — NÃO refaça do zero):
+$current_diff
+
+## PROBLEMAS APONTADOS NA REVISÃO (corrija APENAS estes):
 $previous_review
-REVIEW
-)
+
+## INSTRUÇÕES:
+- O código acima já está implementado. NÃO delete e reimplemente.
+- Corrija APENAS os problemas listados na revisão.
+- Mantenha todo o código que já está correto.
+- Siga rigorosamente as convenções do CLAUDE.md
+- NÃO faça commits, NÃO rode testes (será feito depois)
+
+Corrija agora.
+EOF
+  else
+    cat <<EOF
+Você é um desenvolvedor sênior Node.js/TypeScript implementando uma task.
+
+$(claude_md_section "REGRAS E ARQUITETURA DO PROJETO (LEIA PRIMEIRO):")
+
+## SPEC DA TASK:
+$spec_content
 
 ## INSTRUÇÕES:
 - Implemente EXATAMENTE o que está na spec, nem mais nem menos
@@ -68,6 +88,7 @@ REVIEW
 
 Implemente agora.
 EOF
+  fi
 }
 
 prompt_review() {

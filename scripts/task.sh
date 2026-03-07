@@ -5,14 +5,28 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/task-core.sh"
 source "$SCRIPT_DIR/task-prompts.sh"
 
+SKIP_SPEC=false
+SKIP_QUALITY=false
+FROM_STAGE=""
+ONLY_STAGE=""
+
 while [[ "${1:-}" == --* ]]; do
   case "$1" in
     --no-commit) AUTO_COMMIT=false; shift ;;
+    --fast) FAST_MODE=true; SKIP_SPEC=true; SKIP_QUALITY=true; shift ;;
+    --from)
+      [ -z "${2:-}" ] && error "--from requer um stage: spec, impl, test, quality, commit"
+      FROM_STAGE=$(echo "$2" | tr '[:lower:]' '[:upper:]')
+      shift 2 ;;
+    --only)
+      [ -z "${2:-}" ] && error "--only requer um stage: spec, impl, test, quality, commit"
+      ONLY_STAGE=$(echo "$2" | tr '[:lower:]' '[:upper:]')
+      shift 2 ;;
     *) error "Flag desconhecida: $1" ;;
   esac
 done
 
-[ -z "${1:-}" ] && error "Uso: ./scripts/task.sh [--no-commit] \"descrição da task\""
+[ -z "${1:-}" ] && error "Uso: ./scripts/task.sh [flags] \"descrição da task\"\n\n  Flags:\n    --fast          Pula spec e quality (impl → review → commit)\n    --from <stage>  Começa a partir de: spec, impl, test, quality, commit\n    --only <stage>  Roda apenas um stage\n    --no-commit     Pula o commit"
 command -v claude &>/dev/null || error "Claude Code não encontrado. Instale com: npm install -g @anthropic-ai/claude-code"
 git rev-parse --git-dir &>/dev/null || error "Não é um repositório git."
 
@@ -24,8 +38,16 @@ load_claude_md
 mkdir -p "$TASK_DIR"
 : > "$ERROR_LOG"
 
+if [ "$FAST_MODE" = true ]; then
+  log "Modo rápido ativado — pulando spec e quality review."
+fi
+
 EXISTING_STATE=$(get_state)
-if [ -n "$EXISTING_STATE" ] && [ "$EXISTING_STATE" != "DONE" ]; then
+if [ -n "$FROM_STAGE" ]; then
+  EXISTING_STATE="$FROM_STAGE"
+elif [ -n "$ONLY_STAGE" ]; then
+  EXISTING_STATE="$ONLY_STAGE"
+elif [ -n "$EXISTING_STATE" ] && [ "$EXISTING_STATE" != "DONE" ]; then
   echo ""
   warn "Pipeline anterior detectado na etapa: ${BOLD}$EXISTING_STATE${RESET}"
   echo -e "Continuar de onde parou? ${YELLOW}[s/N]${RESET}"
@@ -38,6 +60,14 @@ fi
 
 should_run() {
   local stage="$1"
+
+  [ "$SKIP_SPEC" = true ] && [ "$stage" = "SPEC" ] && return 1
+  [ "$SKIP_QUALITY" = true ] && [ "$stage" = "QUALITY" ] && return 1
+
+  if [ -n "$ONLY_STAGE" ]; then
+    [ "$stage" = "$ONLY_STAGE" ] && return 0 || return 1
+  fi
+
   [ -z "$EXISTING_STATE" ] && return 0
 
   local stages=("SPEC" "IMPL" "TEST" "QUALITY" "COMMIT")
@@ -100,7 +130,12 @@ if should_run "SPEC"; then
   save_state "IMPL"
 fi
 
-SPEC_CONTENT=$(cat "$SPEC_FILE")
+if [ "$FAST_MODE" = true ] && [ ! -f "$SPEC_FILE" ]; then
+  echo "$TASK_DESC" > "$SPEC_FILE"
+  log "Fast mode: usando descrição da task como spec."
+fi
+
+SPEC_CONTENT=$(cat "$SPEC_FILE" 2>/dev/null || echo "$TASK_DESC")
 
 # =============================================================================
 # STAGE 2 — IMPLEMENTATION + FIDELITY REVIEW
@@ -115,14 +150,16 @@ if should_run "IMPL"; then
     STAGE_START=$SECONDS
     PREVIOUS_REVIEW=""
 
+    CURRENT_DIFF=""
     if [ $IMPL_ATTEMPT -gt 1 ]; then
-      warn "Tentativa $IMPL_ATTEMPT de $MAX_IMPL_RETRIES..."
+      warn "Tentativa $IMPL_ATTEMPT de $MAX_IMPL_RETRIES (patch mode)..."
       PREVIOUS_REVIEW=$(cat "$REVIEW_FILE" 2>/dev/null || echo "")
+      CURRENT_DIFF=$(get_full_diff)
     fi
 
     log "Rodando agente de implementação..."
 
-    IMPL_PROMPT=$(prompt_implementation "$SPEC_CONTENT" "$PREVIOUS_REVIEW")
+    IMPL_PROMPT=$(prompt_implementation "$SPEC_CONTENT" "$PREVIOUS_REVIEW" "$CURRENT_DIFF")
     run_claude "impl-$IMPL_ATTEMPT" "$MODEL_IMPL" \
       -p "$IMPL_PROMPT" \
       --allowedTools "Read,Write,Edit,MultiEdit,Bash,Glob,Grep" \
@@ -150,8 +187,34 @@ if should_run "IMPL"; then
       success "Revisão de fidelidade: APROVADO ($(stage_duration $STAGE_START))"
       IMPL_APPROVED=true
     else
-      warn "Revisão de fidelidade: REPROVADO — voltando para implementação..."
-      safe_rollback
+      REVIEW_ACTION=$(ask_review_action "Fidelity review")
+
+      case "$REVIEW_ACTION" in
+        [Cc])
+          warn "Corrigindo automaticamente..."
+          ;;
+        [Ii])
+          success "Ignorando — continuando com implementação atual."
+          IMPL_APPROVED=true
+          ;;
+        [Ee])
+          warn "Abrindo editor... Salve e feche quando terminar."
+          ${EDITOR:-vi} .
+          echo -e "Edição concluída. Re-rodar review? ${YELLOW}[s/N]${RESET}"
+          read -r RERUN
+          if [[ "$RERUN" =~ ^[Ss]$ ]]; then
+            IMPL_ATTEMPT=$((IMPL_ATTEMPT - 1))
+          else
+            IMPL_APPROVED=true
+          fi
+          ;;
+        [Aa])
+          error "Pipeline abortado pelo usuário."
+          ;;
+        *)
+          warn "Opção inválida. Corrigindo automaticamente..."
+          ;;
+      esac
     fi
   done
 
@@ -228,16 +291,53 @@ if should_run "QUALITY"; then
       success "Code review: APROVADO ($(stage_duration $STAGE_START))"
       QUALITY_APPROVED=true
     else
-      warn "Code review: REPROVADO — corrigindo problemas..."
-      PREVIOUS_QUALITY="$QUALITY_RESULT"
+      QUALITY_ACTION=$(ask_review_action "Quality review")
 
-      QUALITY_FIX_PROMPT=$(prompt_quality_fix "$SPEC_CONTENT" "$QUALITY_RESULT" "$FINAL_DIFF")
-      run_claude "quality-fix-$QUALITY_ATTEMPT" "$MODEL_FIX" \
-        -p "$QUALITY_FIX_PROMPT" \
-        --allowedTools "Read,Write,Edit,MultiEdit,Bash,Glob,Grep" \
-        --output-format text > /dev/null
+      case "$QUALITY_ACTION" in
+        [Cc])
+          warn "Corrigindo automaticamente..."
+          PREVIOUS_QUALITY="$QUALITY_RESULT"
 
-      FINAL_DIFF=$(get_full_diff)
+          QUALITY_FIX_PROMPT=$(prompt_quality_fix "$SPEC_CONTENT" "$QUALITY_RESULT" "$FINAL_DIFF")
+          run_claude "quality-fix-$QUALITY_ATTEMPT" "$MODEL_FIX" \
+            -p "$QUALITY_FIX_PROMPT" \
+            --allowedTools "Read,Write,Edit,MultiEdit,Bash,Glob,Grep" \
+            --output-format text > /dev/null
+
+          FINAL_DIFF=$(get_full_diff)
+          ;;
+        [Ii])
+          success "Ignorando — continuando com código atual."
+          QUALITY_APPROVED=true
+          ;;
+        [Ee])
+          warn "Abrindo editor... Salve e feche quando terminar."
+          ${EDITOR:-vi} .
+          FINAL_DIFF=$(get_full_diff)
+          echo -e "Edição concluída. Re-rodar quality review? ${YELLOW}[s/N]${RESET}"
+          read -r RERUN
+          if [[ "$RERUN" =~ ^[Ss]$ ]]; then
+            QUALITY_ATTEMPT=$((QUALITY_ATTEMPT - 1))
+          else
+            QUALITY_APPROVED=true
+          fi
+          ;;
+        [Aa])
+          error "Pipeline abortado pelo usuário."
+          ;;
+        *)
+          warn "Opção inválida. Corrigindo automaticamente..."
+          PREVIOUS_QUALITY="$QUALITY_RESULT"
+
+          QUALITY_FIX_PROMPT=$(prompt_quality_fix "$SPEC_CONTENT" "$QUALITY_RESULT" "$FINAL_DIFF")
+          run_claude "quality-fix-$QUALITY_ATTEMPT" "$MODEL_FIX" \
+            -p "$QUALITY_FIX_PROMPT" \
+            --allowedTools "Read,Write,Edit,MultiEdit,Bash,Glob,Grep" \
+            --output-format text > /dev/null
+
+          FINAL_DIFF=$(get_full_diff)
+          ;;
+      esac
     fi
   done
 
@@ -294,6 +394,7 @@ TOTAL_DURATION=$((SECONDS - PIPELINE_START))
 step "RESUMO"
 success "Pipeline concluído!"
 echo ""
+echo -e "  ${CYAN}Modo:${RESET}            $([ "$FAST_MODE" = true ] && echo "fast" || echo "full")"
 echo -e "  ${CYAN}Spec:${RESET}            $SPEC_FILE"
 echo -e "  ${CYAN}Revisão:${RESET}         $REVIEW_FILE"
 echo -e "  ${CYAN}Code Review:${RESET}     $QUALITY_FILE"

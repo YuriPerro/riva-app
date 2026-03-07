@@ -18,6 +18,7 @@ export enum TauriCommand {
   GetWorkItemDetail = 'get_work_item_detail',
   GetWorkItemTypeStates = 'get_work_item_type_states',
   UpdateWorkItemState = 'update_work_item_state',
+  UpdateWorkItemTitle = 'update_work_item_title',
   ReviewPullRequest = 'review_pull_request',
   GetStandupData = 'get_standup_data',
   GetWorkItemSummaries = 'get_work_item_summaries',

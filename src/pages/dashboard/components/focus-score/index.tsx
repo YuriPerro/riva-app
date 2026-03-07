@@ -12,9 +12,19 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 export function FocusScore() {
   const {
-    data, tier, label, strokeColor, delta, maxItems, dayLabels,
-    activeCard, openDrawer, closeDrawer,
-    streakPts, comparisonPts, consistencyPts,
+    data,
+    tier,
+    label,
+    strokeColor,
+    delta,
+    maxItems,
+    dayLabels,
+    activeCard,
+    openDrawer,
+    closeDrawer,
+    streakPts,
+    comparisonPts,
+    consistencyPts,
   } = useFocusScore();
 
   const strokeDashoffset = RING_CIRCUMFERENCE * (1 - data.score / 100);
@@ -25,48 +35,6 @@ export function FocusScore() {
     <div className="flex flex-col gap-2">
       <h3 className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Focus Score</h3>
       <div className="grid grid-cols-3 gap-3">
-        <div
-          className="relative flex flex-row items-center justify-center gap-5 rounded-md border border-border-subtle bg-surface px-3 py-4 opacity-0"
-          style={{ animation: 'card-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) 100ms forwards' }}
-        >
-          <button
-            onClick={() => openDrawer('score')}
-            className="absolute top-2.5 right-2.5 cursor-pointer text-fg-disabled hover:text-fg-muted"
-          >
-            <Info size={12} />
-          </button>
-          <svg width={RING_SIZE} height={RING_SIZE} className="-rotate-90">
-            <circle
-              cx={RING_SIZE / 2}
-              cy={RING_SIZE / 2}
-              r={RING_RADIUS}
-              fill="none"
-              stroke="var(--color-border)"
-              strokeWidth={RING_STROKE}
-            />
-            <circle
-              cx={RING_SIZE / 2}
-              cy={RING_SIZE / 2}
-              r={RING_RADIUS}
-              fill="none"
-              stroke={strokeColor}
-              strokeWidth={RING_STROKE}
-              strokeLinecap="round"
-              strokeDasharray={RING_CIRCUMFERENCE}
-              strokeDashoffset={strokeDashoffset}
-              className="transition-all duration-700 ease-out"
-            />
-          </svg>
-
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="text-[18px] font-semibold tabular-nums text-fg">
-              {data.score}
-              <span className="text-[12px] font-normal text-fg-muted">/100</span>
-            </span>
-            <span className="text-[11px] text-fg-muted">{label}</span>
-          </div>
-        </div>
-
         <div
           className="h-full opacity-0"
           style={{ animation: 'card-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) 175ms forwards' }}
@@ -127,6 +95,48 @@ export function FocusScore() {
               {delta}
             </span>
             <span className="text-fg-muted">vs last week</span>
+          </div>
+        </div>
+
+        <div
+          className="relative flex flex-row items-center justify-center gap-5 rounded-md border border-border-subtle bg-surface px-3 py-4 opacity-0"
+          style={{ animation: 'card-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) 100ms forwards' }}
+        >
+          <button
+            onClick={() => openDrawer('score')}
+            className="absolute top-2.5 right-2.5 cursor-pointer text-fg-disabled hover:text-fg-muted"
+          >
+            <Info size={12} />
+          </button>
+          <svg width={RING_SIZE} height={RING_SIZE} className="-rotate-90">
+            <circle
+              cx={RING_SIZE / 2}
+              cy={RING_SIZE / 2}
+              r={RING_RADIUS}
+              fill="none"
+              stroke="var(--color-border)"
+              strokeWidth={RING_STROKE}
+            />
+            <circle
+              cx={RING_SIZE / 2}
+              cy={RING_SIZE / 2}
+              r={RING_RADIUS}
+              fill="none"
+              stroke={strokeColor}
+              strokeWidth={RING_STROKE}
+              strokeLinecap="round"
+              strokeDasharray={RING_CIRCUMFERENCE}
+              strokeDashoffset={strokeDashoffset}
+              className="transition-all duration-700 ease-out"
+            />
+          </svg>
+
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-[18px] font-semibold tabular-nums text-fg">
+              {data.score}
+              <span className="text-[12px] font-normal text-fg-muted">/100</span>
+            </span>
+            <span className="text-[11px] text-fg-muted">{label}</span>
           </div>
         </div>
       </div>

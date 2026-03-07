@@ -844,6 +844,45 @@ pub async fn update_work_item_state(
     Ok(item)
 }
 
+pub async fn update_work_item_title(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    id: u64,
+    title: &str,
+) -> Result<WorkItemDetail, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/wit/workitems/{}?api-version=7.1",
+        base, project, id
+    );
+
+    let patch_body = serde_json::json!([
+        {
+            "op": "replace",
+            "path": "/fields/System.Title",
+            "value": title
+        }
+    ]);
+
+    let resp = client
+        .patch(&url)
+        .header("Content-Type", "application/json-patch+json")
+        .json(&patch_body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+
+    let mut item: WorkItemDetail = resp.json().await.map_err(|e| e.to_string())?;
+    item.web_url = format!("{}/{}/_workitems/edit/{}", base, project, item.id);
+    Ok(item)
+}
+
 // ============================================================
 // Pull Request review
 // ============================================================

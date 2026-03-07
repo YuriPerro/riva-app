@@ -212,6 +212,17 @@ async fn update_work_item_state(
 }
 
 #[tauri::command]
+async fn update_work_item_title(
+    state: State<'_, AppState>,
+    project: String,
+    id: u64,
+    title: String,
+) -> Result<WorkItemDetail, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::update_work_item_title(&org_url, &pat, &project, id, &title).await
+}
+
+#[tauri::command]
 async fn review_pull_request(
     state: State<'_, AppState>,
     project: String,
@@ -347,6 +358,7 @@ pub fn run() {
             get_work_item_detail,
             get_work_item_type_states,
             update_work_item_state,
+            update_work_item_title,
             review_pull_request,
             get_standup_data,
             get_work_item_summaries,

@@ -21,6 +21,7 @@ import { StatusField } from '../work-item-status-field';
 import { BranchField } from '../work-item-branch-field';
 import { DetailField } from '../work-item-detail-field';
 import { RelatedItems } from '../work-item-related-items';
+import { EditableTitle } from '../work-item-editable-title';
 import type { WorkItemDetailDialogProps, PriorityLabel, DisplayDetail } from './types';
 
 type DevFieldKey = 'effort' | 'completedWork' | 'remainingWork' | 'dueDate' | 'devStartDate' | 'devEndDate' | 'blocked';
@@ -55,7 +56,7 @@ const priorityConfig: Record<PriorityLabel, string> = {
 
 export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
   const { itemId, project, onClose, onNavigate } = props;
-  const { detail, theme, states, isLoading, isUpdating, updateState, error } = useWorkItemDetail(project, itemId);
+  const { detail, theme, states, isLoading, isUpdating, updateState, updateTitle, isTitleUpdating, error } = useWorkItemDetail(project, itemId);
 
   const isOpen = itemId !== null;
   const TypeIcon = theme.icon;
@@ -90,7 +91,8 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
           <>
             <DialogHeader className="mt-3">
               <span className="text-[14px] text-fg-disabled">#{itemId}</span>
-              <DialogTitle className="text-[17px] leading-snug">{detail.title}</DialogTitle>
+              <DialogTitle className="sr-only">{detail.title}</DialogTitle>
+              <EditableTitle title={detail.title} onSave={updateTitle} isUpdating={isTitleUpdating} />
               <DialogDescription className="sr-only">Work item details for {detail.title}</DialogDescription>
               <div className="flex items-center gap-2 pt-1">
                 <div className="flex items-center gap-1.5">

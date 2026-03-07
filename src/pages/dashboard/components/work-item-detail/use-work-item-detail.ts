@@ -97,6 +97,15 @@ export function useWorkItemDetail(project: string, itemId: number | null) {
     },
   });
 
+  const titleMutation = useMutation({
+    mutationFn: (title: string) => azure.updateWorkItemTitle(project, itemId!, title),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['work-item-detail', project, itemId] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+  });
+
   return {
     detail,
     theme,
@@ -104,6 +113,8 @@ export function useWorkItemDetail(project: string, itemId: number | null) {
     isLoading,
     isUpdating: stateMutation.isPending,
     updateState: (newState: string) => stateMutation.mutate(newState),
+    updateTitle: (title: string) => titleMutation.mutate(title),
+    isTitleUpdating: titleMutation.isPending,
     error: error ? 'Failed to load work item details' : null,
   };
 }

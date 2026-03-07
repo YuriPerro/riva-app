@@ -287,6 +287,7 @@ export function useSidebarGame() {
     }
   }, [gameState, shoot]);
 
+
   useEffect(() => {
     if (gameState === 'won') {
       const timeout = setTimeout(() => {
