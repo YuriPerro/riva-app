@@ -1,4 +1,6 @@
-export type GameState = 'idle' | 'playing' | 'gameover';
+export type GameState = 'idle' | 'playing' | 'gameover' | 'won';
+
+export type EnemyType = 'basic' | 'fast' | 'tank' | 'boss';
 
 export type Player = {
   x: number;
@@ -13,6 +15,9 @@ export type Enemy = {
   width: number;
   height: number;
   alive: boolean;
+  enemyType: EnemyType;
+  hp: number;
+  flashFrames: number;
 };
 
 export type Bullet = {
@@ -20,6 +25,31 @@ export type Bullet = {
   y: number;
   width: number;
   height: number;
+};
+
+export type Particle = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  color: string;
+  size: number;
+};
+
+export type LevelConfig = {
+  level: number;
+  enemyRows: number;
+  enemyCols: number;
+  enemySpeedX: number;
+  enemyTypes: EnemyType[];
+  scoreMultiplier: number;
+};
+
+export type GameSave = {
+  highScore: number;
+  bestLevel: number;
 };
 
 export type GameConfig = {
@@ -33,15 +63,12 @@ export type GameConfig = {
   bulletSpeed: number;
   enemyWidth: number;
   enemyHeight: number;
-  enemyRows: number;
-  enemyCols: number;
   enemyPaddingX: number;
   enemyPaddingY: number;
   enemyOffsetX: number;
   enemyOffsetY: number;
-  enemySpeedX: number;
   enemyDropY: number;
   scorePerEnemy: number;
   shootCooldownMs: number;
-  highScoreKey: string;
+  saveKey: string;
 };

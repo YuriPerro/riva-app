@@ -1,0 +1,17 @@
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/600.css';
+@import '@fontsource/jetbrains-mono/700.css';
+
+[data-theme='phosphor'] {
+  --color-base: #050505;
+  --color-surface: #0a0a0a;
+  --color-elevated: #121212;
+  --color-overlay: #1a1a1a;
+  --color-border: #1a2e1a;
+  --color-border-subtle: #112211;
+  --color-accent: #00ff41;
+  --color-accent-fg: #000000;
+  --color-accent-muted: #66ff8c;
+  --font-sans: 'JetBrains Mono', ui-monospace, monospace;
+}

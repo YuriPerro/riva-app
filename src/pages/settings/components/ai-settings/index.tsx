@@ -1,8 +1,8 @@
 import { Eye, EyeOff, Sparkles, Trash2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useOpenAiSettings } from './use-openai-settings';
+import { useAiSettings } from './use-openai-settings';
 
-export function OpenAiSettings() {
+export function AiSettings() {
   const {
     hasKey,
     maskedKey,
@@ -14,29 +14,22 @@ export function OpenAiSettings() {
     isRemoving,
     handleSave,
     handleRemove,
-  } = useOpenAiSettings();
+  } = useAiSettings();
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4">
       <div className="flex items-center gap-2">
         <Sparkles className="size-4 text-accent" />
-        <span className="text-sm font-medium text-fg">AI Integration</span>
+        <span className="text-sm font-medium text-fg">AI</span>
       </div>
-      <span className="text-xs text-fg-muted">
-        Generate natural-language standup summaries with OpenAI
-      </span>
+      <span className="text-xs text-fg-muted">Generate natural-language standup summaries with AI</span>
 
       {hasKey ? (
         <div className="flex items-center gap-2">
           <div className="flex h-9 flex-1 items-center rounded-md border border-border bg-base px-3 text-xs text-fg-muted font-mono">
             {maskedKey}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRemove}
-            disabled={isRemoving}
-          >
+          <Button variant="outline" size="sm" onClick={handleRemove} disabled={isRemoving}>
             <Trash2 className="size-3.5" />
             {isRemoving ? 'Removing...' : 'Remove'}
           </Button>
@@ -60,12 +53,7 @@ export function OpenAiSettings() {
               {isVisible ? <EyeOff size={14} /> : <Eye size={14} />}
             </button>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSave}
-            disabled={isSaving || !keyInput.trim()}
-          >
+          <Button variant="outline" size="sm" onClick={handleSave} disabled={isSaving || !keyInput.trim()}>
             {isSaving ? 'Saving...' : 'Save'}
           </Button>
         </div>

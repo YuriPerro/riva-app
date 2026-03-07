@@ -1,0 +1,17 @@
+@import '@fontsource/fira-code/400.css';
+@import '@fontsource/fira-code/500.css';
+@import '@fontsource/fira-code/600.css';
+@import '@fontsource/fira-code/700.css';
+
+[data-theme='cobalt'] {
+  --color-base: #0a1628;
+  --color-surface: #132738;
+  --color-elevated: #1b3a52;
+  --color-overlay: #234d6b;
+  --color-border: #1e4465;
+  --color-border-subtle: #16354d;
+  --color-accent: #ffc600;
+  --color-accent-fg: #0a1628;
+  --color-accent-muted: #ffe066;
+  --font-sans: 'Fira Code', ui-monospace, monospace;
+}

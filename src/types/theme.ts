@@ -1,8 +1,8 @@
 export enum ThemePreset {
   Midnight = 'midnight',
-  Ocean = 'ocean',
-  Ember = 'ember',
-  Forest = 'forest',
+  Phosphor = 'phosphor',
+  Cobalt = 'cobalt',
+  Vapor = 'vapor',
   Crimson = 'crimson',
 }
 

@@ -36,7 +36,7 @@ export const Sidebar = memo(function Sidebar() {
       )}
     >
       <div data-tauri-drag-region className={cn('mb-2 overflow-hidden', collapsed ? 'px-2' : 'px-4')}>
-        <div data-tauri-drag-region className="flex items-center gap-2">
+        <div data-tauri-drag-region className="flex items-center justify-between gap-2">
           <SidebarLabel collapsed={collapsed} delay={0}>
             <span className="flex items-center gap-2">
               <span className="text-[13px] font-semibold text-fg">Forge</span>
@@ -51,6 +51,16 @@ export const Sidebar = memo(function Sidebar() {
               </span>
             </span>
           </SidebarLabel>
+
+          <button
+            onClick={toggle}
+            className={cn(
+              'flex cursor-pointer items-center rounded-md py-2 text-fg-muted transition-colors hover:bg-elevated hover:text-fg-secondary',
+              collapsed ? 'justify-center px-2' : 'gap-2.5 px-3 text-[13px]',
+            )}
+          >
+            <span className="shrink-0">{collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}</span>
+          </button>
         </div>
       </div>
 
@@ -96,11 +106,7 @@ export const Sidebar = memo(function Sidebar() {
           iconRef={rocketRef}
           icon={<RocketIcon ref={rocketRef} size={18} />}
         />
-      </nav>
 
-      {!collapsed && <SidebarGame />}
-
-      <div className={cn('flex flex-col px-2 pt-2', collapsed ? 'gap-5' : 'gap-1')}>
         <NavItem
           to={Route.Settings}
           label="Settings"
@@ -109,20 +115,9 @@ export const Sidebar = memo(function Sidebar() {
           iconRef={settingsRef}
           icon={<SettingsIcon ref={settingsRef} size={18} />}
         />
+      </nav>
 
-        <button
-          onClick={toggle}
-          className={cn(
-            'flex cursor-pointer items-center rounded-md py-2 text-fg-muted transition-colors hover:bg-elevated hover:text-fg-secondary',
-            collapsed ? 'justify-center px-2' : 'gap-2.5 px-3 text-[13px]',
-          )}
-        >
-          <span className="shrink-0">{collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}</span>
-          <SidebarLabel collapsed={collapsed} delay={6 * STAGGER_MS}>
-            Collapse
-          </SidebarLabel>
-        </button>
-      </div>
+      {!collapsed && <SidebarGame />}
     </aside>
   );
 });

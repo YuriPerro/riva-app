@@ -1,4 +1,4 @@
-export interface OpenAiSettingsState {
+export interface AiSettingsState {
   keyInput: string;
   isVisible: boolean;
   isSaving: boolean;

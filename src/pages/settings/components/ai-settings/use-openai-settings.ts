@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { openai } from '@/lib/tauri';
 import { useOpenAiStore } from '@/store/openai';
 
-export function useOpenAiSettings() {
+export function useAiSettings() {
   const { apiKey, setApiKey, clearApiKey } = useOpenAiStore();
   const [keyInput, setKeyInput] = useState('');
   const [isVisible, setIsVisible] = useState(false);
