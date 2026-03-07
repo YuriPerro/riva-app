@@ -1,8 +1,8 @@
 import { TrendingUp, TrendingDown, Info } from 'lucide-react';
 import ElectricBorder from '@/components/ElectricBorder';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { StreakCard } from './components/streak-card';
-import { FocusScoreDrawer } from './components/focus-score-drawer';
+import { StreakCard } from '../streak-card';
+import { FocusScoreDrawer } from '../focus-score-drawer';
 import { useFocusScore } from './use-focus-score';
 
 const RING_SIZE = 80;

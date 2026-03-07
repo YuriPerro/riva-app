@@ -1,7 +1,7 @@
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { TypeIcon } from '../type-icon';
-import type { TransitionGroupViewProps } from '../types';
+import { TypeIcon } from '../standup-type-icon';
+import type { TransitionGroupViewProps } from '../standup-dialog/types';
 
 export function TransitionGroupView(props: TransitionGroupViewProps) {
   const { group } = props;

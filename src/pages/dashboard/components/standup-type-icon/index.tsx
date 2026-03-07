@@ -1,6 +1,6 @@
 import { getWorkItemTheme } from '@/utils/work-item-theme';
 import { mapWorkItemType } from '@/utils/mappers';
-import type { TypeIconProps } from '../types';
+import type { TypeIconProps } from '../standup-dialog/types';
 
 export function TypeIcon(props: TypeIconProps) {
   const { type, size = 11 } = props;

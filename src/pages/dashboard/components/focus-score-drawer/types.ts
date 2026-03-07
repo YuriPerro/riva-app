@@ -1,4 +1,4 @@
-import type { FocusScoreData, ScoreTier, ActiveCard } from '../../types';
+import type { FocusScoreData, ScoreTier, ActiveCard } from '../focus-score/types';
 
 export interface FocusScoreDrawerProps {
   activeCard: ActiveCard;

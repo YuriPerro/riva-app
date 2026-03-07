@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { PeriodSelectorProps } from '../types';
+import type { PeriodSelectorProps } from '../standup-dialog/types';
 
 const PERIODS = [
   { value: 1, label: 'Yesterday' },

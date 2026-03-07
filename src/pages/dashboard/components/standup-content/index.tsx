@@ -1,9 +1,9 @@
 import { Circle, ClipboardList, GitPullRequest } from 'lucide-react';
 import { LoadingState } from '@/components/ui/loading-state';
 import { StandupSection } from '../standup-section';
-import { TransitionGroupView } from '../transition-group-view';
-import { TypeIcon } from '../type-icon';
-import type { StandupContentProps } from '../types';
+import { TransitionGroupView } from '../standup-transition-group';
+import { TypeIcon } from '../standup-type-icon';
+import type { StandupContentProps } from '../standup-dialog/types';
 
 export function StandupContent(props: StandupContentProps) {
   const { isLoading, isEmpty, standup, yesterdayGroups, todayGroups, hasTodayContent } = props;

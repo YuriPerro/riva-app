@@ -1,6 +1,6 @@
-import { ScoreSection } from './components/score-section';
-import { StreakSection } from './components/streak-section';
-import { ActivitySection } from './components/activity-section';
+import { ScoreSection } from '../score-section';
+import { StreakSection } from '../streak-section';
+import { ActivitySection } from '../activity-section';
 import type { FocusScoreDrawerProps } from './types';
 
 const SECTIONS = {

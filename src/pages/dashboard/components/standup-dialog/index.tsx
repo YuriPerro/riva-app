@@ -6,8 +6,8 @@ import isTodayPlugin from 'dayjs/plugin/isToday';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import type { StandupData, StandupTransition } from '@/types/azure';
 import { mapWorkItemStatus } from '@/utils/mappers';
-import { PeriodSelector } from './period-selector';
-import { StandupContent } from './standup-content';
+import { PeriodSelector } from '../standup-period-selector';
+import { StandupContent } from '../standup-content';
 import type { StandupDialogProps, TransitionGroup } from './types';
 
 dayjs.extend(isTodayPlugin);

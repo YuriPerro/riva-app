@@ -1,6 +1,6 @@
 import { Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { StandupSectionProps } from '../types';
+import type { StandupSectionProps } from '../standup-dialog/types';
 
 export function StandupSection(props: StandupSectionProps) {
   const { label, color, children, empty } = props;

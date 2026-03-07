@@ -1,4 +1,4 @@
-import type { FocusScoreData } from '../../types';
+import type { FocusScoreData } from '../focus-score/types';
 
 export interface StreakCardProps {
   data: FocusScoreData;

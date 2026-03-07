@@ -174,6 +174,30 @@ pages/[page-name]/
         └── types.ts
 ```
 
+### Flat Components — Strict Rule
+
+**NEVER** create a `components/` folder inside another component. All page-scoped components live flat in `pages/[page]/components/`. Use naming prefixes to express parent-child relationships instead of folder nesting.
+
+```
+// ❌ Wrong — nested components folders
+pages/dashboard/components/
+└── focus-score/
+    └── components/
+        └── focus-score-drawer/
+            └── components/
+                └── activity-section/
+
+// ✅ Correct — flat with naming prefixes
+pages/dashboard/components/
+├── focus-score/
+├── focus-score-drawer/
+├── activity-section/
+├── streak-card/
+└── score-section/
+```
+
+Max depth is always: `pages/[page]/components/[component]/index.tsx` — never deeper.
+
 ---
 
 ### Single Hook Per Page

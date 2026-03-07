@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { mapWorkItemType, mapWorkItemStatus } from '@/utils/mappers';
 import { getWorkItemTheme } from '@/utils/work-item-theme';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
-import type { RelatedItemsProps, DisplayRelatedItem } from '../types';
+import type { RelatedItemsProps, DisplayRelatedItem } from '../work-item-detail/types';
 
 function RelatedRow(props: { item: DisplayRelatedItem; onSelect: (id: number) => void }) {
   const { item, onSelect } = props;

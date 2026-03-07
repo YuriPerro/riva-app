@@ -17,10 +17,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { cn } from '@/lib/utils';
 import { ShineBorder } from '@/components/ui/shine-border';
 import { useWorkItemDetail } from './use-work-item-detail';
-import { StatusField } from './status-field';
-import { BranchField } from './branch-field';
-import { DetailField } from './detail-field';
-import { RelatedItems } from './related-items';
+import { StatusField } from '../work-item-status-field';
+import { BranchField } from '../work-item-branch-field';
+import { DetailField } from '../work-item-detail-field';
+import { RelatedItems } from '../work-item-related-items';
 import type { WorkItemDetailDialogProps, PriorityLabel, DisplayDetail } from './types';
 
 type DevFieldKey = 'effort' | 'completedWork' | 'remainingWork' | 'dueDate' | 'devStartDate' | 'devEndDate' | 'blocked';
