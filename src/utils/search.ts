@@ -19,5 +19,7 @@ export function fuzzyMatch(query: string, target: string): boolean {
   const qWords = q.split(/\s+/).filter(Boolean);
   const tWords = t.split(/[\s_-]+/).filter(Boolean);
 
-  return qWords.every((qw) => tWords.some((tw) => tw.includes(qw) || qw.includes(tw) || sameCharSet(qw, tw)));
+  return qWords.every((qw) =>
+    tWords.some((tw) => tw.includes(qw) || (tw.length >= 3 && qw.includes(tw)) || sameCharSet(qw, tw)),
+  );
 }

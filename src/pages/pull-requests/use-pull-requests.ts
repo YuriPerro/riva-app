@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -7,6 +7,10 @@ import { azure } from '@/lib/tauri';
 import type { PullRequest } from '@/types/azure';
 import { useSessionStore } from '@/store/session';
 import { formatAgo, initials, stripRefs } from '@/utils/formatters';
+import { fuzzyMatch } from '@/utils/search';
+import type { SortDirection } from '@/components/ui/sort-selector/types';
+
+export type PRSortKey = 'relevance' | 'newest' | 'oldest' | 'title';
 
 export type PRStatus = 'active' | 'draft';
 export type ReviewVote = 'approved' | 'rejected' | 'waiting' | 'none';
@@ -27,6 +31,7 @@ export interface PR {
   targetBranch: string;
   author: string;
   authorInitials: string;
+  createdDate: string;
   createdAgo: string;
   status: PRStatus;
   reviewers: Reviewer[];
@@ -50,6 +55,7 @@ function mapPR(raw: PullRequest): PR {
     targetBranch: stripRefs(raw.targetRefName),
     author: raw.createdBy.displayName,
     authorInitials: initials(raw.createdBy.displayName),
+    createdDate: raw.creationDate,
     createdAgo: formatAgo(raw.creationDate),
     status: raw.isDraft ? 'draft' : 'active',
     reviewers: raw.reviewers.map((r) => ({
@@ -73,6 +79,14 @@ export function usePullRequests() {
   const initialFilter = (searchParams.get('status') ?? 'all') as PRFilter;
   const [filter, setFilter] = useState<PRFilter>(initialFilter);
   const [repoFilters, setRepoFilters] = useState<string[]>([]);
+  const [query, setQuery] = useState('');
+  const [sortKey, setSortKey] = useState<PRSortKey>('relevance');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const setSort = useCallback((key: PRSortKey, dir: SortDirection) => {
+    setSortKey(key);
+    setSortDirection(dir);
+  }, []);
 
   const {
     data: prs = [],
@@ -93,8 +107,26 @@ export function usePullRequests() {
   const filtered = useMemo(() => {
     let result = filter === 'all' ? prs : prs.filter((pr) => pr.status === filter);
     if (repoFilters.length > 0) result = result.filter((pr) => repoFilters.includes(pr.repo));
+
+    if (query) {
+      result = result.filter((pr) => {
+        const searchTarget = `${pr.title} ${pr.author} ${pr.sourceBranch} ${pr.repo}`;
+        return fuzzyMatch(query, searchTarget);
+      });
+    }
+
+    if (sortKey !== 'relevance') {
+      const dir = sortDirection === 'asc' ? 1 : -1;
+      result = [...result].sort((a, b) => {
+        if (sortKey === 'title') return dir * a.title.localeCompare(b.title);
+        if (sortKey === 'newest') return dir * (new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime());
+        if (sortKey === 'oldest') return dir * (new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime());
+        return 0;
+      });
+    }
+
     return result;
-  }, [prs, filter, repoFilters]);
+  }, [prs, filter, repoFilters, query, sortKey, sortDirection]);
 
   const reviewMutation = useMutation({
     mutationFn: (params: { repoId: string; prId: number; vote: number }) =>
@@ -120,5 +152,10 @@ export function usePullRequests() {
     openPR: openUrl,
     reviewPR: (repoId: string, prId: number, vote: number) => reviewMutation.mutate({ repoId, prId, vote }),
     isReviewing: reviewMutation.isPending,
+    query,
+    setQuery,
+    sortKey,
+    sortDirection,
+    setSort,
   };
 }

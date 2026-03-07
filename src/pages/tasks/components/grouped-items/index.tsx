@@ -73,6 +73,10 @@ export function GroupedItems(props: GroupedItemsProps) {
                   >
                     <Icon size={13} className={cn('shrink-0', itemTheme.className)} />
 
+                    <span className="shrink-0 text-[11px] tabular-nums text-fg-disabled">
+                      #{item.id}
+                    </span>
+
                     <span className="flex-1 truncate text-[13px] text-fg-secondary group-hover:text-fg">
                       {item.title}
                     </span>

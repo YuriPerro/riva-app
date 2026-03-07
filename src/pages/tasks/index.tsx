@@ -4,9 +4,19 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { PageTransition } from '@/components/ui/page-transition';
 import { PageHeader } from '@/components/ui/page-header';
 import { FilterPill } from '@/components/ui/filter-pill';
+import { SearchInput } from '@/components/ui/search-input';
+import { SortSelector } from '@/components/ui/sort-selector';
 import { WorkItemDetailDialog } from '@/pages/dashboard/components/work-item-detail';
 import { TasksContent } from './components/tasks-content';
-import { useTasks, type StatusFilter, type TypeFilter } from './use-tasks';
+import { useTasks, type StatusFilter, type TypeFilter, type TaskSortKey } from './use-tasks';
+import type { SortOption } from '@/components/ui/sort-selector/types';
+
+const SORT_OPTIONS: SortOption<TaskSortKey>[] = [
+  { value: 'relevance', label: 'Relevance' },
+  { value: 'title', label: 'Title (A-Z)' },
+  { value: 'status', label: 'Status' },
+  { value: 'type', label: 'Type' },
+];
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -39,6 +49,11 @@ export function TasksPage() {
     selectedWorkItemId,
     selectWorkItem,
     closeWorkItemDetail,
+    query,
+    setQuery,
+    sortKey,
+    sortDirection,
+    setSort,
   } = useTasks();
 
   const countByStatus = (s: StatusFilter) => (s === 'all' ? items.length : items.filter((i) => i.status === s).length);
@@ -67,6 +82,8 @@ export function TasksPage() {
         />
 
         <div className="flex flex-wrap items-center gap-1.5">
+          <SearchInput value={query} onChange={setQuery} placeholder="Search tasks..." />
+          <span className="mx-0.5 h-4 w-px bg-border" />
           {STATUS_FILTERS.map(({ value, label }) => (
             <FilterPill key={value} active={statusFilter === value} onClick={() => setStatusFilter(value)}>
               {label}
@@ -92,6 +109,14 @@ export function TasksPage() {
               {label}
             </FilterPill>
           ))}
+
+          <span className="ml-auto" />
+          <SortSelector<TaskSortKey>
+            options={SORT_OPTIONS}
+            value={sortKey}
+            direction={sortDirection}
+            onChange={setSort}
+          />
         </div>
 
         <TasksContent

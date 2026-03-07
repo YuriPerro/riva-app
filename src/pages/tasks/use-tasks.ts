@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useQuery } from '@tanstack/react-query';
@@ -6,9 +6,13 @@ import { azure } from '@/lib/tauri';
 import { useSessionStore } from '@/store/session';
 import { getAssigneeInitials } from '@/utils/formatters';
 import { mapWorkItemType, mapWorkItemStatus } from '@/utils/mappers';
+import { fuzzyMatch } from '@/utils/search';
 import type { WorkItemType, WorkItemStatus } from '@/types/work-item';
+import type { SortDirection } from '@/components/ui/sort-selector/types';
 
 export type { WorkItemType, WorkItemStatus };
+
+export type TaskSortKey = 'relevance' | 'title' | 'status' | 'type';
 
 export interface TaskItem {
   id: number;
@@ -39,6 +43,11 @@ export interface TasksData {
   selectedWorkItemId: number | null;
   selectWorkItem: (id: number) => void;
   closeWorkItemDetail: () => void;
+  query: string;
+  setQuery: (q: string) => void;
+  sortKey: TaskSortKey;
+  sortDirection: SortDirection;
+  setSort: (key: TaskSortKey, dir: SortDirection) => void;
 }
 
 export function useTasks(): TasksData {
@@ -50,6 +59,14 @@ export function useTasks(): TasksData {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(initialStatus);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>(initialType);
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<number | null>(null);
+  const [query, setQuery] = useState('');
+  const [sortKey, setSortKey] = useState<TaskSortKey>('relevance');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const setSort = useCallback((key: TaskSortKey, dir: SortDirection) => {
+    setSortKey(key);
+    setSortDirection(dir);
+  }, []);
 
   const {
     data: items = [],
@@ -77,15 +94,32 @@ export function useTasks(): TasksData {
     refetchInterval: 30_000,
   });
 
-  const filtered = useMemo(
-    () =>
-      items.filter((item) => {
-        if (statusFilter !== 'all' && item.status !== statusFilter) return false;
-        if (typeFilter !== 'all' && item.type !== typeFilter) return false;
-        return true;
-      }),
-    [items, statusFilter, typeFilter],
-  );
+  const filtered = useMemo(() => {
+    let result = items.filter((item) => {
+      if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+      if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+      return true;
+    });
+
+    if (query) {
+      result = result.filter((item) => {
+        const searchTarget = `${item.title} ${item.rawType} ${item.rawState} #${item.id}`;
+        return fuzzyMatch(query, searchTarget);
+      });
+    }
+
+    if (sortKey !== 'relevance') {
+      const dir = sortDirection === 'asc' ? 1 : -1;
+      result = [...result].sort((a, b) => {
+        if (sortKey === 'title') return dir * a.title.localeCompare(b.title);
+        if (sortKey === 'status') return dir * a.rawState.localeCompare(b.rawState);
+        if (sortKey === 'type') return dir * a.rawType.localeCompare(b.rawType);
+        return 0;
+      });
+    }
+
+    return result;
+  }, [items, statusFilter, typeFilter, query, sortKey, sortDirection]);
 
   return {
     items,
@@ -101,5 +135,10 @@ export function useTasks(): TasksData {
     selectedWorkItemId,
     selectWorkItem: setSelectedWorkItemId,
     closeWorkItemDetail: () => setSelectedWorkItemId(null),
+    query,
+    setQuery,
+    sortKey,
+    sortDirection,
+    setSort,
   };
 }

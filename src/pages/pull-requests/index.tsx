@@ -5,9 +5,19 @@ import { PageTransition } from '@/components/ui/page-transition';
 import { PageHeader } from '@/components/ui/page-header';
 import { FilterPill } from '@/components/ui/filter-pill';
 import { FilterSelector } from '@/components/ui/filter-selector';
+import { SearchInput } from '@/components/ui/search-input';
+import { SortSelector } from '@/components/ui/sort-selector';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PullRequestsContent } from './components/pull-requests-content';
-import { usePullRequests, type PRFilter } from './use-pull-requests';
+import { usePullRequests, type PRFilter, type PRSortKey } from './use-pull-requests';
+import type { SortOption } from '@/components/ui/sort-selector/types';
+
+const SORT_OPTIONS: SortOption<PRSortKey>[] = [
+  { value: 'relevance', label: 'Relevance' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'oldest', label: 'Oldest' },
+  { value: 'title', label: 'Title (A-Z)' },
+];
 
 const FILTERS: { value: PRFilter; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -17,7 +27,10 @@ const FILTERS: { value: PRFilter; label: string }[] = [
 
 export function PullRequestsPage() {
   const pullRequests = usePullRequests();
-  const { prs, isLoading, filter, setFilter, repos, repoFilters, addRepoFilter, removeRepoFilter } = pullRequests;
+  const {
+    prs, isLoading, filter, setFilter, repos, repoFilters, addRepoFilter, removeRepoFilter,
+    query, setQuery, sortKey, sortDirection, setSort,
+  } = pullRequests;
 
   const baseForCount = repoFilters.length > 0 ? prs.filter((p) => repoFilters.includes(p.repo)) : prs;
   const countByFilter = (f: PRFilter) =>
@@ -48,6 +61,8 @@ export function PullRequestsPage() {
           />
 
           <div className="flex flex-wrap items-center gap-1.5">
+            <SearchInput value={query} onChange={setQuery} placeholder="Search pull requests..." />
+            <span className="mx-0.5 h-4 w-px bg-border" />
             {FILTERS.map(({ value, label }) => (
               <FilterPill key={value} active={filter === value} onClick={() => setFilter(value)}>
                 {label}
@@ -74,6 +89,14 @@ export function PullRequestsPage() {
                 />
               </>
             )}
+
+            <span className="ml-auto" />
+            <SortSelector<PRSortKey>
+              options={SORT_OPTIONS}
+              value={sortKey}
+              direction={sortDirection}
+              onChange={setSort}
+            />
           </div>
 
           <PullRequestsContent {...pullRequests} />

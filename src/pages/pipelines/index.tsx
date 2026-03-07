@@ -5,8 +5,18 @@ import { PageTransition } from '@/components/ui/page-transition';
 import { PageHeader } from '@/components/ui/page-header';
 import { FilterPill } from '@/components/ui/filter-pill';
 import { FilterSelector } from '@/components/ui/filter-selector';
+import { SearchInput } from '@/components/ui/search-input';
+import { SortSelector } from '@/components/ui/sort-selector';
 import { PipelinesContent } from './components/pipelines-content';
-import { usePipelines, type StatusFilter } from './use-pipelines';
+import { usePipelines, type StatusFilter, type PipelineSortKey } from './use-pipelines';
+import type { SortOption } from '@/components/ui/sort-selector/types';
+
+const SORT_OPTIONS: SortOption<PipelineSortKey>[] = [
+  { value: 'relevance', label: 'Relevance' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'name', label: 'Name (A-Z)' },
+  { value: 'status', label: 'Status' },
+];
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -31,6 +41,11 @@ export function PipelinesPage() {
     setShowFavoritesOnly,
     isLoading,
     groups,
+    query,
+    setQuery,
+    sortKey,
+    sortDirection,
+    setSort,
   } = pipelines;
 
   const baseForCount =
@@ -62,6 +77,8 @@ export function PipelinesPage() {
         />
 
         <div className="flex flex-wrap items-center gap-1.5">
+          <SearchInput value={query} onChange={setQuery} placeholder="Search pipelines..." />
+          <span className="mx-0.5 h-4 w-px bg-border" />
           {STATUS_FILTERS.map(({ value, label }) => (
             <FilterPill key={value} active={statusFilter === value} onClick={() => setStatusFilter(value)}>
               {label}
@@ -108,6 +125,14 @@ export function PipelinesPage() {
               />
             </>
           )}
+
+          <span className="ml-auto" />
+          <SortSelector<PipelineSortKey>
+            options={SORT_OPTIONS}
+            value={sortKey}
+            direction={sortDirection}
+            onChange={setSort}
+          />
         </div>
 
         <PipelinesContent {...pipelines} />

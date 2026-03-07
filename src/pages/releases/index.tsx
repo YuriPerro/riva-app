@@ -5,11 +5,21 @@ import { PageTransition } from '@/components/ui/page-transition';
 import { PageHeader } from '@/components/ui/page-header';
 import { FilterPill } from '@/components/ui/filter-pill';
 import { FilterSelector } from '@/components/ui/filter-selector';
+import { SearchInput } from '@/components/ui/search-input';
+import { SortSelector } from '@/components/ui/sort-selector';
 import { ReleasesContent } from './components/releases-content';
 import { ReleaseDetailDialog } from './components/release-detail-dialog';
 import { useReleases } from './use-releases';
 import { STATUS_LABELS } from './constants';
-import type { ReleaseStatusFilter } from './types';
+import type { ReleaseStatusFilter, ReleaseSortKey } from './types';
+import type { SortOption } from '@/components/ui/sort-selector/types';
+
+const SORT_OPTIONS: SortOption<ReleaseSortKey>[] = [
+  { value: 'relevance', label: 'Relevance' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'name', label: 'Name (A-Z)' },
+  { value: 'status', label: 'Status' },
+];
 
 export function ReleasesPage() {
   const releases = useReleases();
@@ -30,6 +40,11 @@ export function ReleasesPage() {
     showFavoritesOnly,
     setShowFavoritesOnly,
     isLoading,
+    query,
+    setQuery,
+    sortKey,
+    sortDirection,
+    setSort,
   } = releases;
 
   const statusPills: ReleaseStatusFilter[] = ['all', 'succeeded', 'inProgress', 'rejected', 'failed', 'cancelled'];
@@ -59,6 +74,8 @@ export function ReleasesPage() {
         />
 
         <div className="flex flex-wrap items-center gap-1.5">
+          <SearchInput value={query} onChange={setQuery} placeholder="Search releases..." />
+          <span className="mx-0.5 h-4 w-px bg-border" />
           {statusPills.map((s) => {
             const count = countByStatus(s);
             const isVisible = s === 'all' || count > 0;
@@ -125,6 +142,14 @@ export function ReleasesPage() {
               />
             </>
           )}
+
+          <span className="ml-auto" />
+          <SortSelector<ReleaseSortKey>
+            options={SORT_OPTIONS}
+            value={sortKey}
+            direction={sortDirection}
+            onChange={setSort}
+          />
         </div>
 
         <ReleasesContent {...releases} />

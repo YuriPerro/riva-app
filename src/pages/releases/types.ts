@@ -1,4 +1,7 @@
 import type { ReleaseEnvironmentStatus, ReleaseApprovalStatus } from '@/types/release';
+import type { SortDirection } from '@/components/ui/sort-selector/types';
+
+export type ReleaseSortKey = 'relevance' | 'newest' | 'name' | 'status';
 
 export type ReleaseStatusFilter = 'all' | ReleaseEnvironmentStatus;
 
@@ -64,4 +67,9 @@ export interface ReleasesData {
   isApproving: boolean;
   currentUserUniqueName: string | null;
   myPendingApproval: ReleaseApprovalItem | null;
+  query: string;
+  setQuery: (q: string) => void;
+  sortKey: ReleaseSortKey;
+  sortDirection: SortDirection;
+  setSort: (key: ReleaseSortKey, dir: SortDirection) => void;
 }

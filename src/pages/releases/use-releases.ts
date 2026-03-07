@@ -6,7 +6,9 @@ import type { Release, ReleaseDefinition, ReleaseApproval } from '@/types/azure'
 import { useSessionStore } from '@/store/session';
 import { formatAgo } from '@/utils/formatters';
 import { mapReleaseEnvironmentStatus, mapApprovalStatus } from '@/utils/mappers';
-import type { ReleaseItem, ReleaseApprovalItem, ReleaseEnvironmentItem, ReleaseGroup, ReleasesData, ReleaseStatusFilter } from './types';
+import { fuzzyMatch } from '@/utils/search';
+import type { SortDirection } from '@/components/ui/sort-selector/types';
+import type { ReleaseItem, ReleaseApprovalItem, ReleaseEnvironmentItem, ReleaseGroup, ReleasesData, ReleaseStatusFilter, ReleaseSortKey } from './types';
 
 function readFavorites(project: string | null): Set<number> {
   if (!project) return new Set();
@@ -100,6 +102,14 @@ export function useReleases(): ReleasesData {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(() => readFavorites(project));
   const [selectedRelease, setSelectedRelease] = useState<ReleaseItem | null>(null);
+  const [query, setQuery] = useState('');
+  const [sortKey, setSortKey] = useState<ReleaseSortKey>('relevance');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const setSort = useCallback((key: ReleaseSortKey, dir: SortDirection) => {
+    setSortKey(key);
+    setSortDirection(dir);
+  }, []);
 
   useEffect(() => {
     setFavorites(readFavorites(project));
@@ -201,14 +211,40 @@ export function useReleases(): ReleasesData {
         };
       })
       .filter((g): g is ReleaseGroup => g !== null)
+      .map((g) => {
+        if (!query) return g;
+        const defNameMatches = fuzzyMatch(query, g.definitionName);
+        if (defNameMatches) return g;
+        const matchedReleases = g.releases.filter((r) => {
+          const searchTarget = `${r.name} ${r.createdBy}`;
+          return fuzzyMatch(query, searchTarget);
+        });
+        if (matchedReleases.length === 0) return null;
+        return { ...g, releases: matchedReleases };
+      })
+      .filter((g): g is ReleaseGroup => g !== null)
       .sort((a, b) => {
+        if (sortKey !== 'relevance') {
+          const dir = sortDirection === 'asc' ? 1 : -1;
+          if (sortKey === 'name') return dir * a.definitionName.localeCompare(b.definitionName);
+          if (sortKey === 'newest') {
+            const aTime = a.releases[0]?.createdOn ?? '';
+            const bTime = b.releases[0]?.createdOn ?? '';
+            return dir * (new Date(bTime).getTime() - new Date(aTime).getTime());
+          }
+          if (sortKey === 'status') {
+            const aStatus = a.releases[0]?.environments[0]?.status ?? '';
+            const bStatus = b.releases[0]?.environments[0]?.status ?? '';
+            return dir * aStatus.localeCompare(bStatus);
+          }
+        }
         if (a.isFavorite !== b.isFavorite) return a.isFavorite ? -1 : 1;
         const aHasReleases = a.releases.length > 0;
         const bHasReleases = b.releases.length > 0;
         if (aHasReleases !== bHasReleases) return aHasReleases ? -1 : 1;
         return a.definitionName.localeCompare(b.definitionName);
       });
-  }, [allDefinitions, releases, definitionFilters, favorites, showFavoritesOnly, environmentFilters]);
+  }, [allDefinitions, releases, definitionFilters, favorites, showFavoritesOnly, environmentFilters, query, sortKey, sortDirection]);
 
   const groups = useMemo(() => {
     if (statusFilter === 'all') return baseGroups;
@@ -288,5 +324,10 @@ export function useReleases(): ReleasesData {
     isApproving: approvalMutation.isPending,
     currentUserUniqueName,
     myPendingApproval,
+    query,
+    setQuery,
+    sortKey,
+    sortDirection,
+    setSort,
   };
 }
