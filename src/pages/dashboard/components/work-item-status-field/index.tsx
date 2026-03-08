@@ -1,44 +1,16 @@
-import { useState, useRef, useEffect } from 'react';
 import { Flag, Loader2, ChevronDown, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useStatusField } from './use-status-field';
 import type { StatusFieldProps } from './types';
 
 export function StatusField(props: StatusFieldProps) {
   const { currentState, states, isUpdating, onSelect } = props;
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [open]);
-
-  const handleSelect = (stateName: string) => {
-    if (stateName === currentState) {
-      setOpen(false);
-      return;
-    }
-    onSelect(stateName);
-    setOpen(false);
-  };
+  const { containerRef, open, toggle, handleSelect } = useStatusField(currentState, onSelect);
 
   return (
     <div ref={containerRef} className="relative">
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggle}
         disabled={isUpdating}
         className={cn(
           'flex w-full cursor-pointer flex-col gap-0.5 rounded-md px-2 py-1.5 text-left transition-colors',

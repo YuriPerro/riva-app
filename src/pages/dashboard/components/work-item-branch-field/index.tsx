@@ -1,23 +1,14 @@
-import { useState } from 'react';
 import { GitBranch, Copy, CheckCheck } from 'lucide-react';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { buildBranchName } from '@/utils/formatters';
 import { mapWorkItemType } from '@/utils/mappers';
+import { useBranchField } from './use-branch-field';
 import type { BranchFieldProps } from './types';
 
 export function BranchField(props: BranchFieldProps) {
   const { id, type } = props;
-  const [copied, setCopied] = useState(false);
   const branch = buildBranchName(id, mapWorkItemType(type));
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(branch);
-    setCopied(true);
-    toast.success('Branch name copied');
-    setTimeout(() => setCopied(false), 2000);
-  };
-
+  const { copied, handleCopy } = useBranchField(branch);
   const CopyIcon = copied ? CheckCheck : Copy;
 
   return (

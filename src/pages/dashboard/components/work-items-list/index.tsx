@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Route } from '@/types/routes';
 import { getWorkItemTheme } from '@/utils/work-item-theme';
-import type { WorkItemStatus } from '../../types';
+import type { WorkItemStatus } from '@/types/work-item';
 import type { WorkItemsListProps } from './types';
 
 const statusConfig: Record<WorkItemStatus, { label: string; className: string }> = {
@@ -71,7 +71,7 @@ export function WorkItemsList(props: WorkItemsListProps) {
                     e.stopPropagation();
                     openUrl(item.url);
                   }}
-                  className="opacity-0 group-hover:opacity-100 text-fg-disabled hover:text-fg-secondary transition-all"
+                  className="cursor-pointer opacity-0 group-hover:opacity-100 text-fg-disabled hover:text-fg-secondary transition-all"
                 >
                   <ExternalLink size={12} />
                 </button>

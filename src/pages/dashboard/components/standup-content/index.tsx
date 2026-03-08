@@ -3,7 +3,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { StandupSection } from '../standup-section';
 import { TransitionGroupView } from '../standup-transition-group';
 import { TypeIcon } from '../standup-type-icon';
-import type { StandupContentProps } from '../standup-dialog/types';
+import type { StandupContentProps } from './types';
 
 export function StandupContent(props: StandupContentProps) {
   const { isLoading, isEmpty, standup, yesterdayGroups, todayGroups, hasTodayContent } = props;

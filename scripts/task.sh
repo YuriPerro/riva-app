@@ -169,6 +169,11 @@ SPEC_CONTENT=$(cat "$SPEC_FILE" 2>/dev/null || echo "$TASK_DESC")
 if should_run "IMPL"; then
   step "2 · Implementação"
 
+  if [ -z "$CODEBASE_CONTEXT" ]; then
+    log "Mapeando codebase..."
+    gather_codebase_context
+  fi
+
   IMPL_APPROVED=false
 
   while [ $IMPL_ATTEMPT -lt $MAX_IMPL_RETRIES ] && [ "$IMPL_APPROVED" = false ]; do

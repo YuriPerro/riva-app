@@ -65,6 +65,8 @@ Você é um desenvolvedor sênior Node.js/TypeScript CORRIGINDO uma implementaç
 
 $(claude_md_section "REGRAS E ARQUITETURA DO PROJETO (LEIA PRIMEIRO):")
 
+$(codebase_context_section)
+
 ## SPEC DA TASK:
 $spec_content
 
@@ -89,10 +91,13 @@ Você é um desenvolvedor sênior Node.js/TypeScript implementando uma task.
 
 $(claude_md_section "REGRAS E ARQUITETURA DO PROJETO (LEIA PRIMEIRO):")
 
+$(codebase_context_section)
+
 ## SPEC DA TASK:
 $spec_content
 
 ## INSTRUÇÕES:
+- Explore os arquivos relevantes com as ferramentas disponíveis antes de implementar
 - Implemente EXATAMENTE o que está na spec, nem mais nem menos
 - Siga rigorosamente as convenções do CLAUDE.md
 - Escreva código limpo, tipado (sem 'any' desnecessário)

@@ -2,7 +2,6 @@ import type { WorkItemType, WorkItemStatus } from '@/types/work-item';
 import type { PipelineStatus } from '@/types/pipeline';
 import type { StandupData } from '@/types/azure';
 
-export type { WorkItemType, WorkItemStatus, PipelineStatus };
 
 export type WorkItem = {
   id: number;

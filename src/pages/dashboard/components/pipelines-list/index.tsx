@@ -3,7 +3,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Route } from '@/types/routes';
-import type { PipelineStatus } from '../../types';
+import type { PipelineStatus } from '@/types/pipeline';
 import type { PipelinesListProps } from './types';
 
 const statusConfig: Record<PipelineStatus, { icon: React.ElementType; className: string; spin?: boolean }> = {
