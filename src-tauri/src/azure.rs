@@ -1863,3 +1863,122 @@ pub async fn get_user_activity_dates(
     })
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WorkItemComment {
+    #[serde(rename = "workItemId")]
+    pub work_item_id: u64,
+    #[serde(rename = "workItemTitle")]
+    pub work_item_title: String,
+    #[serde(rename = "commentId")]
+    pub comment_id: u64,
+    pub text: String,
+    #[serde(rename = "createdBy")]
+    pub created_by: String,
+    #[serde(rename = "createdDate")]
+    pub created_date: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct CommentEntry {
+    id: u64,
+    text: String,
+    #[serde(rename = "createdBy")]
+    created_by: Option<CommentAuthor>,
+    #[serde(rename = "createdDate", default)]
+    created_date: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct CommentAuthor {
+    #[serde(rename = "displayName", default)]
+    display_name: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct CommentsResponse {
+    #[serde(default)]
+    comments: Vec<CommentEntry>,
+}
+
+pub async fn get_work_item_recent_comments(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    since_timestamp: &str,
+) -> Result<Vec<WorkItemComment>, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let enc_project = encode_path_segment(project);
+
+    let query = format!(
+        "SELECT [System.Id], [System.Title] FROM WorkItems \
+         WHERE [System.AssignedTo] = @Me \
+         AND [System.ChangedDate] >= '{}' \
+         ORDER BY [System.ChangedDate] DESC",
+        since_timestamp
+    );
+    let ids_and_titles = {
+        let url = format!(
+            "{}/{}/_apis/wit/wiql?api-version=7.1&$top=50",
+            base, enc_project
+        );
+        let wiql = serde_json::json!({ "query": query });
+        let resp = client.post(&url).json(&wiql).send().await.map_err(|e| e.to_string())?;
+        if !resp.status().is_success() {
+            return Err(format!("WIQL query failed: {}", resp.status()));
+        }
+        let refs: WiqlResponse = resp.json().await.map_err(|e| e.to_string())?;
+        let ids: Vec<u64> = refs.work_items.iter().map(|w| w.id).collect();
+        if ids.is_empty() {
+            return Ok(vec![]);
+        }
+
+        let items = batch_fetch_items(&client, base, project, &ids).await.unwrap_or_default();
+        let map: std::collections::HashMap<u64, String> = items
+            .iter()
+            .map(|item| (item.id, item.fields.title.clone()))
+            .collect();
+        (ids, map)
+    };
+
+    let (work_item_ids, titles_map) = ids_and_titles;
+    let mut results: Vec<WorkItemComment> = Vec::new();
+
+    for wid in &work_item_ids {
+        let url = format!(
+            "{}/{}/_apis/wit/workItems/{}/comments?api-version=7.1-preview.4&$top=10&order=desc",
+            base, enc_project, wid
+        );
+        let resp = client.get(&url).send().await;
+        let resp = match resp {
+            Ok(r) => r,
+            Err(_) => continue,
+        };
+        if !resp.status().is_success() {
+            continue;
+        }
+        let comments: CommentsResponse = match resp.json().await {
+            Ok(c) => c,
+            Err(_) => continue,
+        };
+
+        let title = titles_map.get(wid).cloned().unwrap_or_default();
+
+        for comment in &comments.comments {
+            let created = comment.created_date.as_deref().unwrap_or("");
+            if created >= since_timestamp {
+                results.push(WorkItemComment {
+                    work_item_id: *wid,
+                    work_item_title: title.clone(),
+                    comment_id: comment.id,
+                    text: comment.text.clone(),
+                    created_by: comment.created_by.as_ref().map(|a| a.display_name.clone()).unwrap_or_default(),
+                    created_date: created.to_string(),
+                });
+            }
+        }
+    }
+
+    Ok(results)
+}
+

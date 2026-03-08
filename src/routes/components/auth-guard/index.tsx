@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { credentials, session, openai } from '@/lib/tauri';
+import { azure } from '@/lib/tauri/azure';
 import { Route } from '@/types/routes';
 import { useOpenAiStore } from '@/store/openai';
+import { useSessionStore } from '@/store/session';
 
 export function AuthGuard() {
   const [checked, setChecked] = useState(false);
@@ -15,6 +17,9 @@ export function AuthGuard() {
       .then(async (creds) => {
         if (!creds) return;
         await session.init(creds.orgUrl, creds.pat);
+        azure.getMyUniqueName().then((name) => {
+          useSessionStore.getState().setUniqueName(name);
+        }).catch(console.error);
         setAuthed(true);
       })
       .finally(() => setChecked(true));

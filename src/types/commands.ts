@@ -27,6 +27,7 @@ export enum TauriCommand {
   GetReleases = 'get_releases',
   UpdateReleaseApproval = 'update_release_approval',
   GetUserActivityDates = 'get_user_activity_dates',
+  GetWorkItemRecentComments = 'get_work_item_recent_comments',
 
   SaveOpenAiKey = 'save_openai_key',
   LoadOpenAiKey = 'load_openai_key',

@@ -5,6 +5,7 @@ export const useSessionStore = create<SessionState>((set) => ({
   project: localStorage.getItem('forge_project'),
   team: localStorage.getItem('forge_team'),
   teamId: localStorage.getItem('forge_team_id'),
+  uniqueName: null,
 
   setProject: (project) => {
     localStorage.setItem('forge_project', project);
@@ -19,10 +20,14 @@ export const useSessionStore = create<SessionState>((set) => ({
     set({ team, teamId });
   },
 
+  setUniqueName: (uniqueName) => {
+    set({ uniqueName });
+  },
+
   clear: () => {
     localStorage.removeItem('forge_project');
     localStorage.removeItem('forge_team');
     localStorage.removeItem('forge_team_id');
-    set({ project: null, team: null, teamId: null });
+    set({ project: null, team: null, teamId: null, uniqueName: null });
   },
 }));

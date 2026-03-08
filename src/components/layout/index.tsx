@@ -1,8 +1,10 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './sidebar';
+import { useAzureNotificationPolling } from '../../hooks/use-azure-notification-polling';
 
 export function AppLayout() {
   const location = useLocation();
+  useAzureNotificationPolling();
 
   return (
     <div data-tauri-drag-region className="flex h-full flex-col bg-base">

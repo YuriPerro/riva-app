@@ -360,7 +360,7 @@ if should_run "COMMIT"; then
   else
     log "Gerando mensagem de commit..."
 
-    COMMIT_DIFF=$(get_full_diff | head -200)
+    COMMIT_DIFF=$(get_full_diff | head -200 || true)
     SPEC_SUMMARY=$(head -20 "$SPEC_FILE")
     COMMIT_PROMPT=$(prompt_commit "$COMMIT_DIFF" "$SPEC_SUMMARY")
 

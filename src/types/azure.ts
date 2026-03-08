@@ -232,3 +232,12 @@ export interface StandupData {
   todayPrs: StandupPR[];
   blockers: StandupItem[];
 }
+
+export type WorkItemComment = {
+  workItemId: number;
+  workItemTitle: string;
+  commentId: number;
+  text: string;
+  createdBy: string;
+  createdDate: string;
+};

@@ -163,14 +163,17 @@ clear_state() { rm -f "$STATE_FILE"; }
 
 ask_review_action() {
   local stage_name="$1"
-  echo ""
-  echo -e "${YELLOW}$stage_name reprovado. O que fazer?${RESET}"
-  echo -e "  ${BOLD}c${RESET} — corrigir automaticamente (agente)"
-  echo -e "  ${BOLD}i${RESET} — ignorar e continuar"
-  echo -e "  ${BOLD}e${RESET} — editar manualmente (\$EDITOR)"
-  echo -e "  ${BOLD}a${RESET} — abortar pipeline"
-  echo ""
-  echo -ne "${YELLOW}[c/i/e/a]:${RESET} "
+  echo "" >&2
+  echo -e "${BOLD}${RED}══════════════════════════════════════${RESET}" >&2
+  echo -e "${BOLD}${YELLOW} $stage_name reprovado. O que fazer?${RESET}" >&2
+  echo -e "${BOLD}${RED}══════════════════════════════════════${RESET}" >&2
+  echo "" >&2
+  echo -e "  ${BOLD}c${RESET} → corrigir automaticamente (agente)" >&2
+  echo -e "  ${BOLD}i${RESET} → ignorar e continuar" >&2
+  echo -e "  ${BOLD}e${RESET} → editar manualmente (\$EDITOR)" >&2
+  echo -e "  ${BOLD}a${RESET} → abortar pipeline" >&2
+  echo "" >&2
+  echo -ne "  ${BOLD}${YELLOW}▸ Escolha [c/i/e/a]:${RESET} " >&2
   read -r ACTION
   echo "$ACTION"
 }

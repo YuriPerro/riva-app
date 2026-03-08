@@ -15,6 +15,7 @@ import { ProjectSwitcher } from '@/components/layout/project-switcher';
 import { useSessionStore } from '@/store/session';
 import { ThemePicker } from './components/theme-picker';
 import { AiSettings } from './components/ai-settings';
+import { NotificationsSettings } from './components/notifications-settings';
 import { useSettings } from './use-settings';
 
 export function SettingsPage() {
@@ -43,6 +44,8 @@ export function SettingsPage() {
         </div>
 
         <AiSettings />
+
+        <NotificationsSettings />
 
         <ThemePicker />
 

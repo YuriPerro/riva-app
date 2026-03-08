@@ -1,7 +1,7 @@
 mod azure;
 mod openai;
 
-use azure::{PipelineDefinition, PipelineRun, Project, PullRequest, Release, ReleaseDefinition, RelatedWorkItem, SprintIteration, StandupData, Team, UserActivitySummary, WorkItem, WorkItemDetail, WorkItemTypeState};
+use azure::{PipelineDefinition, PipelineRun, Project, PullRequest, Release, ReleaseDefinition, RelatedWorkItem, SprintIteration, StandupData, Team, UserActivitySummary, WorkItem, WorkItemComment, WorkItemDetail, WorkItemTypeState};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
@@ -303,6 +303,16 @@ async fn get_user_activity_dates(
     azure::get_user_activity_dates(&org_url, &pat, &project, team.as_deref(), lookback_days).await
 }
 
+#[tauri::command]
+async fn get_work_item_recent_comments(
+    state: State<'_, AppState>,
+    project: String,
+    since_timestamp: String,
+) -> Result<Vec<WorkItemComment>, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::get_work_item_recent_comments(&org_url, &pat, &project, &since_timestamp).await
+}
+
 // ============================================================
 // OpenAI commands
 // ============================================================
@@ -337,6 +347,7 @@ async fn generate_standup_summary(prompt: String) -> Result<String, String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_notification::init())
         .manage(AppState {
             credentials: Mutex::new(None),
         })
@@ -367,6 +378,7 @@ pub fn run() {
             get_releases,
             update_release_approval,
             get_user_activity_dates,
+            get_work_item_recent_comments,
             save_openai_key,
             load_openai_key,
             clear_openai_key,

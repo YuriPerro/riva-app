@@ -15,6 +15,7 @@ import type {
   ReleaseDefinition,
   Release,
   UserActivitySummary,
+  WorkItemComment,
 } from '@/types/azure';
 
 export const azure = {
@@ -83,4 +84,7 @@ export const azure = {
       team: team ?? null,
       lookbackDays: lookbackDays ?? null,
     }),
+
+  getWorkItemRecentComments: (project: string, sinceTimestamp: string) =>
+    invoke<WorkItemComment[]>(TauriCommand.GetWorkItemRecentComments, { project, sinceTimestamp }),
 };
