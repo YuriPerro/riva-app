@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Forge",
+  "productName": "Riva",
   "version": "0.1.0",
-  "identifier": "com.yuribaumgartner.forge",
+  "identifier": "com.yuribaumgartner.riva",
   "build": {
     "beforeDevCommand": "bun dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Forge",
+        "title": "Riva",
         "width": 1100,
         "height": 720,
         "minWidth": 800,
@@ -31,6 +31,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "resources": ["sounds/notification.aiff"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

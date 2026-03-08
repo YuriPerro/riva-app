@@ -31,7 +31,7 @@ struct ChatChoice {
 
 fn openai_key_path() -> Result<std::path::PathBuf, String> {
     let home = std::env::var("HOME").map_err(|e| e.to_string())?;
-    let dir = std::path::PathBuf::from(home).join(".forge");
+    let dir = std::path::PathBuf::from(home).join(".riva");
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     Ok(dir.join("openai.json"))
 }
