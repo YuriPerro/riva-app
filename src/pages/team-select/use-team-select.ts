@@ -4,6 +4,7 @@ import { azure } from '@/lib/tauri';
 import type { Team } from '@/types/azure';
 import { Route } from '@/types/routes';
 import { useSessionStore } from '@/store/session';
+import { ONBOARDING_STORAGE_KEY } from '@/pages/setup/use-setup';
 
 export const useTeamSelect = () => {
   const navigate = useNavigate();
@@ -28,7 +29,9 @@ export const useTeamSelect = () => {
 
   const selectTeam = (name: string, id: string) => {
     setTeam(name, id);
-    navigate(Route.Dashboard, { replace: true });
+    const onboardingComplete = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    const destination = onboardingComplete === 'true' ? Route.Dashboard : Route.Setup;
+    navigate(destination, { replace: true });
   };
 
   return { project: project ?? '', teams, isLoading, error, selectTeam };

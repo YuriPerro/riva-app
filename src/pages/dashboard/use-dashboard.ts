@@ -6,7 +6,14 @@ import { azure } from '@/lib/tauri';
 import type { PullRequest as ApiPullRequest, RelatedWorkItem } from '@/types/azure';
 import { Route } from '@/types/routes';
 import { useSessionStore } from '@/store/session';
-import { formatAgo, formatBuildReason, formatDuration, getAssigneeInitials, initials, stripRefs } from '@/utils/formatters';
+import {
+  formatAgo,
+  formatBuildReason,
+  formatDuration,
+  getAssigneeInitials,
+  initials,
+  stripRefs,
+} from '@/utils/formatters';
 import { mapWorkItemType, mapWorkItemStatus, mapPipelineStatus } from '@/utils/mappers';
 import type { WorkItem, Pipeline, DashboardPR, SprintInfo, DashboardData } from './types';
 
@@ -49,7 +56,8 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
         const startDate = sprintData.attributes.startDate;
         const days = finishDate ? Math.max(0, dayjs(finishDate).diff(dayjs(), 'day', true)) : 0;
         const daysRemaining = Math.ceil(days);
-        const totalDays = startDate && finishDate ? Math.max(1, Math.ceil(dayjs(finishDate).diff(dayjs(startDate), 'day', true))) : 0;
+        const totalDays =
+          startDate && finishDate ? Math.max(1, Math.ceil(dayjs(finishDate).diff(dayjs(startDate), 'day', true))) : 0;
         return {
           name: sprintData.name,
           daysRemaining,
@@ -60,9 +68,7 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
       })()
     : null;
 
-  const parentIds = rawItems
-    .map((w) => w.fields['System.Parent'])
-    .filter((id): id is number => id != null);
+  const parentIds = rawItems.map((w) => w.fields['System.Parent']).filter((id): id is number => id != null);
 
   const uniqueParentIds = [...new Set(parentIds)];
 

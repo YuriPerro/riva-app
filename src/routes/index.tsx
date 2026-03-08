@@ -14,6 +14,7 @@ const SettingsPage = lazy(() => import('@/pages/settings').then((m) => ({ defaul
 const OnboardingPage = lazy(() => import('@/pages/onboarding').then((m) => ({ default: m.OnboardingPage })));
 const ProjectSelectPage = lazy(() => import('@/pages/project-select').then((m) => ({ default: m.ProjectSelectPage })));
 const TeamSelectPage = lazy(() => import('@/pages/team-select').then((m) => ({ default: m.TeamSelectPage })));
+const SetupPage = lazy(() => import('@/pages/setup').then((m) => ({ default: m.SetupPage })));
 
 export function AppRoutes() {
   return (
@@ -39,6 +40,15 @@ export function AppRoutes() {
         element={
           <LazyPage>
             <TeamSelectPage />
+          </LazyPage>
+        }
+      />
+
+      <Route
+        path={AppRoute.Setup}
+        element={
+          <LazyPage>
+            <SetupPage />
           </LazyPage>
         }
       />

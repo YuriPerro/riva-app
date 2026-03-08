@@ -8,4 +8,5 @@ export enum Route {
   Onboarding = '/onboarding',
   ProjectSelect = '/project-select',
   TeamSelect = '/team-select',
+  Setup = '/setup',
 }
