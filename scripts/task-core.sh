@@ -2,14 +2,28 @@
 
 set -euo pipefail
 
-RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
-BLUE='\033[0;34m'; CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
+GUM_GREEN="#22c55e"
+GUM_RED="#ef4444"
+GUM_YELLOW="#eab308"
+GUM_BLUE="#3b82f6"
+GUM_CYAN="#06b6d4"
+GUM_PURPLE="#a855f7"
+GUM_DIM="#71717a"
 
-log()     { echo -e "${BLUE}[task]${RESET} $1"; }
-success() { echo -e "${GREEN}[✓]${RESET} $1"; }
-warn()    { echo -e "${YELLOW}[!]${RESET} $1"; }
-error()   { echo -e "${RED}[✗]${RESET} $1"; exit 1; }
-step()    { echo -e "\n${BOLD}${CYAN}══ $1 ══${RESET}\n"; }
+log()     { gum log --level info "$1"; }
+success() { gum log --level info --prefix "✓" --prefix.foreground "$GUM_GREEN" "$1"; }
+warn()    { gum log --level warn "$1"; }
+error()   { gum log --level error "$1"; exit 1; }
+
+step() {
+  echo ""
+  gum style --foreground "$GUM_CYAN" --bold --border double --border-foreground "$GUM_CYAN" --padding "0 2" "$1"
+  echo ""
+}
+
+header() {
+  gum style --foreground "$GUM_PURPLE" --bold --border rounded --border-foreground "$GUM_DIM" --padding "1 3" --margin "1 0" "$@"
+}
 
 TASK_DIR=".task"
 MAX_IMPL_RETRIES=3
@@ -69,6 +83,58 @@ claude_md_section() {
   fi
 }
 
+CODEBASE_CONTEXT=""
+
+gather_codebase_context() {
+  local ctx=""
+
+  if [ -d "src" ]; then
+    ctx+="## Directory Structure (src/)
+\`\`\`
+$(find src -type f -not -path '*/node_modules/*' -not -path '*/.git/*' | head -80 | sort | sed 's|^|  |')
+\`\`\`
+"
+  fi
+
+  if [ -d "src/types" ]; then
+    ctx+="
+## Existing Types (src/types/)
+\`\`\`
+$(for f in src/types/*.ts; do [ -f "$f" ] && echo "--- $f ---" && head -30 "$f"; done)
+\`\`\`
+"
+  fi
+
+  if [ -d "src/pages" ]; then
+    ctx+="
+## Pages
+$(ls -1 src/pages/ 2>/dev/null | sed 's/^/- /')
+"
+  fi
+
+  if [ -d "src/components" ]; then
+    ctx+="
+## Components
+$(ls -1 src/components/ 2>/dev/null | sed 's/^/- /')
+"
+  fi
+
+  if [ -d "src-tauri/src" ]; then
+    ctx+="
+## Rust Backend (src-tauri/src/)
+$(ls -1 src-tauri/src/*.rs 2>/dev/null | sed 's/^/- /')
+"
+  fi
+
+  CODEBASE_CONTEXT="$ctx"
+}
+
+codebase_context_section() {
+  if [ -n "$CODEBASE_CONTEXT" ]; then
+    printf "## CODEBASE SNAPSHOT (real files — use tools to explore further):\n%s" "$CODEBASE_CONTEXT"
+  fi
+}
+
 model_label() {
   case "$1" in
     *opus*)   echo "Opus"   ;;
@@ -78,18 +144,38 @@ model_label() {
   esac
 }
 
+model_color() {
+  case "$1" in
+    *opus*)   echo "$GUM_PURPLE" ;;
+    *sonnet*) echo "$GUM_BLUE"   ;;
+    *haiku*)  echo "$GUM_CYAN"   ;;
+    *)        echo "$GUM_DIM"    ;;
+  esac
+}
+
+format_elapsed() {
+  local s=$1
+  if [ $s -lt 60 ]; then
+    echo "${s}s"
+  else
+    echo "$((s / 60))m $((s % 60))s"
+  fi
+}
+
 SPINNER_PID=""
 
 start_spinner() {
   local agent="$1"
   local label="$2"
+  local color="$3"
   local frames=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
   local i=0
   local start=$SECONDS
   (
     while true; do
       local elapsed=$((SECONDS - start))
-      printf "\r${CYAN}%s${RESET} ${BOLD}%s${RESET} %s ${BLUE}%s${RESET}  " "${frames[$((i % ${#frames[@]}))]}" "$agent" "$label" "$(format_elapsed $elapsed)" >&2
+      printf "\r  \033[0;36m%s\033[0m \033[1m%s\033[0m → %s \033[0;34m%s\033[0m  " \
+        "${frames[$((i % ${#frames[@]}))]}" "$agent" "$label" "$(format_elapsed $elapsed)" >&2
       i=$((i + 1))
       sleep 0.12
     done
@@ -113,11 +199,13 @@ run_claude() {
   local model="$1"; shift
   local agent_name
   agent_name=$(model_label "$model")
+  local color
+  color=$(model_color "$model")
   local output
   local call_start=$SECONDS
   CLAUDE_CALLS=$((CLAUDE_CALLS + 1))
 
-  start_spinner "$agent_name" "$label"
+  start_spinner "$agent_name" "$label" "$color"
 
   if ! output=$(claude --model "$model" "$@" 2>>"$ERROR_LOG"); then
     stop_spinner
@@ -131,18 +219,9 @@ run_claude() {
   fi
 
   local elapsed=$((SECONDS - call_start))
-  echo -e "${BOLD}${CYAN}[agent]${RESET} ${BOLD}$agent_name${RESET} ✓ $label ${BLUE}($(format_elapsed $elapsed))${RESET}" >&2
+  printf "\033[1m  ✓ %s → %s (%s)\033[0m\n" "$agent_name" "$label" "$(format_elapsed $elapsed)" >&2
 
   echo "$output"
-}
-
-format_elapsed() {
-  local s=$1
-  if [ $s -lt 60 ]; then
-    echo "${s}s"
-  else
-    echo "$((s / 60))m $((s % 60))s"
-  fi
 }
 
 get_full_diff() {
@@ -164,18 +243,56 @@ clear_state() { rm -f "$STATE_FILE"; }
 ask_review_action() {
   local stage_name="$1"
   echo "" >&2
-  echo -e "${BOLD}${RED}══════════════════════════════════════${RESET}" >&2
-  echo -e "${BOLD}${YELLOW} $stage_name reprovado. O que fazer?${RESET}" >&2
-  echo -e "${BOLD}${RED}══════════════════════════════════════${RESET}" >&2
+  gum style --foreground "$GUM_RED" --bold --border rounded --border-foreground "$GUM_RED" --padding "0 2" \
+    "$stage_name reprovado" >&2
   echo "" >&2
-  echo -e "  ${BOLD}c${RESET} → corrigir automaticamente (agente)" >&2
-  echo -e "  ${BOLD}i${RESET} → ignorar e continuar" >&2
-  echo -e "  ${BOLD}e${RESET} → editar manualmente (\$EDITOR)" >&2
-  echo -e "  ${BOLD}a${RESET} → abortar pipeline" >&2
-  echo "" >&2
-  echo -ne "  ${BOLD}${YELLOW}▸ Escolha [c/i/e/a]:${RESET} " >&2
-  read -r ACTION
-  echo "$ACTION"
+  local choice
+  choice=$(gum choose \
+    --header "O que fazer?" \
+    --header.foreground "$GUM_YELLOW" \
+    --cursor.foreground "$GUM_CYAN" \
+    --selected.foreground "$GUM_GREEN" \
+    "Corrigir" \
+    "Ignorar" \
+    "Editar" \
+    "Abortar")
+
+  case "$choice" in
+    Corrigir) echo "c" ;;
+    Ignorar)  echo "i" ;;
+    Editar)   echo "e" ;;
+    Abortar)  echo "a" ;;
+    *)        echo "a" ;;
+  esac
+}
+
+ask_confirm() {
+  local prompt="$1"
+  gum confirm --prompt.foreground "$GUM_YELLOW" "$prompt"
+}
+
+render_md() {
+  local content="$1"
+  if command -v glow &>/dev/null; then
+    echo "$content" | glow -s dark -w 80 -
+  else
+    echo "$content" | gum format
+  fi
+}
+
+show_result() {
+  local content="$1"
+  echo ""
+  if echo "$content" | grep -q "RESULTADO: APROVADO"; then
+    gum style --foreground "$GUM_GREEN" --bold "  ● APROVADO"
+  else
+    gum style --foreground "$GUM_RED" --bold "  ● REPROVADO"
+  fi
+  echo ""
+  local body
+  body=$(echo "$content" | grep -v "^RESULTADO:")
+  render_md "$body"
+  echo ""
 }
 
 snapshot_untracked() {

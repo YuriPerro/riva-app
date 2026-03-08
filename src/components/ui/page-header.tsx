@@ -41,7 +41,7 @@ export function PageHeader({
 
       <div className="flex items-center gap-3">
         <div className="flex flex-col items-end">
-          <h2 className="text-4xl font-black text-fg/70">{title}</h2>
+          <h2 className="text-4xl font-black text-fg">{title}</h2>
           {subtitle && <p className="text-[12px] text-fg-muted pr-1">{subtitle}</p>}
         </div>
       </div>

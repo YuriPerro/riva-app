@@ -10,6 +10,14 @@ $task_desc
 
 $(claude_md_section "CONTEXTO DO PROJETO (CLAUDE.md):")
 
+$(codebase_context_section)
+
+IMPORTANTE: Você tem acesso a ferramentas (Read, Glob, Grep) para explorar o codebase. USE-AS para:
+- Verificar arquivos existentes antes de sugerir criação de novos
+- Consultar tipos e interfaces existentes em src/types/
+- Entender padrões de componentes/páginas existentes
+- Validar nomes de arquivos e imports reais
+
 Analise a task e faça o seguinte:
 
 1. Se a task for VAGA ou AMBÍGUA (faltam informações críticas para implementar), liste até 3 perguntas objetivas necessárias. Formato:
@@ -18,7 +26,7 @@ Analise a task e faça o seguinte:
    - pergunta 1
    - pergunta 2
 
-2. Se a task for CLARA o suficiente para implementar, gere diretamente uma spec técnica no formato:
+2. Se a task for CLARA o suficiente para implementar, primeiro explore os arquivos relevantes do codebase, depois gere uma spec técnica no formato:
    PRECISA_CLARIFICACAO: não
 
    # Spec: [título da task]
@@ -30,13 +38,19 @@ Analise a task e faça o seguinte:
    - [ ] critério 1 (testável e específico)
    - [ ] critério 2
 
-   ## Arquivos esperados ser modificados/criados
-   - arquivo1.ts — motivo
+   ## Arquivos a modificar
+   - caminho/real/arquivo.ts — o que mudar (DEVE ser um arquivo que existe)
+
+   ## Arquivos a criar
+   - caminho/novo/arquivo.ts — motivo (seguir padrão existente no projeto)
+
+   ## Tipos e interfaces relevantes
+   - NomeTipo (de src/types/arquivo.ts) — como será usado
 
    ## Restrições e observações
    - restrição ou padrão importante do projeto
 
-Seja direto. Não invente requisitos que não estão na task.
+Seja direto. Não invente requisitos que não estão na task. Use caminhos REAIS do projeto.
 EOF
 }
 
