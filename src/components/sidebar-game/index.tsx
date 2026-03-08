@@ -1,6 +1,4 @@
-import { PlusIcon } from 'lucide-react';
 import { FlipButton, FlipButtonBack, FlipButtonFront } from '../animate-ui/primitives/buttons/flip';
-import { FillButton } from '../ui/fill-button';
 import { useSidebarGame } from './use-sidebar-game';
 
 export function SidebarGame() {

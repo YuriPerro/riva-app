@@ -4,7 +4,7 @@ import { azure } from '@/lib/tauri';
 import { useSessionStore } from '@/store/session';
 import type { FocusScoreData, ScoreTier, ActiveCard } from './types';
 
-const STORAGE_KEY = 'forge_best_streak';
+const STORAGE_KEY = 'riva_best_streak';
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 const TIER_COLORS: Record<ScoreTier, string> = {

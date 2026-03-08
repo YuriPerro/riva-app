@@ -12,7 +12,7 @@ export function TeamSelectPage() {
   const filtered = query ? teams.filter((t) => fuzzyMatch(query, t.name)) : teams;
 
   return (
-    <div data-tauri-drag-region className="flex min-h-screen flex-col items-center overflow-y-auto bg-base px-6 py-14">
+    <div data-tauri-drag-region className="flex min-h-screen flex-col items-center justify-center overflow-y-auto bg-base px-6">
       <div className="w-full max-w-[420px]">
         <div className="mb-6 flex flex-col items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface">

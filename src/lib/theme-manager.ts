@@ -1,7 +1,7 @@
 import { ThemePreset } from '@/types/theme';
 import type { ThemePresetConfig } from '@/types/theme';
 
-const STORAGE_KEY = 'forge_theme';
+const STORAGE_KEY = 'riva_theme';
 
 const PRESETS: ThemePresetConfig[] = [
   {

@@ -76,7 +76,7 @@ export interface PipelinesData {
 function readFavorites(project: string | null): Set<number> {
   if (!project) return new Set();
   try {
-    const raw = localStorage.getItem(`forge_favorite_pipelines_${project}`);
+    const raw = localStorage.getItem(`riva_favorite_pipelines_${project}`);
     if (!raw) return new Set();
     return new Set(JSON.parse(raw) as number[]);
   } catch {
@@ -85,7 +85,7 @@ function readFavorites(project: string | null): Set<number> {
 }
 
 function writeFavorites(project: string, favorites: Set<number>) {
-  localStorage.setItem(`forge_favorite_pipelines_${project}`, JSON.stringify([...favorites]));
+  localStorage.setItem(`riva_favorite_pipelines_${project}`, JSON.stringify([...favorites]));
 }
 
 const MAX_RUNS_PER_DEFINITION = 3;

@@ -12,7 +12,7 @@ type NotificationSettingsState = {
   setWorkItemMentionEnabled: (enabled: boolean) => void;
 };
 
-const STORAGE_KEY = 'forge_notification_settings';
+const STORAGE_KEY = 'riva_notification_settings';
 
 function loadSettings(): Pick<NotificationSettingsState, 'pollingInterval' | 'prReviewEnabled' | 'pipelineFailedEnabled' | 'workItemMentionEnabled'> {
   const stored = localStorage.getItem(STORAGE_KEY);

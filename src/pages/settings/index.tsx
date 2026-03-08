@@ -64,7 +64,7 @@ export function SettingsPage() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Sign out of Forge?</DialogTitle>
+                <DialogTitle>Sign out of Riva?</DialogTitle>
                 <DialogDescription>
                   Your stored credentials will be removed. You'll need to enter your organization URL and personal
                   access token again to sign back in.

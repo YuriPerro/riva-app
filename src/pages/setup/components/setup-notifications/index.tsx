@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
 import { GitPullRequest, CircleX, AtSign } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useNotificationsSettings } from '@/components/ui/notifications-settings/use-notifications-settings';
@@ -9,6 +11,12 @@ const CHANNELS = [
 ];
 
 export function SetupNotifications() {
+  useEffect(() => {
+    isPermissionGranted().then((granted) => {
+      if (!granted) requestPermission();
+    });
+  }, []);
+
   const {
     pollingInterval,
     prReviewEnabled,

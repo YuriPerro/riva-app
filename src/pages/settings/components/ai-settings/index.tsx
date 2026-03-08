@@ -62,7 +62,7 @@ export function AiSettings() {
       <div className="flex items-start gap-2 rounded-md bg-base px-3 py-2">
         <Info size={12} className="mt-0.5 shrink-0 text-fg-muted" />
         <div className="flex flex-col gap-0.5 text-[11px] text-fg-muted leading-relaxed">
-          <span>Your key is stored locally at ~/.forge/openai.json</span>
+          <span>Your key is stored locally at ~/.riva/openai.json</span>
           <span>Only task titles, statuses, and PR titles are sent — never code or descriptions</span>
           <span>No data is cached or stored after generation</span>
         </div>

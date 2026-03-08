@@ -13,7 +13,7 @@ import type { ReleaseItem, ReleaseApprovalItem, ReleaseEnvironmentItem, ReleaseG
 function readFavorites(project: string | null): Set<number> {
   if (!project) return new Set();
   try {
-    const raw = localStorage.getItem(`forge_favorite_releases_${project}`);
+    const raw = localStorage.getItem(`riva_favorite_releases_${project}`);
     if (!raw) return new Set();
     return new Set(JSON.parse(raw) as number[]);
   } catch {
@@ -22,7 +22,7 @@ function readFavorites(project: string | null): Set<number> {
 }
 
 function writeFavorites(project: string, favorites: Set<number>) {
-  localStorage.setItem(`forge_favorite_releases_${project}`, JSON.stringify([...favorites]));
+  localStorage.setItem(`riva_favorite_releases_${project}`, JSON.stringify([...favorites]));
 }
 
 function mapApprovals(approvals: ReleaseApproval[], type: 'preDeploy' | 'postDeploy'): ReleaseApprovalItem[] {

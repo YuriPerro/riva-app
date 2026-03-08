@@ -1,9 +1,9 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { sendNotification, isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
 import { useSessionStore } from '@/store/session';
 import { useNotificationSettingsStore } from '@/store/notifications';
 import { azure } from '@/lib/tauri/azure';
 import { session } from '@/lib/tauri/session';
+import { notify } from '@/utils/notification-sound';
 import type { PullRequest, PipelineRun } from '@/types/azure';
 import type { PrReviewSnapshot } from '@/types/notifications';
 
@@ -47,21 +47,10 @@ export function useAzureNotificationPolling() {
   const pipelineSnapshotRef = useRef<Set<number> | null>(null);
   const lastPollTimestampRef = useRef<string | null>(null);
   const notifiedCommentIdsRef = useRef<Set<number>>(new Set());
-  const permissionCheckedRef = useRef(false);
-
-  const ensurePermission = useCallback(async () => {
-    if (permissionCheckedRef.current) return;
-    permissionCheckedRef.current = true;
-    const granted = await isPermissionGranted();
-
-    if (!granted) await requestPermission();
-  }, []);
 
   const poll = useCallback(async () => {
     const hasActiveSession = await session.exists();
     if (!hasActiveSession || !project || !uniqueName) return;
-
-    await ensurePermission();
 
     const anyEnabled = prReviewEnabled || pipelineFailedEnabled || workItemMentionEnabled;
     if (!anyEnabled) return;
@@ -83,7 +72,7 @@ export function useAzureNotificationPolling() {
               const isNewReview = prevVote !== vote && (vote === 10 || vote === -10);
               if (isNewReview) {
                 const pr = prs.find((p) => p.pullRequestId === prId);
-                await sendNotification({
+                await notify({
                   title: `PR ${voteLabel(vote)}`,
                   body: `${displayName} ${voteLabel(vote)} "${pr?.title ?? `PR #${prId}`}"`,
                 });
@@ -108,7 +97,7 @@ export function useAzureNotificationPolling() {
             const isNewFailure = !pipelineSnapshotRef.current.has(id);
             if (isNewFailure) {
               const pipeline = pipelines.find((p) => p.id === id);
-              await sendNotification({
+              await notify({
                 title: 'Pipeline failed',
                 body: `${pipeline?.definition.name ?? 'Pipeline'} #${pipeline?.buildNumber ?? id} failed`,
               });
@@ -135,7 +124,7 @@ export function useAzureNotificationPolling() {
 
           if (mentionsUser && !alreadyNotified) {
             notifiedCommentIdsRef.current.add(comment.commentId);
-            await sendNotification({
+            await notify({
               title: 'Mentioned in work item',
               body: `${comment.createdBy} mentioned you in "${comment.workItemTitle}"`,
             });
@@ -145,7 +134,7 @@ export function useAzureNotificationPolling() {
         console.error(error);
       }
     }
-  }, [project, uniqueName, prReviewEnabled, pipelineFailedEnabled, workItemMentionEnabled, ensurePermission]);
+  }, [project, uniqueName, prReviewEnabled, pipelineFailedEnabled, workItemMentionEnabled]);
 
   useEffect(() => {
     if (pollingInterval === 'off' || !project || !uniqueName) return;

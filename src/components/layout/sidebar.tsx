@@ -1,5 +1,6 @@
 import { memo, useRef } from 'react';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen, BellRing, Trash2 } from 'lucide-react';
+import { notify } from '@/utils/notification-sound';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/store/sidebar';
 import { HomeIcon, type HomeIconHandle } from '@/components/ui/home';
@@ -13,8 +14,6 @@ import { SidebarGame } from '@/components/sidebar-game';
 import { Route } from '@/types/routes';
 import { SidebarLabel } from './sidebar-label';
 import { NavItem } from './nav-item';
-
-const STAGGER_MS = 60;
 
 export const Sidebar = memo(function Sidebar() {
   const collapsed = useSidebarStore((s) => s.collapsed);
@@ -39,7 +38,7 @@ export const Sidebar = memo(function Sidebar() {
         <div data-tauri-drag-region className="flex items-center justify-between gap-2">
           <SidebarLabel collapsed={collapsed} delay={0}>
             <span className="flex items-center gap-2">
-              <span className="text-[13px] font-semibold text-fg">Forge</span>
+              <span className="text-[13px] font-semibold text-fg">Riva</span>
               <span className="relative overflow-hidden rounded-sm border border-border px-1.5 py-0.5 text-[10px] text-fg-muted">
                 <ShineBorder
                   shineColor={['var(--color-accent)', 'var(--color-accent-muted)', 'var(--color-accent)']}
@@ -116,6 +115,34 @@ export const Sidebar = memo(function Sidebar() {
           icon={<SettingsIcon ref={settingsRef} size={18} />}
         />
       </nav>
+
+      {!collapsed && (
+        <div className="mx-2 mb-2 flex gap-1.5">
+          <button
+            onClick={async () => {
+              await notify({ title: 'PR approved', body: 'John Doe approved "Fix login bug"' });
+              setTimeout(() => { notify({ title: 'Pipeline failed', body: 'Build #1234 failed' }); }, 1000);
+              setTimeout(() => { notify({ title: 'Mentioned in work item', body: 'Jane mentioned you in "API refactor"' }); }, 2000);
+            }}
+            className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-subtle px-2 py-1.5 text-[10px] text-fg-muted transition-colors hover:bg-elevated hover:text-fg"
+          >
+            <BellRing size={12} />
+            Notify
+          </button>
+          {import.meta.env.DEV && (
+            <button
+              onClick={() => {
+                localStorage.clear();
+                window.location.reload();
+              }}
+              className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-error/30 px-2 py-1.5 text-[10px] text-error/70 transition-colors hover:bg-error/10 hover:text-error"
+            >
+              <Trash2 size={12} />
+              Clear Cache
+            </button>
+          )}
+        </div>
+      )}
 
       {!collapsed && <SidebarGame />}
     </aside>

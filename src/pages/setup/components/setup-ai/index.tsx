@@ -49,7 +49,7 @@ export function SetupAi() {
       <div className="flex items-start gap-2.5 rounded-md border border-border-subtle bg-surface/50 px-3 py-2.5">
         <Shield size={13} className="mt-0.5 shrink-0 text-fg-disabled" />
         <div className="flex flex-col gap-1 text-[11px] leading-relaxed text-fg-disabled">
-          <span>Stored locally at ~/.forge/openai.json</span>
+          <span>Stored locally at ~/.riva/openai.json</span>
           <span>Only task titles and statuses are sent — never code</span>
         </div>
       </div>

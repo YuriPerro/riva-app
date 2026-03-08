@@ -19,7 +19,7 @@ const GAME_CONFIG = {
   enemyDropY: 8,
   scorePerEnemy: 10,
   shootCooldownMs: 300,
-  saveKey: 'forge-game-save',
+  saveKey: 'riva-game-save',
 } as const satisfies GameConfig;
 
 const LEVELS: LevelConfig[] = [

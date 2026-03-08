@@ -5,7 +5,7 @@ import { Route } from '@/types/routes';
 import { SetupStep } from './types';
 import type { SetupStepConfig } from './types';
 
-export const ONBOARDING_STORAGE_KEY = 'forge_onboarding_complete';
+export const ONBOARDING_STORAGE_KEY = 'riva_onboarding_complete';
 
 const SETUP_STEPS: SetupStepConfig[] = [
   { step: SetupStep.Theme, title: 'Choose your theme', subtitle: 'Pick a visual style that feels right', icon: Palette },

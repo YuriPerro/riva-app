@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## What is Forge
+## What is Riva
 
 Desktop app for Azure DevOps — a fast, focused alternative to the browser UI. Built with Tauri 2.0 (Rust backend) + React 19 + TypeScript. See `docs/PLAN.md` for the full project plan, architecture diagrams, and roadmap.
 
@@ -45,7 +45,7 @@ invoke('command_name', { arg }) ← frontend
 Azure DevOps REST API (via reqwest)
 ```
 
-**Tauri config:** `src-tauri/tauri.conf.json` — window size, app identifier (`com.yuribaumgartner.forge`), bundle targets, and the dev/build URL hooks.
+**Tauri config:** `src-tauri/tauri.conf.json` — window size, app identifier (`com.yuribaumgartner.riva`), bundle targets, and the dev/build URL hooks.
 
 ### Planned Stack (not yet installed)
 
