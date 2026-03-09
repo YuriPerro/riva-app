@@ -1,4 +1,4 @@
-# Forge — Design System
+# Riva — Design System
 
 ## Decisions
 

@@ -104,6 +104,7 @@ QUALITY_ATTEMPT=0
 # STAGE 1 — SPEC
 # =============================================================================
 if should_run "SPEC"; then
+  CURRENT_STAGE="SPEC"
   STAGE_START=$SECONDS
   step "1 · Spec"
   log "Mapeando codebase..."
@@ -116,19 +117,19 @@ if should_run "SPEC"; then
     --allowedTools "Read,Glob,Grep" \
     --output-format text)
 
-  if echo "$DEEPENING_RESULT" | grep -q "PRECISA_CLARIFICACAO: sim"; then
+  if printf '%s' "$DEEPENING_RESULT" | grep -q "PRECISA_CLARIFICACAO: sim"; then
     echo ""
     gum style --foreground "$GUM_YELLOW" --border rounded --border-foreground "$GUM_YELLOW" --padding "1 2" \
       "Task precisa de mais informações:"
     echo ""
-    echo "$DEEPENING_RESULT" | grep -A 20 "PERGUNTAS:" | grep "^-" | sed 's/^- /  → /'
+    printf '%s\n' "$DEEPENING_RESULT" | grep -A 20 "PERGUNTAS:" | grep "^-" | sed 's/^- /  → /' || true
     echo ""
     gum style --foreground "$GUM_DIM" --italic "Responda as perguntas e rode novamente."
     clear_state
     exit 0
   fi
 
-  echo "$DEEPENING_RESULT" | sed 's/PRECISA_CLARIFICACAO: não//' | sed '/^$/d' > "$SPEC_FILE"
+  printf '%s\n' "$DEEPENING_RESULT" | sed 's/PRECISA_CLARIFICACAO: não//' | sed '/^$/d' > "$SPEC_FILE"
   success "Spec gerada ($(stage_duration $STAGE_START))"
 
   echo ""
@@ -167,6 +168,7 @@ SPEC_CONTENT=$(cat "$SPEC_FILE" 2>/dev/null || echo "$TASK_DESC")
 # STAGE 2 — IMPLEMENTATION + FIDELITY REVIEW
 # =============================================================================
 if should_run "IMPL"; then
+  CURRENT_STAGE="IMPL"
   step "2 · Implementação"
 
   if [ -z "$CODEBASE_CONTEXT" ]; then
@@ -205,7 +207,7 @@ if should_run "IMPL"; then
 
     REVIEW_PROMPT=$(prompt_review "$SPEC_CONTENT" "$FULL_DIFF")
     REVIEW_RESULT=$(run_claude "review-$IMPL_ATTEMPT" "$MODEL_REVIEW" -p "$REVIEW_PROMPT" --output-format text)
-    echo "$REVIEW_RESULT" > "$REVIEW_FILE"
+    printf '%s\n' "$REVIEW_RESULT" > "$REVIEW_FILE"
 
     show_result "$REVIEW_RESULT"
 
@@ -246,6 +248,7 @@ fi
 # STAGE 3 — TESTS
 # =============================================================================
 if should_run "TEST"; then
+  CURRENT_STAGE="TEST"
   step "3 · Testes"
   STAGE_START=$SECONDS
 
@@ -285,8 +288,10 @@ fi
 # STAGE 4 — QUALITY REVIEW
 # =============================================================================
 if should_run "QUALITY"; then
+  CURRENT_STAGE="QUALITY"
   step "4 · Quality Review"
 
+  set +e
   QUALITY_APPROVED=false
   PREVIOUS_QUALITY=""
   FINAL_DIFF=$(get_full_diff)
@@ -297,16 +302,21 @@ if should_run "QUALITY"; then
     log "Senior code review (tentativa $QUALITY_ATTEMPT)..."
 
     QUALITY_PROMPT=$(prompt_quality "$FINAL_DIFF" "$PREVIOUS_QUALITY")
-    QUALITY_RESULT=$(run_claude "quality-$QUALITY_ATTEMPT" "$MODEL_QUALITY" -p "$QUALITY_PROMPT" --output-format text)
-    echo "$QUALITY_RESULT" > "$QUALITY_FILE"
 
-    show_result "$QUALITY_RESULT"
+    if ! QUALITY_RESULT=$(run_claude "quality-$QUALITY_ATTEMPT" "$MODEL_QUALITY" -p "$QUALITY_PROMPT" --output-format text); then
+      warn "Claude falhou no quality review. Pulando."
+      break
+    fi
+
+    printf '%s\n' "$QUALITY_RESULT" > "$QUALITY_FILE" 2>/dev/null || true
+
+    show_result "$QUALITY_RESULT" || true
 
     if is_approved "$QUALITY_RESULT"; then
       success "Quality review: APROVADO ($(stage_duration $STAGE_START))"
       QUALITY_APPROVED=true
     else
-      QUALITY_ACTION=$(ask_review_action "Quality review")
+      QUALITY_ACTION=$(ask_review_action "Quality review") || QUALITY_ACTION="i"
 
       case "$QUALITY_ACTION" in
         c)
@@ -315,7 +325,7 @@ if should_run "QUALITY"; then
           run_claude "quality-fix-$QUALITY_ATTEMPT" "$MODEL_FIX" \
             -p "$QUALITY_FIX_PROMPT" \
             --allowedTools "Read,Write,Edit,MultiEdit,Bash,Glob,Grep" \
-            --output-format text > /dev/null
+            --output-format text > /dev/null || true
           FINAL_DIFF=$(get_full_diff)
           ;;
         i)
@@ -337,6 +347,8 @@ if should_run "QUALITY"; then
     fi
   done
 
+  set -e
+
   if [ "$QUALITY_APPROVED" = false ]; then
     warn "Quality review não aprovado após $MAX_QUALITY_RETRIES tentativas. Prosseguindo."
   fi
@@ -348,6 +360,7 @@ fi
 # STAGE 5 — COMMIT
 # =============================================================================
 if should_run "COMMIT"; then
+  CURRENT_STAGE="COMMIT"
   step "5 · Commit"
 
   if [ "$AUTO_COMMIT" = false ]; then
@@ -385,6 +398,7 @@ fi
 # =============================================================================
 # SUMMARY
 # =============================================================================
+CURRENT_STAGE="DONE"
 write_summary "$IMPL_ATTEMPT" "$QUALITY_ATTEMPT"
 
 echo ""

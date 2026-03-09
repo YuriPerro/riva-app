@@ -1,4 +1,4 @@
-# Forge — Project Plan
+# Riva — Project Plan
 
 > **Tagline:** *Your Azure DevOps. Without the noise.*
 

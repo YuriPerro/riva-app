@@ -1,4 +1,4 @@
-# Forge — Feature Roadmap
+# Riva — Feature Roadmap
 
 > Priorizado por impacto no dia a dia do dev.
 > Atualizado: 2026-03-05
@@ -7,7 +7,7 @@
 
 ## Estado Atual
 
-O Forge hoje funciona como **dashboard read-only** do Azure DevOps:
+O Riva hoje funciona como **dashboard read-only** do Azure DevOps:
 - Dashboard com work items + pipelines + sprint info
 - My Work (items atribuidos, agrupados por status)
 - Pull Requests (listagem com filtros)
@@ -23,7 +23,7 @@ O Forge hoje funciona como **dashboard read-only** do Azure DevOps:
 > Coisas que o dev faz 5-10x por dia e hoje precisa abrir o browser.
 
 ### 1.1 Quick Status Update ✅
-- [x] Mudar estado do work item direto no Forge (ex: "In Progress" → "Ready for Review")
+- [x] Mudar estado do work item direto no Riva (ex: "In Progress" → "Ready for Review")
 - [x] Dropdown no detail dialog com os estados válidos pro tipo
 - [x] Feedback visual de sucesso/erro (toast centralizado)
 - [x] Rust: `PATCH /wit/workitems/{id}` com JSON Patch
@@ -47,8 +47,8 @@ O Forge hoje funciona como **dashboard read-only** do Azure DevOps:
 - **Impacto:** Alto — dev para de checar email/browser pra ver status
 
 ### 1.4 PR Review Actions ✅
-- [x] Aprovar PR direto do Forge
-- [x] Rejeitar PR direto do Forge
+- [x] Aprovar PR direto do Riva
+- [x] Rejeitar PR direto do Riva
 - [x] Rust: `PUT /git/repositories/{repo}/pullrequests/{id}/reviewers/{userId}`
 - [x] Reviewer tooltips com nome completo + status do voto
 - [ ] Request changes com comentário (stretch)
@@ -87,7 +87,7 @@ O Forge hoje funciona como **dashboard read-only** do Azure DevOps:
 
 ## Fase 3 — Power User Features
 
-> Polish e features pra quem vive no Forge.
+> Polish e features pra quem vive no Riva.
 
 ### 3.1 Global Search (⌘K)
 - [ ] Command palette style (⌘K)

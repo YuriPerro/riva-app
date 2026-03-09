@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -Eeuo pipefail
 
 GUM_GREEN="#22c55e"
 GUM_RED="#ef4444"
@@ -192,7 +192,19 @@ stop_spinner() {
   fi
 }
 
-trap 'stop_spinner' EXIT
+CURRENT_STAGE=""
+
+cleanup_on_exit() {
+  local exit_code=$?
+  stop_spinner
+  if [ $exit_code -ne 0 ] && [ -n "$CURRENT_STAGE" ] && [ "$CURRENT_STAGE" != "DONE" ]; then
+    echo "" >&2
+    warn "Pipeline interrompido na etapa $CURRENT_STAGE. Retome com: --from $(echo "$CURRENT_STAGE" | tr '[:upper:]' '[:lower:]')"
+  fi
+}
+
+trap 'cleanup_on_exit' EXIT
+trap 'exit 130' INT TERM
 
 run_claude() {
   local label="$1"; shift
@@ -221,7 +233,7 @@ run_claude() {
   local elapsed=$((SECONDS - call_start))
   printf "\033[1m  ✓ %s → %s (%s)\033[0m\n" "$agent_name" "$label" "$(format_elapsed $elapsed)" >&2
 
-  echo "$output"
+  printf '%s' "$output"
 }
 
 get_full_diff() {
@@ -233,7 +245,7 @@ get_full_diff() {
 }
 
 is_approved() {
-  echo "$1" | grep -q "RESULTADO: APROVADO"
+  printf '%s' "$1" | grep -q "RESULTADO: APROVADO"
 }
 
 save_state() { echo "$1" > "$STATE_FILE"; }
@@ -274,23 +286,23 @@ ask_confirm() {
 render_md() {
   local content="$1"
   if command -v glow &>/dev/null; then
-    echo "$content" | glow -s dark -w 80 -
+    printf '%s\n' "$content" | glow -s dark -w 80 - 2>/dev/null || printf '%s\n' "$content"
   else
-    echo "$content" | gum format
+    printf '%s\n' "$content" | gum format 2>/dev/null || printf '%s\n' "$content"
   fi
 }
 
 show_result() {
   local content="$1"
   echo ""
-  if echo "$content" | grep -q "RESULTADO: APROVADO"; then
+  if printf '%s' "$content" | grep -q "RESULTADO: APROVADO"; then
     gum style --foreground "$GUM_GREEN" --bold "  ● APROVADO"
   else
     gum style --foreground "$GUM_RED" --bold "  ● REPROVADO"
   fi
   echo ""
   local body
-  body=$(echo "$content" | grep -v "^RESULTADO:")
+  body=$(printf '%s\n' "$content" | grep -v "^RESULTADO:" || true)
   render_md "$body"
   echo ""
 }
