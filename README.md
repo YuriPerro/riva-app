@@ -73,7 +73,7 @@
 ### Install
 
 ```bash
-git clone https://github.com/YuriPerro/forge.git riva
+git clone https://github.com/YuriPerro/riva-app.git
 cd riva
 bun install
 ```
