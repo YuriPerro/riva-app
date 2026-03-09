@@ -1,9 +1,11 @@
 import { Outlet, useLocation } from 'react-router-dom';
+import { useGlobalShortcuts } from '@/hooks/use-global-shortcuts';
+import { useAzureNotificationPolling } from '@/hooks/use-azure-notification-polling';
 import { Sidebar } from './sidebar';
-import { useAzureNotificationPolling } from '../../hooks/use-azure-notification-polling';
 
 export function AppLayout() {
   const location = useLocation();
+  useGlobalShortcuts();
   useAzureNotificationPolling();
 
   return (
