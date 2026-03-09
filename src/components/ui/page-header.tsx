@@ -1,8 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TeamSwitcher } from '@/components/layout/team-switcher';
+
+function formatSyncTime(timestamp: number): string {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 5) return 'just now';
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}m ago`;
+}
 
 export function PageHeader({
   title,
@@ -15,13 +23,32 @@ export function PageHeader({
 }) {
   const queryClient = useQueryClient();
   const [spinning, setSpinning] = useState(false);
+  const [lastSync, setLastSync] = useState(Date.now);
+  const [, setTick] = useState(0);
 
-  const handleRefresh = () => {
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 10_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      const isUpdateEvent = event.type === 'updated';
+      const isSuccessEventType = isUpdateEvent && event.action.type === 'success';
+      const isDashboardQuery = event.query.queryKey[0] === 'dashboard';
+
+      if (isUpdateEvent && isSuccessEventType && isDashboardQuery) setLastSync(Date.now());
+    });
+    return unsubscribe;
+  }, [queryClient]);
+
+  const handleRefresh = useCallback(() => {
     if (spinning) return;
     setSpinning(true);
+    setLastSync(Date.now());
     queryClient.invalidateQueries();
     setTimeout(() => setSpinning(false), 800);
-  };
+  }, [spinning, queryClient]);
 
   return (
     <div className="flex items-center justify-between pb-2">
@@ -37,6 +64,7 @@ export function PageHeader({
         >
           <RefreshCw size={13} className={cn(spinning && 'animate-spin')} />
         </button>
+        <span className="text-[10px] text-fg-disabled">{formatSyncTime(lastSync)}</span>
       </div>
 
       <div className="flex items-center gap-3">

@@ -414,6 +414,22 @@ const isEmpty = !standup || !hasActivity(standup);
 
 When a condition checks 3+ properties, extract it. Name the variables so the logic is obvious without reading the implementation.
 
+**Event/callback conditionals** — same rule applies inside subscribers and callbacks. Break chained checks into named booleans that build on each other:
+
+```typescript
+// ❌ Wrong — chained inline checks
+if (event.type === 'updated' && event.action.type === 'success' && event.query.queryKey[0] === 'dashboard') {
+  setLastSync(Date.now());
+}
+
+// ✅ Correct — progressive named booleans
+const isUpdateEvent = event.type === 'updated';
+const isSuccessEvent = isUpdateEvent && event.action.type === 'success';
+const isDashboardQuery = event.query.queryKey[0] === 'dashboard';
+
+if (isSuccessEvent && isDashboardQuery) setLastSync(Date.now());
+```
+
 ---
 
 ### Naming Conventions
