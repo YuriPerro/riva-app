@@ -129,7 +129,8 @@ export const useDashboard = (): DashboardData => {
   const enabled = !!project && !!team;
 
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<number | null>(null);
-  const [standupPeriod, setStandupPeriod] = useState<number>(1);
+  const isMondayToday = dayjs().day() === 1;
+  const [standupPeriod, setStandupPeriod] = useState<number>(isMondayToday ? 3 : 1);
   const [standupOpen, setStandupOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery({

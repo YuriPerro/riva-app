@@ -1,5 +1,6 @@
 import { FlameIcon } from '@/components/ui/flame';
 import { SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { dayCircleClass } from '@/utils/streak';
 import type { StreakSectionProps } from './types';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -7,7 +8,7 @@ const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export function StreakSection(props: StreakSectionProps) {
   const { data } = props;
 
-  const activeDaysCount = data.weekDays.filter(Boolean).length;
+  const activeWorkdaysCount = data.weekDays.slice(0, 5).filter(Boolean).length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -39,12 +40,12 @@ export function StreakSection(props: StreakSectionProps) {
           <div className="flex items-center gap-3">
             {data.weekDays.map((active, i) => (
               <div key={i} className="flex flex-col items-center gap-1.5">
-                <div className={`h-3 w-3 rounded-full ${active ? 'bg-accent' : 'bg-border'}`} />
+                <div className={`h-3 w-3 rounded-full ${dayCircleClass(i, active)}`} />
                 <span className={`text-[11px] ${active ? 'font-medium text-fg' : 'text-fg-disabled'}`}>{DAY_NAMES[i]}</span>
               </div>
             ))}
           </div>
-          <div className="mt-2 text-[11px] text-fg-muted">{activeDaysCount}/7 active days this week</div>
+          <div className="mt-2 text-[11px] text-fg-muted">{activeWorkdaysCount}/5 active workdays this week</div>
         </div>
 
         {data.streak >= 7 && (

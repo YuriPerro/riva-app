@@ -1,5 +1,6 @@
 import { Info } from 'lucide-react';
 import { FlameIcon } from '@/components/ui/flame';
+import { dayCircleClass } from '@/utils/streak';
 import type { StreakCardProps } from './types';
 
 export function StreakCard(props: StreakCardProps) {
@@ -31,7 +32,7 @@ export function StreakCard(props: StreakCardProps) {
           <div className="flex items-center gap-1.5">
             {data.weekDays.map((active, i) => (
               <div key={i} className="flex flex-col items-center gap-1">
-                <div className={`h-2 w-2 rounded-full ${active ? 'bg-accent' : 'bg-border'}`} />
+                <div className={`h-2 w-2 rounded-full ${dayCircleClass(i, active)}`} />
                 <span className="text-[9px] text-fg-disabled">{dayLabels[i]}</span>
               </div>
             ))}

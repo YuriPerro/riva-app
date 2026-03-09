@@ -1,18 +1,27 @@
+import { useMemo } from 'react';
 import { ChevronDown } from 'lucide-react';
+import dayjs from 'dayjs';
 import { cn } from '@/lib/utils';
 import { usePeriodSelector } from './use-period-selector';
 import type { PeriodSelectorProps } from './types';
 
-const PERIODS = [
+const WEEKDAY_PERIODS = [
   { value: 1, label: 'Yesterday' },
   { value: 2, label: 'Last 2 days' },
   { value: 3, label: 'Last 3 days' },
 ];
 
+const MONDAY_PERIODS = [
+  { value: 3, label: 'Last Friday' },
+  { value: 4, label: 'Last 4 days' },
+  { value: 5, label: 'Last 5 days' },
+];
+
 export function PeriodSelector(props: PeriodSelectorProps) {
   const { value, onChange } = props;
   const { ref, open, toggle, select } = usePeriodSelector(onChange);
-  const current = PERIODS.find((p) => p.value === value) ?? PERIODS[0];
+  const periods = useMemo(() => (dayjs().day() === 1 ? MONDAY_PERIODS : WEEKDAY_PERIODS), []);
+  const current = periods.find((p) => p.value === value) ?? periods[0];
 
   return (
     <div ref={ref} className="relative">
@@ -25,7 +34,7 @@ export function PeriodSelector(props: PeriodSelectorProps) {
       </button>
       {open && (
         <div className="absolute right-0 top-full z-10 mt-1 min-w-[120px] rounded-md border border-border bg-overlay p-1 shadow-lg">
-          {PERIODS.map((p) => (
+          {periods.map((p) => (
             <button
               key={p.value}
               onClick={() => select(p.value)}

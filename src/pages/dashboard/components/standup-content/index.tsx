@@ -6,7 +6,7 @@ import { TypeIcon } from '../standup-type-icon';
 import type { StandupContentProps } from './types';
 
 export function StandupContent(props: StandupContentProps) {
-  const { isLoading, isEmpty, standup, yesterdayGroups, todayGroups, hasTodayContent } = props;
+  const { isLoading, isEmpty, standup, pastLabel, yesterdayGroups, todayGroups, hasTodayContent } = props;
 
   if (isLoading) {
     return (
@@ -34,7 +34,7 @@ export function StandupContent(props: StandupContentProps) {
 
   return (
     <div className="flex flex-col gap-5">
-      <StandupSection label="Yesterday" color="text-info" empty={yesterdayGroups.length === 0}>
+      <StandupSection label={pastLabel} color="text-info" empty={yesterdayGroups.length === 0}>
         {yesterdayGroups.map((group) => (
           <TransitionGroupView key={group.toState} group={group} />
         ))}

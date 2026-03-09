@@ -8,7 +8,7 @@ import type { StandupDialogProps } from './types';
 
 export function StandupDialog(props: StandupDialogProps) {
   const { open, onOpenChange, standup, isLoading, period, onPeriodChange } = props;
-  const { copied, isEmpty, yesterdayGroups, todayGroups, hasTodayContent, clipboardText, handleCopy } =
+  const { copied, isEmpty, pastLabel, yesterdayGroups, todayGroups, hasTodayContent, clipboardText, handleCopy } =
     useStandupDialog(standup);
 
   return (
@@ -39,6 +39,7 @@ export function StandupDialog(props: StandupDialogProps) {
             isLoading={isLoading}
             isEmpty={isEmpty}
             standup={standup}
+            pastLabel={pastLabel}
             yesterdayGroups={yesterdayGroups}
             todayGroups={todayGroups}
             hasTodayContent={hasTodayContent}

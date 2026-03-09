@@ -12,6 +12,12 @@ function isToday(isoDate: string): boolean {
   return dayjs(isoDate).isToday();
 }
 
+function getPastLabel(): string {
+  const today = dayjs().day();
+  if (today === 1) return 'Last Friday';
+  return 'Yesterday';
+}
+
 function groupTransitions(transitions: StandupTransition[]): TransitionGroup[] {
   const map = new Map<string, StandupTransition[]>();
   for (const t of transitions) {
@@ -53,7 +59,7 @@ function formatForClipboard(standup: StandupData): string {
   const todayTransitions = standup.transitions.filter((t) => isToday(t.changedDate));
 
   if (past.length > 0) {
-    lines.push('**Yesterday**');
+    lines.push(`**${getPastLabel()}**`);
     for (const group of groupTransitions(past)) {
       const prefix = group.isDone ? '✓' : '→';
       lines.push(`${prefix} ${group.toState} (${group.items.length})`);
@@ -107,6 +113,8 @@ export function useStandupDialog(standup: StandupData | null) {
 
   const isEmpty = !standup || !hasActivity(standup);
 
+  const pastLabel = getPastLabel();
+
   const { yesterdayGroups, todayGroups } = useMemo(() => {
     if (!standup) return { yesterdayGroups: [], todayGroups: [] };
     const past = standup.transitions.filter((t) => !isToday(t.changedDate));
@@ -136,6 +144,7 @@ export function useStandupDialog(standup: StandupData | null) {
   return {
     copied,
     isEmpty,
+    pastLabel,
     yesterdayGroups,
     todayGroups,
     hasTodayContent,
