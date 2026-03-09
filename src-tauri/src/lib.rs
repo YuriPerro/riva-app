@@ -256,6 +256,16 @@ async fn get_work_item_summaries(
 }
 
 #[tauri::command]
+async fn get_pbi_ids_with_children(
+    state: State<'_, AppState>,
+    project: String,
+    pbi_ids: Vec<u64>,
+) -> Result<Vec<u64>, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::get_pbi_ids_with_children(&org_url, &pat, &project, pbi_ids).await
+}
+
+#[tauri::command]
 async fn get_my_unique_name(state: State<'_, AppState>) -> Result<String, String> {
     let (org_url, pat) = session_creds(&state)?;
     azure::get_my_unique_name(&org_url, &pat).await
@@ -373,6 +383,7 @@ pub fn run() {
             review_pull_request,
             get_standup_data,
             get_work_item_summaries,
+            get_pbi_ids_with_children,
             get_my_unique_name,
             get_release_definitions,
             get_releases,

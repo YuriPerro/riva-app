@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { azure } from '@/lib/tauri';
-import type { PullRequest as ApiPullRequest, RelatedWorkItem } from '@/types/azure';
+import type { PullRequest as ApiPullRequest } from '@/types/azure';
 import { Route } from '@/types/routes';
 import { useSessionStore } from '@/store/session';
 import {
@@ -69,14 +69,19 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
     : null;
 
   const parentIds = rawItems.map((w) => w.fields['System.Parent']).filter((id): id is number => id != null);
-
   const uniqueParentIds = [...new Set(parentIds)];
 
-  let parentMap = new Map<number, RelatedWorkItem>();
-  if (uniqueParentIds.length > 0) {
-    const parentSummaries = await azure.getWorkItemSummaries(project, uniqueParentIds);
-    parentMap = new Map(parentSummaries.map((s) => [s.id, s]));
-  }
+  const pbiRawIds = rawItems
+    .filter((w) => mapWorkItemType(w.fields['System.WorkItemType']) === 'pbi')
+    .map((w) => w.id);
+
+  const [parentSummaries, pbiIdsWithChildrenRaw] = await Promise.all([
+    uniqueParentIds.length > 0 ? azure.getWorkItemSummaries(project, uniqueParentIds) : Promise.resolve([]),
+    pbiRawIds.length > 0 ? azure.getPbiIdsWithChildren(project, pbiRawIds) : Promise.resolve([]),
+  ]);
+
+  const parentMap = new Map(parentSummaries.map((s) => [s.id, s]));
+  const pbiIdsWithChildren = new Set(pbiIdsWithChildrenRaw);
 
   const workItems: WorkItem[] = rawItems.map((w) => {
     const parentId = w.fields['System.Parent'] ?? null;
@@ -96,6 +101,10 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
     };
   });
 
+  const filteredWorkItems = workItems.filter(
+    (w) => w.type !== 'pbi' || !pbiIdsWithChildren.has(w.id),
+  );
+
   const pipelines: Pipeline[] = rawPipelines.map((p) => ({
     id: p.id,
     name: p.definition.name,
@@ -109,7 +118,7 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
 
   const pullRequests: DashboardPR[] = rawPRs.map(mapPullRequest);
 
-  return { sprint, workItems, pipelines, pullRequests };
+  return { sprint, workItems: filteredWorkItems, pipelines, pullRequests };
 }
 
 export const useDashboard = (): DashboardData => {
@@ -129,8 +138,7 @@ export const useDashboard = (): DashboardData => {
   const enabled = !!project && !!team;
 
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<number | null>(null);
-  const isMondayToday = dayjs().day() === 1;
-  const [standupPeriod, setStandupPeriod] = useState<number>(isMondayToday ? 3 : 1);
+  const [standupPeriod, setStandupPeriod] = useState<number>(() => (dayjs().day() === 1 ? 3 : 1));
   const [standupOpen, setStandupOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery({

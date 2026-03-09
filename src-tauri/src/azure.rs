@@ -1982,3 +1982,54 @@ pub async fn get_work_item_recent_comments(
     Ok(results)
 }
 
+pub async fn get_pbi_ids_with_children(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    pbi_ids: Vec<u64>,
+) -> Result<Vec<u64>, String> {
+    if pbi_ids.is_empty() {
+        return Ok(vec![]);
+    }
+
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let enc_project = encode_path_segment(project);
+
+    let wiql_url = format!(
+        "{}/{}/_apis/wit/wiql?api-version=7.1&$top=1",
+        base, enc_project
+    );
+
+    let checks: Vec<_> = pbi_ids
+        .iter()
+        .map(|&pbi_id| {
+            let client = &client;
+            let url = &wiql_url;
+            async move {
+                let query = format!(
+                    "SELECT [System.Id] FROM WorkItems \
+                     WHERE [System.TeamProject] = @project \
+                     AND [System.Parent] = {}",
+                    pbi_id
+                );
+                let wiql = serde_json::json!({ "query": query });
+                let resp = match client.post(url).json(&wiql).send().await {
+                    Ok(r) if r.status().is_success() => r,
+                    _ => return None,
+                };
+                let has_children = resp
+                    .json::<WiqlResponse>()
+                    .await
+                    .map(|w| !w.work_items.is_empty())
+                    .unwrap_or(false);
+
+                if has_children { Some(pbi_id) } else { None }
+            }
+        })
+        .collect();
+
+    let results = futures::future::join_all(checks).await;
+    Ok(results.into_iter().flatten().collect())
+}
+

@@ -62,6 +62,9 @@ export const azure = {
   getWorkItemSummaries: (project: string, ids: number[]) =>
     invoke<RelatedWorkItem[]>(TauriCommand.GetWorkItemSummaries, { project, ids }),
 
+  getPbiIdsWithChildren: (project: string, pbiIds: number[]) =>
+    invoke<number[]>(TauriCommand.GetPbiIdsWithChildren, { project, pbiIds }),
+
   getMyUniqueName: () => invoke<string>(TauriCommand.GetMyUniqueName),
 
   getReleaseDefinitions: (project: string) =>
