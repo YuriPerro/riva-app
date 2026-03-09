@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { SetupStep } from './types';
 import { useSetup } from './use-setup';
+import { SetupLanguage } from './components/setup-language';
 import { SetupTheme } from './components/setup-theme';
 import { SetupAi } from './components/setup-ai';
 import { SetupNotifications } from './components/setup-notifications';
@@ -39,6 +40,7 @@ export function SetupPage() {
         </div>
 
         <div className="mb-8">
+          {currentStep === SetupStep.Language && <SetupLanguage />}
           {currentStep === SetupStep.Theme && <SetupTheme />}
           {currentStep === SetupStep.Ai && <SetupAi />}
           {currentStep === SetupStep.Notifications && <SetupNotifications />}

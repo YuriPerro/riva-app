@@ -1,5 +1,9 @@
 {
   "steps": {
+    "language": {
+      "title": "Escolha seu idioma",
+      "subtitle": "Você pode alterar depois nas configurações"
+    },
     "theme": {
       "title": "Escolha seu tema",
       "subtitle": "Escolha um estilo visual que combine com você"

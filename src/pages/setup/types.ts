@@ -1,9 +1,10 @@
 import type { ElementType } from 'react';
 
 export enum SetupStep {
-  Theme = 0,
-  Ai = 1,
-  Notifications = 2,
+  Language = 0,
+  Theme = 1,
+  Ai = 2,
+  Notifications = 3,
 }
 
 export type SetupStepConfig = {

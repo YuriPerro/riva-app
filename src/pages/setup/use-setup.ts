@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Palette, Sparkles, Bell } from 'lucide-react';
+import { Languages, Palette, Sparkles, Bell } from 'lucide-react';
 import { Route } from '@/types/routes';
 import { SetupStep } from './types';
 import type { SetupStepConfig } from './types';
@@ -9,6 +9,7 @@ import type { SetupStepConfig } from './types';
 export const ONBOARDING_STORAGE_KEY = 'riva_onboarding_complete';
 
 const STEP_ICONS = {
+  [SetupStep.Language]: Languages,
   [SetupStep.Theme]: Palette,
   [SetupStep.Ai]: Sparkles,
   [SetupStep.Notifications]: Bell,
@@ -24,9 +25,10 @@ function markOnboardingComplete() {
 export function useSetup() {
   const { t } = useTranslation('setup');
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(SetupStep.Theme);
+  const [currentStep, setCurrentStep] = useState(SetupStep.Language);
 
   const setupSteps: SetupStepConfig[] = useMemo(() => [
+    { step: SetupStep.Language, title: t('steps.language.title'), subtitle: t('steps.language.subtitle'), icon: STEP_ICONS[SetupStep.Language] },
     { step: SetupStep.Theme, title: t('steps.theme.title'), subtitle: t('steps.theme.subtitle'), icon: STEP_ICONS[SetupStep.Theme] },
     { step: SetupStep.Ai, title: t('steps.ai.title'), subtitle: t('steps.ai.subtitle'), icon: STEP_ICONS[SetupStep.Ai] },
     { step: SetupStep.Notifications, title: t('steps.notifications.title'), subtitle: t('steps.notifications.subtitle'), icon: STEP_ICONS[SetupStep.Notifications] },

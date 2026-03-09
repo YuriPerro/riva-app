@@ -12,6 +12,8 @@ import { PipelinesList } from './components/pipelines-list';
 import { WorkItemDetailDialog } from './components/work-item-detail';
 import { FocusScore } from './components/focus-score';
 import { StandupDialog } from './components/standup-dialog';
+import { useEffect } from 'react';
+import { ONBOARDING_STORAGE_KEY } from '../setup/use-setup';
 
 export function DashboardPage() {
   const {
@@ -33,6 +35,10 @@ export function DashboardPage() {
     setStandupOpen,
   } = useDashboard();
   const { t } = useTranslation('dashboard');
+
+  useEffect(() => {
+    localStorage.removeItem(ONBOARDING_STORAGE_KEY);
+  }, []);
 
   return (
     <PageTransition
