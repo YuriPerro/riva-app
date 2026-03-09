@@ -1,0 +1,27 @@
+{
+  "title": "Pull Requests",
+  "loading": {
+    "title": "Carregando Pull Requests",
+    "phrases": [
+      "Carregando opiniões não solicitadas...",
+      "Farming de LGTM em andamento...",
+      "Buscando comentários passivo-agressivos...",
+      "Contando conflitos de merge...",
+      "Revisando sua PR de 2000 linhas..."
+    ]
+  },
+  "subtitle_one": "{{count}} pull request ativa",
+  "subtitle_other": "{{count}} pull requests ativas",
+  "searchPlaceholder": "Buscar pull requests...",
+  "sort": {
+    "relevance": "Relevância",
+    "newest": "Mais recente",
+    "oldest": "Mais antigo",
+    "title": "Título (A-Z)"
+  },
+  "filterPlaceholder": "Repo",
+  "noResults": "Nenhuma pull request encontrada",
+  "errors": {
+    "failedToLoad": "Falha ao carregar pull requests"
+  }
+}

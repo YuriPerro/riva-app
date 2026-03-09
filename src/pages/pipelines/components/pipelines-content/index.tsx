@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { AlertCircle, Zap } from 'lucide-react';
 import { PipelineGroupCard } from '../pipeline-group-card';
 import type { PipelinesContentProps } from './types';
 
 export function PipelinesContent(props: PipelinesContentProps) {
   const { error, groups, toggleFavorite, openRun } = props;
+  const { t } = useTranslation('pipelines');
 
   if (error) {
     return (
@@ -18,7 +20,7 @@ export function PipelinesContent(props: PipelinesContentProps) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2">
         <Zap size={24} className="text-fg-disabled" />
-        <span className="text-[13px] text-fg-disabled">No pipeline definitions found</span>
+        <span className="text-[13px] text-fg-disabled">{t('noResults')}</span>
       </div>
     );
   }

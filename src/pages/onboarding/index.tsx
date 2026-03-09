@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, ExternalLink, Loader2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useOnboarding } from './use-onboarding';
 
 export function OnboardingPage() {
+  const { t } = useTranslation(['onboarding', 'common']);
   const { form, isConnecting, showToken, toggleShowToken, onSubmit } = useOnboarding();
 
   const {
@@ -21,9 +23,9 @@ export function OnboardingPage() {
             <Zap size={18} className="text-fg" />
           </div>
           <div className="text-center">
-            <h1 className="text-[15px] font-semibold text-fg">Connect to Azure DevOps</h1>
+            <h1 className="text-[15px] font-semibold text-fg">{t('onboarding:title')}</h1>
             <p className="mt-1 text-[13px] text-fg-muted">
-              Enter your organization URL and a Personal Access Token to get started.
+              {t('onboarding:subtitle')}
             </p>
           </div>
         </div>
@@ -31,11 +33,11 @@ export function OnboardingPage() {
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="organizationUrl" className="text-[12px] text-fg-secondary">
-              Organization URL
+              {t('onboarding:form.organizationUrl')}
             </Label>
             <Input
               id="organizationUrl"
-              placeholder="https://dev.azure.com/your-org"
+              placeholder={t('onboarding:form.organizationUrlPlaceholder')}
               autoComplete="off"
               autoCapitalize="off"
               spellCheck={false}
@@ -53,7 +55,7 @@ export function OnboardingPage() {
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="personalAccessToken" className="text-[12px] text-fg-secondary">
-                Personal Access Token
+                {t('onboarding:form.personalAccessToken')}
               </Label>
               <a
                 href="https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate"
@@ -61,7 +63,7 @@ export function OnboardingPage() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-[11px] text-fg-muted transition-colors hover:text-fg-secondary"
               >
-                How to create
+                {t('onboarding:form.howToCreate')}
                 <ExternalLink size={10} />
               </a>
             </div>
@@ -104,16 +106,16 @@ export function OnboardingPage() {
             {isConnecting ? (
               <span className="flex items-center gap-2">
                 <Loader2 size={13} className="animate-spin" />
-                Connecting...
+                {t('common:actions.connecting')}
               </span>
             ) : (
-              'Connect'
+              t('common:actions.connect')
             )}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-[11px] text-fg-disabled">
-          Your PAT is stored locally and never leaves your device.
+          {t('onboarding:securityNotice')}
         </p>
       </div>
     </div>

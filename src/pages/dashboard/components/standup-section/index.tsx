@@ -1,9 +1,11 @@
 import { Circle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import type { StandupSectionProps } from './types';
 
 export function StandupSection(props: StandupSectionProps) {
   const { label, color, children, empty } = props;
+  const { t } = useTranslation('common');
 
   return (
     <div className="flex flex-col gap-2">
@@ -12,7 +14,7 @@ export function StandupSection(props: StandupSectionProps) {
         <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">{label}</span>
       </div>
       {empty ? (
-        <span className="pl-4 text-[12px] text-fg-disabled">No activity</span>
+        <span className="pl-4 text-[12px] text-fg-disabled">{t('labels.noActivity')}</span>
       ) : (
         <div className="flex flex-col gap-3 pl-4">{children}</div>
       )}

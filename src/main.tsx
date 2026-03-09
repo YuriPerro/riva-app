@@ -6,13 +6,14 @@ import { Toaster, toast } from 'sonner';
 import { TooltipProvider } from '@/components/animate-ui/components/animate/tooltip';
 import { AppRoutes } from './routes';
 import { themeManager } from '@/lib/theme-manager';
+import i18n from '@/lib/i18n';
 import './styles/globals.css';
 import '@/lib/dayjs';
 
 themeManager.init();
 
 function handleGlobalError(err: unknown) {
-  toast.error(typeof err === 'string' ? err : 'Something went wrong');
+  toast.error(typeof err === 'string' ? err : i18n.t('errors.somethingWentWrong'));
 }
 
 const queryClient = new QueryClient({

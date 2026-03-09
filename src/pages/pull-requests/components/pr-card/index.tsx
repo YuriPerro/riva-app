@@ -1,5 +1,6 @@
 import { GitPullRequest, GitBranch, CircleCheck, CircleX, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TimeAgo } from '@/components/ui/time-ago';
 import { ReviewerDot } from '../reviewer-dot';
 import type { PRCardProps } from './types';
 
@@ -104,7 +105,7 @@ export function PRCard(props: PRCardProps) {
             {hasRejection ? `${rejected} rejected` : `${approved}/${pr.reviewers.length} approved`}
           </span>
 
-          <span className="shrink-0 text-[11px] text-fg-disabled">{pr.createdAgo}</span>
+          <TimeAgo date={pr.createdDate} className="shrink-0 text-[11px] text-fg-disabled" />
         </div>
       </div>
     </div>

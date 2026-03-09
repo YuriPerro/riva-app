@@ -1,0 +1,51 @@
+{
+  "title": "Settings",
+  "subtitle": "Manage your account and preferences",
+  "project": {
+    "title": "Project",
+    "currentlyWorkingOn": "Currently working on",
+    "noProjectSelected": "No project selected"
+  },
+  "ai": {
+    "title": "AI",
+    "description": "Generate natural-language standup summaries with AI",
+    "keySaved": "API key saved. AI summaries are ready.",
+    "keyStoredLocally": "Your key is stored locally at ~/.riva/openai.json",
+    "onlyTitlesSent": "Only task titles, statuses, and PR titles are sent — never code or descriptions",
+    "noDataCached": "No data is cached or stored after generation"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Get notified about PR reviews, pipeline failures, and work item mentions",
+    "pollingInterval": "Polling interval",
+    "prReviews": "PR reviews",
+    "prReviewsDescription": "Approved or rejected",
+    "pipelineFailed": "Pipeline failed",
+    "pipelineFailedDescription": "Build or release failures",
+    "mentions": "Mentions",
+    "mentionsDescription": "Tagged in work items"
+  },
+  "language": {
+    "title": "Language",
+    "description": "Choose the display language for the app",
+    "en": "English",
+    "pt-BR": "Português (BR)"
+  },
+  "theme": {
+    "title": "Theme",
+    "description": "Choose a visual preset for the app"
+  },
+  "signOut": {
+    "title": "Sign out",
+    "description": "Clear your credentials and return to the login screen",
+    "confirmTitle": "Sign out of Riva?",
+    "confirmDescription": "Your stored credentials will be removed. You'll need to enter your organization URL and personal access token again to sign back in."
+  },
+  "sunburnDialog": {
+    "title": "WAIT!",
+    "description": "You really wanna do this?",
+    "warning": "If yes, prepare your sunglasses",
+    "cancel": "Nah, I'm good",
+    "confirm": "Bring the light!"
+  }
+}

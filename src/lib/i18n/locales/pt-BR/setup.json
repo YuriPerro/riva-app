@@ -1,0 +1,36 @@
+{
+  "steps": {
+    "theme": {
+      "title": "Escolha seu tema",
+      "subtitle": "Escolha um estilo visual que combine com você"
+    },
+    "ai": {
+      "title": "Resumos com IA",
+      "subtitle": "Gere resumos de standup com OpenAI"
+    },
+    "notifications": {
+      "title": "Notificações",
+      "subtitle": "Fique por dentro do que importa"
+    }
+  },
+  "actions": {
+    "skip": "Pular",
+    "continue": "Continuar",
+    "getStarted": "Começar",
+    "skipAll": "Pular tudo e ir para o painel"
+  },
+  "ai": {
+    "keySaved": "Chave da API salva. Resumos com IA estão prontos.",
+    "storedLocally": "Armazenado localmente em ~/.riva/openai.json",
+    "onlyTitlesSent": "Apenas títulos de tarefas e status são enviados — nunca código"
+  },
+  "notifications": {
+    "checkForUpdates": "Verificar atualizações a cada",
+    "prReviews": "Revisões de PR",
+    "prReviewsDescription": "Quando sua PR é aprovada ou rejeitada",
+    "pipelineFailures": "Falhas de pipeline",
+    "pipelineFailuresDescription": "Falhas de build ou release",
+    "mentions": "Menções",
+    "mentionsDescription": "Quando você é marcado em work items"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "steps": {
+    "theme": {
+      "title": "Choose your theme",
+      "subtitle": "Pick a visual style that feels right"
+    },
+    "ai": {
+      "title": "AI summaries",
+      "subtitle": "Generate standup summaries with OpenAI"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Stay on top of what matters"
+    }
+  },
+  "actions": {
+    "skip": "Skip",
+    "continue": "Continue",
+    "getStarted": "Get Started",
+    "skipAll": "Skip all and go to dashboard"
+  },
+  "ai": {
+    "keySaved": "API key saved. AI summaries are ready.",
+    "storedLocally": "Stored locally at ~/.riva/openai.json",
+    "onlyTitlesSent": "Only task titles and statuses are sent — never code"
+  },
+  "notifications": {
+    "checkForUpdates": "Check for updates every",
+    "prReviews": "PR reviews",
+    "prReviewsDescription": "When your PR is approved or rejected",
+    "pipelineFailures": "Pipeline failures",
+    "pipelineFailuresDescription": "Build or release failures",
+    "mentions": "Mentions",
+    "mentionsDescription": "When you're tagged in work items"
+  }
+}

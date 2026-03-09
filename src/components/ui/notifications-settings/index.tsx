@@ -1,14 +1,35 @@
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Bell, GitPullRequest, CircleX, AtSign } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useNotificationsSettings } from './use-notifications-settings';
 
-const NOTIFICATION_CHANNELS = [
-  { key: 'prReview' as const, icon: GitPullRequest, label: 'PR reviews', description: 'Approved or rejected' },
-  { key: 'pipelineFailed' as const, icon: CircleX, label: 'Pipeline failed', description: 'Build or release failures' },
-  { key: 'workItemMention' as const, icon: AtSign, label: 'Mentions', description: 'Tagged in work items' },
-];
-
 export function NotificationsSettings() {
+  const { t } = useTranslation('settings');
+
+  const notificationChannels = useMemo(
+    () => [
+      {
+        key: 'prReview' as const,
+        icon: GitPullRequest,
+        label: t('notifications.prReviews'),
+        description: t('notifications.prReviewsDescription'),
+      },
+      {
+        key: 'pipelineFailed' as const,
+        icon: CircleX,
+        label: t('notifications.pipelineFailed'),
+        description: t('notifications.pipelineFailedDescription'),
+      },
+      {
+        key: 'workItemMention' as const,
+        icon: AtSign,
+        label: t('notifications.mentions'),
+        description: t('notifications.mentionsDescription'),
+      },
+    ],
+    [t],
+  );
   const {
     pollingInterval,
     prReviewEnabled,
@@ -29,17 +50,15 @@ export function NotificationsSettings() {
   };
 
   return (
-    <div className="flex flex-col rounded-lg border border-border bg-surface p-4">
+    <div className="flex flex-col rounded-lg border border-border bg-surface p-4 col-span-3">
       <div className="flex items-center gap-2">
         <Bell className="size-4 text-accent" />
-        <span className="text-sm font-medium text-fg">Notifications</span>
+        <span className="text-sm font-medium text-fg">{t('notifications.title')}</span>
       </div>
-      <span className="mt-0.5 text-xs text-fg-muted">
-        Get notified about PR reviews, pipeline failures, and work item mentions
-      </span>
+      <span className="mt-0.5 text-xs text-fg-muted">{t('notifications.description')}</span>
 
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-fg-secondary">Polling interval</span>
+        <span className="text-xs text-fg-secondary">{t('notifications.pollingInterval')}</span>
         <select
           value={String(pollingInterval)}
           onChange={(e) => handleIntervalChange(e.target.value)}
@@ -55,7 +74,7 @@ export function NotificationsSettings() {
 
       {isPollingActive && (
         <div className="mt-3 flex flex-col gap-0.5">
-          {NOTIFICATION_CHANNELS.map((channel) => {
+          {notificationChannels.map((channel) => {
             const { checked, onChange } = toggles[channel.key];
             const Icon = channel.icon;
             return (

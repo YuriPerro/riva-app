@@ -1,0 +1,26 @@
+{
+  "title": "Tasks",
+  "loading": {
+    "title": "Loading Tasks",
+    "phrases": [
+      "Excavating your backlog...",
+      "Finding bugs you didn't know existed...",
+      "Ticket #9999 incoming...",
+      "Sorting by priority (everything is P1)...",
+      "Loading technical debt..."
+    ]
+  },
+  "subtitle_one": "{{count}} item assigned to you",
+  "subtitle_other": "{{count}} items assigned to you",
+  "searchPlaceholder": "Search tasks...",
+  "sort": {
+    "relevance": "Relevance",
+    "title": "Title (A-Z)",
+    "status": "Status",
+    "type": "Type"
+  },
+  "noResults": "No items match the selected filters",
+  "errors": {
+    "failedToLoad": "Failed to load work items"
+  }
+}

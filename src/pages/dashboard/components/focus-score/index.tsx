@@ -1,4 +1,5 @@
 import { TrendingUp, TrendingDown, Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ElectricBorder from '@/components/ElectricBorder';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { StreakCard } from '../streak-card';
@@ -26,6 +27,7 @@ export function FocusScore() {
     comparisonPts,
     consistencyPts,
   } = useFocusScore();
+  const { t } = useTranslation('dashboard');
 
   const strokeDashoffset = RING_CIRCUMFERENCE * (1 - data.score / 100);
   const thisWeekWidth = (data.thisWeekItems / maxItems) * 100;
@@ -33,7 +35,7 @@ export function FocusScore() {
 
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Focus Score</h3>
+      <h3 className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">{t('focusScore.title')}</h3>
       <div className="grid grid-cols-3 gap-3">
         <div
           className="h-full opacity-0"
@@ -60,7 +62,7 @@ export function FocusScore() {
           </button>
           <div className="flex flex-col gap-2.5">
             <div className="flex flex-col gap-1">
-              <span className="text-[11px] text-fg-muted">This Week</span>
+              <span className="text-[11px] text-fg-muted">{t('focusScore.thisWeek')}</span>
               <div className="flex items-center gap-2">
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-border">
                   <div
@@ -72,7 +74,7 @@ export function FocusScore() {
               </div>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-[11px] text-fg-muted">Last Week</span>
+              <span className="text-[11px] text-fg-muted">{t('focusScore.lastWeek')}</span>
               <div className="flex items-center gap-2">
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-border">
                   <div
@@ -94,7 +96,7 @@ export function FocusScore() {
               {delta >= 0 ? '+' : ''}
               {delta}
             </span>
-            <span className="text-fg-muted">vs last week</span>
+            <span className="text-fg-muted">{t('focusScore.vsLastWeek')}</span>
           </div>
         </div>
 

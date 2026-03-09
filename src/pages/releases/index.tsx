@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Star, Rocket } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -10,18 +12,11 @@ import { SortSelector } from '@/components/ui/sort-selector';
 import { ReleasesContent } from './components/releases-content';
 import { ReleaseDetailDialog } from './components/release-detail-dialog';
 import { useReleases } from './use-releases';
-import { STATUS_LABELS } from './constants';
 import type { ReleaseStatusFilter, ReleaseSortKey } from './types';
 import type { SortOption } from '@/components/ui/sort-selector/types';
 
-const SORT_OPTIONS: SortOption<ReleaseSortKey>[] = [
-  { value: 'relevance', label: 'Relevance' },
-  { value: 'newest', label: 'Newest' },
-  { value: 'name', label: 'Name (A-Z)' },
-  { value: 'status', label: 'Status' },
-];
-
 export function ReleasesPage() {
+  const { t } = useTranslation(['releases', 'common']);
   const releases = useReleases();
   const {
     groups,
@@ -47,8 +42,22 @@ export function ReleasesPage() {
     setSort,
   } = releases;
 
+  const sortOptions: SortOption<ReleaseSortKey>[] = useMemo(() => [
+    { value: 'relevance', label: t('releases:sort.relevance') },
+    { value: 'newest', label: t('releases:sort.newest') },
+    { value: 'name', label: t('releases:sort.name') },
+    { value: 'status', label: t('releases:sort.status') },
+  ], [t]);
+
   const statusPills: ReleaseStatusFilter[] = ['all', 'succeeded', 'inProgress', 'rejected', 'failed', 'cancelled'];
-  const statusPillLabels: Record<string, string> = { all: 'All', ...STATUS_LABELS };
+  const statusPillLabels: Record<string, string> = useMemo(() => ({
+    all: t('common:filters.all'),
+    succeeded: t('common:status.succeeded'),
+    inProgress: t('common:status.inProgress'),
+    rejected: t('common:status.rejected'),
+    failed: t('common:status.failed'),
+    cancelled: t('common:status.cancelled'),
+  }), [t]);
 
   return (
     <PageTransition
@@ -56,25 +65,19 @@ export function ReleasesPage() {
       loadingContent={
         <LoadingState
           icon={<Rocket size={32} />}
-          title="Loading Releases"
-          phrases={[
-            'Deploying to production on a Friday...',
-            'Rolling dice on staging...',
-            'Praying to the deploy gods...',
-            'Checking if rollback works...',
-            'Crossing fingers for zero downtime...',
-          ]}
+          title={t('releases:loading.title')}
+          phrases={t('releases:loading.phrases', { returnObjects: true }) as string[]}
         />
       }
     >
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <PageHeader
-          title="Releases"
-          subtitle={`${groups.length} release pipeline${groups.length !== 1 ? 's' : ''}`}
+          title={t('releases:title')}
+          subtitle={t('releases:subtitle', { count: groups.length })}
         />
 
         <div className="flex flex-wrap items-center gap-1.5">
-          <SearchInput value={query} onChange={setQuery} placeholder="Search releases..." />
+          <SearchInput value={query} onChange={setQuery} placeholder={t('releases:searchPlaceholder')} />
           <span className="mx-0.5 h-4 w-px bg-border" />
           {statusPills.map((s) => {
             const count = countByStatus(s);
@@ -103,7 +106,7 @@ export function ReleasesPage() {
               <FilterPill active={showFavoritesOnly} onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}>
                 <span className="flex items-center gap-1">
                   <Star size={10} className={showFavoritesOnly ? 'fill-current' : ''} />
-                  Favorites
+                  {t('common:filters.favorites')}
                   <span
                     className={cn(
                       'rounded-full px-1.5 py-0.5 text-[9px]',
@@ -125,7 +128,7 @@ export function ReleasesPage() {
                 selected={definitionFilters}
                 onAdd={addDefinitionFilter}
                 onRemove={removeDefinitionFilter}
-                placeholder="Release"
+                placeholder={t('releases:filterRelease')}
               />
             </>
           )}
@@ -138,14 +141,14 @@ export function ReleasesPage() {
                 selected={environmentFilters}
                 onAdd={addEnvironmentFilter}
                 onRemove={removeEnvironmentFilter}
-                placeholder="Environment"
+                placeholder={t('releases:filterEnvironment')}
               />
             </>
           )}
 
           <span className="ml-auto" />
           <SortSelector<ReleaseSortKey>
-            options={SORT_OPTIONS}
+            options={sortOptions}
             value={sortKey}
             direction={sortDirection}
             onChange={setSort}

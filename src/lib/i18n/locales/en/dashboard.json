@@ -1,0 +1,153 @@
+{
+  "title": "Dashboard",
+  "standup": "Standup",
+  "loading": {
+    "title": "Loading Dashboard",
+    "phrases": [
+      "Counting your bugs...",
+      "Fetching your backlog shame...",
+      "Pretending to work...",
+      "Calculating sprint velocity excuses...",
+      "Polishing your burndown chart..."
+    ]
+  },
+  "sprint": {
+    "noActiveSprint": "No active sprint",
+    "daysRemaining": "days remaining"
+  },
+  "stats": {
+    "myTasks": "my tasks",
+    "inReview": "in review",
+    "pipelinesRunning": "pipelines running",
+    "openPRs": "open PRs"
+  },
+  "focusScore": {
+    "title": "Focus Score",
+    "thisWeek": "This Week",
+    "lastWeek": "Last Week",
+    "vsLastWeek": "vs last week",
+    "greatFocus": "Great focus",
+    "goodMomentum": "Good momentum",
+    "keepGoing": "Keep going",
+    "needsAttention": "Needs attention"
+  },
+  "streak": {
+    "dayStreak": "day streak",
+    "bestDays": "Best: {{count}} days",
+    "details": "Streak Details",
+    "description": "{{current}} day current streak, {{best}} day best",
+    "howItWorks": "How It Works",
+    "rules": {
+      "consecutive": "Counts consecutive workdays with at least one activity",
+      "weekends": "Weekends are automatically skipped (not counted as breaks)",
+      "activities": "Activities: state changes, PRs, pushes, or approvals",
+      "persisted": "Best streak is persisted across sessions"
+    },
+    "activeWorkdays": "{{count}}/5 active workdays this week",
+    "electricBorder": "Electric border active at 7+ day streak"
+  },
+  "score": {
+    "breakdown": "Score Breakdown",
+    "howCalculated": "How your focus score of {{score}}/100 is calculated",
+    "formula": "Formula",
+    "streakPoints": "Streak Points",
+    "comparisonPoints": "Comparison Points",
+    "consistencyPoints": "Consistency Points",
+    "thresholds": "Thresholds",
+    "greatFocusRange": "Great focus: {{range}}",
+    "keepGoingRange": "Keep going: {{range}}",
+    "needsAttentionRange": "Needs attention: {{range}}"
+  },
+  "activity": {
+    "breakdown": "Activity Breakdown",
+    "comparison": "{{thisWeek}} activities this week vs {{lastWeek}} last week",
+    "sources": "Activity Sources",
+    "workItemChanges": "Work item state changes (task transitions, bug updates)",
+    "prCreated": "Pull requests created or updated",
+    "codePushes": "Code pushes to repositories",
+    "prApprovals": "PR approvals and reviews",
+    "weekComparison": "Week Comparison",
+    "improvement": "improvement",
+    "decrease": "decrease",
+    "differenceFromLastWeek": "difference ({{direction}} from last week)"
+  },
+  "dayNames": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  },
+  "workItems": {
+    "title": "Tasks",
+    "viewAll": "View all"
+  },
+  "pipelinesList": {
+    "title": "Pipelines",
+    "viewAll": "View all"
+  },
+  "standupDialog": {
+    "title": "Standup Summary",
+    "description": "Summary of your recent work activity for standup meetings",
+    "loading": {
+      "title": "Loading Standup",
+      "phrases": [
+        "Summoning yesterday's work...",
+        "Finding what you actually did...",
+        "Generating believable updates...",
+        "Checking if you pushed code..."
+      ]
+    },
+    "noActivity": "No activity found for this period",
+    "workingOn": "Working on",
+    "pullRequests": "Pull Requests",
+    "blockers": "Blockers"
+  },
+  "aiSummary": {
+    "title": "AI Summary",
+    "hidePrompt": "Hide prompt",
+    "viewPrompt": "View prompt",
+    "sentToAi": "Sent to AI:",
+    "generating": "Generating...",
+    "generateSummary": "Generate summary",
+    "regenerate": "Regenerate",
+    "copied": "AI summary copied"
+  },
+  "periodSelector": {
+    "yesterday": "Yesterday",
+    "last2Days": "Last 2 days",
+    "last3Days": "Last 3 days",
+    "lastFriday": "Last Friday",
+    "last4Days": "Last 4 days",
+    "last5Days": "Last 5 days"
+  },
+  "workItemDetail": {
+    "detailsFor": "Work item details for {{title}}",
+    "effort": "Effort",
+    "completedWork": "Completed Work",
+    "remainingWork": "Remaining Work",
+    "dueDate": "Due Date",
+    "devStartDate": "Dev Start Date",
+    "devEndDate": "Dev End Date",
+    "blocked": "Blocked",
+    "assignedTo": "Assigned To",
+    "iteration": "Iteration",
+    "priority": "Priority",
+    "createdBy": "Created By",
+    "created": "Created",
+    "lastUpdated": "Last Updated",
+    "dev": "Dev",
+    "description": "Description",
+    "suggestedBranch": "Suggested Branch Name",
+    "parent": "Parent",
+    "children": "Children"
+  },
+  "approvals": {
+    "approvedBy": "Approved by {{name}}",
+    "rejectedBy": "Rejected by {{name}}",
+    "waitingForYourApproval": "Waiting for your approval",
+    "pending": "Pending: {{name}}"
+  }
+}

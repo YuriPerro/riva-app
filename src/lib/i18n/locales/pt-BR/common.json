@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "dashboard": "Painel",
+    "tasks": "Tarefas",
+    "pipelines": "Pipelines",
+    "pullRequests": "Pull Requests",
+    "releases": "Releases",
+    "settings": "Configurações"
+  },
+  "status": {
+    "onTrack": "No Prazo",
+    "atRisk": "Em Risco",
+    "offTrack": "Atrasado",
+    "succeeded": "Sucesso",
+    "failed": "Falhou",
+    "running": "Executando",
+    "cancelled": "Cancelado",
+    "inProgress": "Em Andamento",
+    "rejected": "Rejeitado",
+    "partiallySucceeded": "Sucesso Parcial",
+    "notStarted": "Não Iniciado",
+    "todo": "A Fazer",
+    "inReview": "Em Revisão",
+    "done": "Concluído",
+    "active": "Ativo",
+    "draft": "Rascunho",
+    "approved": "aprovado",
+    "updated": "atualizado"
+  },
+  "actions": {
+    "save": "Salvar",
+    "saving": "Salvando...",
+    "cancel": "Cancelar",
+    "continue": "Continuar",
+    "skip": "Pular",
+    "signOut": "Sair",
+    "connect": "Conectar",
+    "connecting": "Conectando...",
+    "remove": "Remover",
+    "removing": "Removendo...",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "approve": "Aprovar",
+    "reject": "Rejeitar",
+    "getStarted": "Começar",
+    "viewAll": "Ver tudo",
+    "viewInDevOps": "Ver no DevOps",
+    "signingOut": "Saindo..."
+  },
+  "filters": {
+    "all": "Todos",
+    "search": "Buscar...",
+    "sort": "Ordenar",
+    "favorites": "Favoritos",
+    "relevance": "Relevância",
+    "newest": "Mais recente",
+    "oldest": "Mais antigo",
+    "nameAZ": "Nome (A-Z)",
+    "titleAZ": "Título (A-Z)"
+  },
+  "workItemTypes": {
+    "task": "Tarefa",
+    "bug": "Bug",
+    "pbi": "PBI",
+    "feature": "Feature",
+    "epic": "Epic"
+  },
+  "labels": {
+    "beta": "beta",
+    "notify": "Notificar",
+    "clearCache": "Limpar Cache",
+    "trigger": "gatilho:",
+    "today": "Hoje",
+    "noActivity": "Sem atividade"
+  },
+  "sync": {
+    "justNow": "agora",
+    "secondsAgo": "há {{count}}s",
+    "minutesAgo": "há {{count}}m"
+  },
+  "game": {
+    "letsPlay": "Vamos jogar?",
+    "fire": "FOGO!",
+    "levelClear": "Fase Completa!",
+    "nextLevel": "Próxima: Nv.{{level}}",
+    "gameOver": "FIM DE JOGO",
+    "level": "Nível {{level}}",
+    "levelShort": "Nv.{{level}}",
+    "newBest": "Novo Recorde!",
+    "best": "Recorde: {{score}}",
+    "bestLevel": "Melhor Nível: {{level}}",
+    "restart": "Recomeçar",
+    "moveHint": "← → mover",
+    "fireHint": "espaço/k atirar"
+  },
+  "errors": {
+    "somethingWentWrong": "Algo deu errado"
+  },
+  "polling": {
+    "disabled": "Desativado",
+    "min_one": "{{count}} min",
+    "min_other": "{{count}} min"
+  }
+}

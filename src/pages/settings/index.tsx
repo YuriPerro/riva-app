@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { LogOut } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -16,27 +17,29 @@ import { useSessionStore } from '@/store/session';
 import { ThemePicker } from '@/components/ui/theme-picker';
 import { AiSettings } from './components/ai-settings';
 import { NotificationsSettings } from '@/components/ui/notifications-settings';
+import { LanguageSelector } from './components/language-selector';
 import { useSettings } from './use-settings';
 
 export function SettingsPage() {
+  const { t } = useTranslation(['settings', 'common']);
   const { isSigningOut, handleSignOut } = useSettings();
   const currentProject = useSessionStore((s) => s.project);
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Settings" subtitle="Manage your account and preferences" />
+      <PageHeader title={t('settings:title')} subtitle={t('settings:subtitle')} />
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-4">
           <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-fg">Project</span>
+            <span className="text-sm font-medium text-fg">{t('settings:project.title')}</span>
             <span className="text-sm text-fg-muted">
               {currentProject ? (
                 <>
-                  Currently working on <span className="text-fg">{currentProject}</span>
+                  {t('settings:project.currentlyWorkingOn')} <span className="text-fg">{currentProject}</span>
                 </>
               ) : (
-                'No project selected'
+                t('settings:project.noProjectSelected')
               )}
             </span>
           </div>
@@ -45,37 +48,37 @@ export function SettingsPage() {
 
         <AiSettings />
 
-        <NotificationsSettings />
+        <div className="grid grid-cols-4 gap-4">
+          <NotificationsSettings />
+          <LanguageSelector />
+        </div>
 
         <ThemePicker />
 
         <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-4">
           <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-fg">Sign out</span>
-            <span className="text-sm text-fg-muted">Clear your credentials and return to the login screen</span>
+            <span className="text-sm font-medium text-fg">{t('settings:signOut.title')}</span>
+            <span className="text-sm text-fg-muted">{t('settings:signOut.description')}</span>
           </div>
 
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="destructive" size="sm" disabled={isSigningOut}>
                 <LogOut className="size-4" />
-                Sign out
+                {t('common:actions.signOut')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Sign out of Riva?</DialogTitle>
-                <DialogDescription>
-                  Your stored credentials will be removed. You'll need to enter your organization URL and personal
-                  access token again to sign back in.
-                </DialogDescription>
+                <DialogTitle>{t('settings:signOut.confirmTitle')}</DialogTitle>
+                <DialogDescription>{t('settings:signOut.confirmDescription')}</DialogDescription>
               </DialogHeader>
               <DialogFooter>
                 <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
+                  <Button variant="outline">{t('common:actions.cancel')}</Button>
                 </DialogClose>
                 <Button variant="destructive" onClick={handleSignOut} disabled={isSigningOut}>
-                  {isSigningOut ? 'Signing out...' : 'Sign out'}
+                  {isSigningOut ? t('common:actions.signingOut') : t('common:actions.signOut')}
                 </Button>
               </DialogFooter>
             </DialogContent>

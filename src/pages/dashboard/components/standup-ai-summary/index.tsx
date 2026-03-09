@@ -1,4 +1,5 @@
 import { Copy, Check, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { RainbowButton } from '@/components/ui/rainbow-button';
 import { useOpenAiStore } from '@/store/openai';
 import type { StandupAiSummaryProps } from './types';
@@ -6,6 +7,7 @@ import { useStandupAiSummary } from './use-standup-ai-summary';
 
 export function StandupAiSummary(props: StandupAiSummaryProps) {
   const { clipboardText, disabled } = props;
+  const { t } = useTranslation(['dashboard', 'common']);
   const hasKey = useOpenAiStore((s) => !!s.apiKey);
   const { summary, isGenerating, showPrompt, copied, handleGenerate, handleCopy, togglePrompt } =
     useStandupAiSummary(clipboardText);
@@ -17,21 +19,21 @@ export function StandupAiSummary(props: StandupAiSummaryProps) {
       {summary && (
         <div className="flex flex-col gap-2 rounded-md bg-base px-3 py-2">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">AI Summary</span>
+            <span className="text-[10px] font-medium uppercase tracking-wider text-fg-muted">{t('dashboard:aiSummary.title')}</span>
             <div className="flex items-center gap-1">
               <button
                 onClick={togglePrompt}
                 className="flex cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 text-[10px] text-fg-muted transition-colors hover:text-fg"
               >
                 {showPrompt ? <EyeOff size={10} /> : <Eye size={10} />}
-                {showPrompt ? 'Hide prompt' : 'View prompt'}
+                {showPrompt ? t('dashboard:aiSummary.hidePrompt') : t('dashboard:aiSummary.viewPrompt')}
               </button>
               <button
                 onClick={handleCopy}
                 className="flex cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 text-[10px] text-fg-muted transition-colors hover:text-fg"
               >
                 {copied ? <Check size={10} className="text-success" /> : <Copy size={10} />}
-                {copied ? 'Copied' : 'Copy'}
+                {copied ? t('common:actions.copied') : t('common:actions.copy')}
               </button>
             </div>
           </div>
@@ -39,7 +41,7 @@ export function StandupAiSummary(props: StandupAiSummaryProps) {
 
           {showPrompt && (
             <div className="rounded border border-border-subtle bg-surface px-2 py-1.5">
-              <span className="mb-1 block text-[10px] font-medium text-fg-muted">Sent to AI:</span>
+              <span className="mb-1 block text-[10px] font-medium text-fg-muted">{t('dashboard:aiSummary.sentToAi')}</span>
               <pre className="whitespace-pre-wrap text-[10px] leading-relaxed text-fg-muted">{clipboardText}</pre>
             </div>
           )}
@@ -53,11 +55,11 @@ export function StandupAiSummary(props: StandupAiSummaryProps) {
           className="w-full px-4 py-2 text-xs"
         >
           {isGenerating && <Loader2 size={10} className="animate-spin" />}
-          {isGenerating && !summary && 'Generating...'}
+          {isGenerating && !summary && t('dashboard:aiSummary.generating')}
 
-          {!isGenerating && !summary && 'Generate summary'}
+          {!isGenerating && !summary && t('dashboard:aiSummary.generateSummary')}
 
-          {!isGenerating && summary && 'Regenerate'}
+          {!isGenerating && summary && t('dashboard:aiSummary.regenerate')}
         </RainbowButton>
       </div>
     </div>

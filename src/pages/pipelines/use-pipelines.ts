@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { azure } from '@/lib/tauri';
 import type { PipelineRun, PipelineDefinition } from '@/types/azure';
 import { useSessionStore } from '@/store/session';
-import { formatAgo, formatDuration, stripRefs } from '@/utils/formatters';
+import { formatDuration, stripRefs } from '@/utils/formatters';
 import { mapPipelineStatus } from '@/utils/mappers';
 import { fuzzyMatch } from '@/utils/search';
 import type { PipelineStatus } from '@/types/pipeline';
@@ -24,7 +24,7 @@ export interface PipelineRunItem {
   title: string | null;
   status: PipelineStatus;
   duration: string;
-  ago: string;
+  agoDate: string;
   url: string;
 }
 
@@ -45,7 +45,7 @@ function mapRun(raw: PipelineRun): PipelineRunItem {
     title: raw.triggerInfo?.['ci.message'] ?? null,
     status: mapPipelineStatus(raw),
     duration: formatDuration(raw.queueTime, raw.finishTime),
-    ago: formatAgo(raw.finishTime ?? raw.queueTime),
+    agoDate: raw.finishTime ?? raw.queueTime ?? '',
     url: raw.webUrl,
   };
 }
@@ -196,8 +196,8 @@ export function usePipelines(): PipelinesData {
           const dir = sortDirection === 'asc' ? 1 : -1;
           if (sortKey === 'name') return dir * a.definitionName.localeCompare(b.definitionName);
           if (sortKey === 'newest') {
-            const aTime = a.runs[0]?.ago ?? '';
-            const bTime = b.runs[0]?.ago ?? '';
+            const aTime = a.runs[0]?.agoDate ?? '';
+            const bTime = b.runs[0]?.agoDate ?? '';
             return dir * aTime.localeCompare(bTime);
           }
           if (sortKey === 'status') {

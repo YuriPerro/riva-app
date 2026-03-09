@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { AlertCircle, Layers } from 'lucide-react';
 import { GroupedItems } from '../grouped-items';
 import type { TasksContentProps } from './types';
 
 export function TasksContent(props: TasksContentProps) {
   const { error, filtered, selectWorkItem, openItem } = props;
+  const { t } = useTranslation('tasks');
 
   if (error) {
     return (
@@ -18,7 +20,7 @@ export function TasksContent(props: TasksContentProps) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2">
         <Layers size={24} className="text-fg-disabled" />
-        <span className="text-[13px] text-fg-disabled">No items match the selected filters</span>
+        <span className="text-[13px] text-fg-disabled">{t('noResults')}</span>
       </div>
     );
   }

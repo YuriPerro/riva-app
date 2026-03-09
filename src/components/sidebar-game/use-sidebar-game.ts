@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { GameState, Player, Enemy, Bullet, Particle, GameConfig, LevelConfig, GameSave, EnemyType } from './types';
 
 const GAME_CONFIG = {
@@ -193,6 +194,7 @@ function rectsCollide(
 }
 
 export function useSidebarGame() {
+  const { t } = useTranslation('common');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<GameState>('idle');
   const [score, setScore] = useState(0);
@@ -209,6 +211,8 @@ export function useSidebarGame() {
   const levelRef = useRef(1);
   const rafRef = useRef<number>(0);
   const lastShootRef = useRef(0);
+  const tRef = useRef(t);
+  tRef.current = t;
 
   const resetGame = useCallback(() => {
     playerRef.current = createPlayer();
@@ -269,7 +273,7 @@ export function useSidebarGame() {
     (e: React.KeyboardEvent<HTMLCanvasElement>) => {
       if (gameState !== 'playing') return;
       keysRef.current.add(e.key);
-      if (e.key === ' ') {
+      if (e.key === ' ' || e.key === 'k') {
         e.preventDefault();
         shoot();
       }
@@ -283,9 +287,9 @@ export function useSidebarGame() {
 
   const handleCanvasClick = useCallback(() => {
     if (gameState === 'playing') {
-      shoot();
+      canvasRef.current?.focus();
     }
-  }, [gameState, shoot]);
+  }, [gameState]);
 
 
   useEffect(() => {
@@ -316,8 +320,14 @@ export function useSidebarGame() {
 
     const { config, speedBonus } = getLevelConfig(levelRef.current);
     const levelSpeed = config.enemySpeedX + speedBonus;
+    const TARGET_FRAME_MS = 1000 / 60;
+    let lastTime = performance.now();
 
-    function gameLoop() {
+    function gameLoop(now: number) {
+      const deltaMs = Math.min(now - lastTime, 50);
+      lastTime = now;
+      const dt = deltaMs / TARGET_FRAME_MS;
+
       const keys = keysRef.current;
       const player = playerRef.current;
       const enemies = enemiesRef.current;
@@ -325,14 +335,14 @@ export function useSidebarGame() {
       const particles = particlesRef.current;
 
       if (keys.has('ArrowLeft') || keys.has('a')) {
-        player.x = Math.max(0, player.x - GAME_CONFIG.playerSpeed);
+        player.x = Math.max(0, player.x - GAME_CONFIG.playerSpeed * dt);
       }
       if (keys.has('ArrowRight') || keys.has('d')) {
-        player.x = Math.min(GAME_CONFIG.canvasWidth - player.width, player.x + GAME_CONFIG.playerSpeed);
+        player.x = Math.min(GAME_CONFIG.canvasWidth - player.width, player.x + GAME_CONFIG.playerSpeed * dt);
       }
 
       for (let i = bullets.length - 1; i >= 0; i--) {
-        bullets[i].y -= GAME_CONFIG.bulletSpeed;
+        bullets[i].y -= GAME_CONFIG.bulletSpeed * dt;
         if (bullets[i].y + bullets[i].height < 0) {
           bullets.splice(i, 1);
         }
@@ -343,7 +353,7 @@ export function useSidebarGame() {
 
       for (const enemy of aliveEnemies) {
         const speedMult = enemy.enemyType === 'fast' ? 1.5 : 1;
-        enemy.x += levelSpeed * speedMult * enemyDirRef.current;
+        enemy.x += levelSpeed * speedMult * enemyDirRef.current * dt;
         if (enemy.x + enemy.width >= GAME_CONFIG.canvasWidth || enemy.x <= 0) {
           shouldReverse = true;
         }
@@ -387,9 +397,9 @@ export function useSidebarGame() {
 
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life--;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.life -= dt;
         if (p.life <= 0) particles.splice(i, 1);
       }
 
@@ -446,7 +456,7 @@ export function useSidebarGame() {
       ctx!.fillStyle = colors.fgMuted;
       ctx!.font = '10px Geist, sans-serif';
       ctx!.textAlign = 'left';
-      ctx!.fillText(`Lv.${levelRef.current}`, 4, 12);
+      ctx!.fillText(tRef.current('game.levelShort', { level: levelRef.current }), 4, 12);
       ctx!.textAlign = 'right';
       ctx!.fillText(`${scoreRef.current}`, GAME_CONFIG.canvasWidth - 4, 12);
 

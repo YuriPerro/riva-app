@@ -1,6 +1,6 @@
 import { memo, useRef } from 'react';
-import { PanelLeftClose, PanelLeftOpen, BellRing, Trash2 } from 'lucide-react';
-import { notify } from '@/utils/notification-sound';
+import { useTranslation } from 'react-i18next';
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/store/sidebar';
 import { HomeIcon, type HomeIconHandle } from '@/components/ui/home';
@@ -16,6 +16,7 @@ import { SidebarLabel } from './sidebar-label';
 import { NavItem } from './nav-item';
 
 export const Sidebar = memo(function Sidebar() {
+  const { t } = useTranslation('common');
   const collapsed = useSidebarStore((s) => s.collapsed);
   const toggle = useSidebarStore((s) => s.toggle);
 
@@ -46,7 +47,7 @@ export const Sidebar = memo(function Sidebar() {
                   borderWidth={0.6}
                   duration={5}
                 />
-                beta
+                {t('labels.beta')}
               </span>
             </span>
           </SidebarLabel>
@@ -67,7 +68,7 @@ export const Sidebar = memo(function Sidebar() {
         <NavItem
           to={Route.Dashboard}
           end
-          label="Dashboard"
+          label={t('nav.dashboard')}
           collapsed={collapsed}
           index={0}
           iconRef={homeRef}
@@ -75,7 +76,7 @@ export const Sidebar = memo(function Sidebar() {
         />
         <NavItem
           to={Route.Tasks}
-          label="Tasks"
+          label={t('nav.tasks')}
           collapsed={collapsed}
           index={1}
           iconRef={layersRef}
@@ -83,7 +84,7 @@ export const Sidebar = memo(function Sidebar() {
         />
         <NavItem
           to={Route.Pipelines}
-          label="Pipelines"
+          label={t('nav.pipelines')}
           collapsed={collapsed}
           index={2}
           iconRef={zapRef}
@@ -91,7 +92,7 @@ export const Sidebar = memo(function Sidebar() {
         />
         <NavItem
           to={Route.PullRequests}
-          label="Pull Requests"
+          label={t('nav.pullRequests')}
           collapsed={collapsed}
           index={3}
           iconRef={prRef}
@@ -99,7 +100,7 @@ export const Sidebar = memo(function Sidebar() {
         />
         <NavItem
           to={Route.Releases}
-          label="Releases"
+          label={t('nav.releases')}
           collapsed={collapsed}
           index={4}
           iconRef={rocketRef}
@@ -108,41 +109,13 @@ export const Sidebar = memo(function Sidebar() {
 
         <NavItem
           to={Route.Settings}
-          label="Settings"
+          label={t('nav.settings')}
           collapsed={collapsed}
           index={5}
           iconRef={settingsRef}
           icon={<SettingsIcon ref={settingsRef} size={18} />}
         />
       </nav>
-
-      {!collapsed && (
-        <div className="mx-2 mb-2 flex gap-1.5">
-          <button
-            onClick={async () => {
-              await notify({ title: 'PR approved', body: 'John Doe approved "Fix login bug"' });
-              setTimeout(() => { notify({ title: 'Pipeline failed', body: 'Build #1234 failed' }); }, 1000);
-              setTimeout(() => { notify({ title: 'Mentioned in work item', body: 'Jane mentioned you in "API refactor"' }); }, 2000);
-            }}
-            className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border-subtle px-2 py-1.5 text-[10px] text-fg-muted transition-colors hover:bg-elevated hover:text-fg"
-          >
-            <BellRing size={12} />
-            Notify
-          </button>
-          {import.meta.env.DEV && (
-            <button
-              onClick={() => {
-                localStorage.clear();
-                window.location.reload();
-              }}
-              className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-error/30 px-2 py-1.5 text-[10px] text-error/70 transition-colors hover:bg-error/10 hover:text-error"
-            >
-              <Trash2 size={12} />
-              Clear Cache
-            </button>
-          )}
-        </div>
-      )}
 
       {!collapsed && <SidebarGame />}
     </aside>

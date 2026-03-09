@@ -1,0 +1,24 @@
+{
+  "title": "Pipelines",
+  "loading": {
+    "title": "Carregando Pipelines",
+    "phrases": [
+      "Esperando o CI falhar...",
+      "Builds verdes são um mito...",
+      "Jogo da culpa carregando...",
+      "Compilando desculpas...",
+      "Enfileirando suas esperanças e sonhos..."
+    ]
+  },
+  "subtitle_one": "{{count}} pipeline",
+  "subtitle_other": "{{count}} pipelines",
+  "searchPlaceholder": "Buscar pipelines...",
+  "sort": {
+    "relevance": "Relevância",
+    "newest": "Mais recente",
+    "name": "Nome (A-Z)",
+    "status": "Status"
+  },
+  "filterPlaceholder": "Pipeline",
+  "noResults": "Nenhuma definição de pipeline encontrada"
+}

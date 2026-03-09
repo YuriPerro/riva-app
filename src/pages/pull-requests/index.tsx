@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { GitPullRequest } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -12,20 +14,21 @@ import { PullRequestsContent } from './components/pull-requests-content';
 import { usePullRequests, type PRFilter, type PRSortKey } from './use-pull-requests';
 import type { SortOption } from '@/components/ui/sort-selector/types';
 
-const SORT_OPTIONS: SortOption<PRSortKey>[] = [
-  { value: 'relevance', label: 'Relevance' },
-  { value: 'newest', label: 'Newest' },
-  { value: 'oldest', label: 'Oldest' },
-  { value: 'title', label: 'Title (A-Z)' },
-];
-
-const FILTERS: { value: PRFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'active', label: 'Active' },
-  { value: 'draft', label: 'Draft' },
-];
-
 export function PullRequestsPage() {
+  const { t } = useTranslation(['pull-requests', 'common']);
+
+  const SORT_OPTIONS: SortOption<PRSortKey>[] = useMemo(() => [
+    { value: 'relevance', label: t('pull-requests:sort.relevance') },
+    { value: 'newest', label: t('pull-requests:sort.newest') },
+    { value: 'oldest', label: t('pull-requests:sort.oldest') },
+    { value: 'title', label: t('pull-requests:sort.title') },
+  ], [t]);
+
+  const FILTERS: { value: PRFilter; label: string }[] = useMemo(() => [
+    { value: 'all', label: t('common:filters.all') },
+    { value: 'active', label: t('common:status.active') },
+    { value: 'draft', label: t('common:status.draft') },
+  ], [t]);
   const pullRequests = usePullRequests();
   const {
     prs, isLoading, filter, setFilter, repos, repoFilters, addRepoFilter, removeRepoFilter,
@@ -42,26 +45,20 @@ export function PullRequestsPage() {
       loadingContent={
         <LoadingState
           icon={<GitPullRequest size={32} />}
-          title="Loading Pull Requests"
-          phrases={[
-            'Loading unsolicited opinions...',
-            'LGTM farming in progress...',
-            'Fetching passive-aggressive comments...',
-            'Counting merge conflicts...',
-            'Reviewing your 2000-line PR...',
-          ]}
+          title={t('pull-requests:loading.title')}
+          phrases={t('pull-requests:loading.phrases', { returnObjects: true }) as string[]}
         />
       }
     >
       <TooltipProvider delayDuration={150} skipDelayDuration={500} disableHoverableContent>
         <div className="flex h-full flex-col gap-4 overflow-hidden">
           <PageHeader
-            title="Pull Requests"
-            subtitle={`${prs.length} active pull request${prs.length !== 1 ? 's' : ''}`}
+            title={t('pull-requests:title')}
+            subtitle={t('pull-requests:subtitle', { count: prs.length })}
           />
 
           <div className="flex flex-wrap items-center gap-1.5">
-            <SearchInput value={query} onChange={setQuery} placeholder="Search pull requests..." />
+            <SearchInput value={query} onChange={setQuery} placeholder={t('pull-requests:searchPlaceholder')} />
             <span className="mx-0.5 h-4 w-px bg-border" />
             {FILTERS.map(({ value, label }) => (
               <FilterPill key={value} active={filter === value} onClick={() => setFilter(value)}>
@@ -85,7 +82,7 @@ export function PullRequestsPage() {
                   selected={repoFilters}
                   onAdd={addRepoFilter}
                   onRemove={removeRepoFilter}
-                  placeholder="Repo"
+                  placeholder={t('pull-requests:filterPlaceholder')}
                 />
               </>
             )}

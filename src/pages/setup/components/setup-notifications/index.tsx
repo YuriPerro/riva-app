@@ -1,16 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
 import { GitPullRequest, CircleX, AtSign } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useNotificationsSettings } from '@/components/ui/notifications-settings/use-notifications-settings';
 
-const CHANNELS = [
-  { key: 'prReview' as const, icon: GitPullRequest, label: 'PR reviews', description: 'When your PR is approved or rejected' },
-  { key: 'pipelineFailed' as const, icon: CircleX, label: 'Pipeline failures', description: 'Build or release failures' },
-  { key: 'workItemMention' as const, icon: AtSign, label: 'Mentions', description: 'When you\'re tagged in work items' },
-];
-
 export function SetupNotifications() {
+  const { t } = useTranslation('setup');
+
+  const channels = useMemo(() => [
+    { key: 'prReview' as const, icon: GitPullRequest, label: t('notifications.prReviews'), description: t('notifications.prReviewsDescription') },
+    { key: 'pipelineFailed' as const, icon: CircleX, label: t('notifications.pipelineFailures'), description: t('notifications.pipelineFailuresDescription') },
+    { key: 'workItemMention' as const, icon: AtSign, label: t('notifications.mentions'), description: t('notifications.mentionsDescription') },
+  ], [t]);
   useEffect(() => {
     isPermissionGranted().then((granted) => {
       if (!granted) requestPermission();
@@ -39,7 +41,7 @@ export function SetupNotifications() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between rounded-md border border-border bg-surface px-3 py-2.5">
-        <span className="text-[12px] text-fg-secondary">Check for updates every</span>
+        <span className="text-[12px] text-fg-secondary">{t('notifications.checkForUpdates')}</span>
         <select
           value={String(pollingInterval)}
           onChange={(e) => handleIntervalChange(e.target.value)}
@@ -55,7 +57,7 @@ export function SetupNotifications() {
 
       {isPollingActive && (
         <div className="flex flex-col overflow-hidden rounded-md border border-border">
-          {CHANNELS.map((channel, i) => {
+          {channels.map((channel, i) => {
             const { checked, onChange } = toggles[channel.key];
             const Icon = channel.icon;
             return (

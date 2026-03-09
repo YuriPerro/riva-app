@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { AlertCircle, Rocket } from 'lucide-react';
 import { ReleaseGroupCard } from '../release-group-card';
 import type { ReleasesContentProps } from './types';
 
 export function ReleasesContent(props: ReleasesContentProps) {
+  const { t } = useTranslation('releases');
   const { error, groups, toggleFavorite, selectRelease } = props;
 
   if (error) {
@@ -18,7 +20,7 @@ export function ReleasesContent(props: ReleasesContentProps) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2">
         <Rocket size={24} className="text-fg-disabled" />
-        <span className="text-[13px] text-fg-disabled">No release definitions found</span>
+        <span className="text-[13px] text-fg-disabled">{t('noResults')}</span>
       </div>
     );
   }

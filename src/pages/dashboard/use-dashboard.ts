@@ -7,7 +7,6 @@ import type { PullRequest as ApiPullRequest } from '@/types/azure';
 import { Route } from '@/types/routes';
 import { useSessionStore } from '@/store/session';
 import {
-  formatAgo,
   formatBuildReason,
   formatDuration,
   getAssigneeInitials,
@@ -34,7 +33,7 @@ function mapPullRequest(pr: ApiPullRequest): DashboardPR {
     targetBranch: stripRefs(pr.targetRefName),
     author: name,
     authorInitials: initials(name) || '?',
-    createdAgo: formatAgo(pr.creationDate),
+    createdAgoDate: pr.creationDate,
     status: pr.isDraft ? 'draft' : 'active',
     reviewerCount: pr.reviewers.length,
     approvedCount,
@@ -112,7 +111,7 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
     target: formatBuildReason(p.reason),
     status: mapPipelineStatus(p),
     duration: formatDuration(p.queueTime, p.finishTime),
-    ago: formatAgo(p.finishTime ?? p.queueTime),
+    agoDate: p.finishTime ?? p.queueTime ?? '',
     url: p.webUrl,
   }));
 

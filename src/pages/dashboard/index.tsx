@@ -1,4 +1,5 @@
 import { AlertCircle, ClipboardList, LayoutDashboard } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { LoadingState } from '@/components/ui/loading-state';
 import { PageTransition } from '@/components/ui/page-transition';
@@ -31,6 +32,7 @@ export function DashboardPage() {
     standupOpen,
     setStandupOpen,
   } = useDashboard();
+  const { t } = useTranslation('dashboard');
 
   return (
     <PageTransition
@@ -38,14 +40,8 @@ export function DashboardPage() {
       loadingContent={
         <LoadingState
           icon={<LayoutDashboard size={32} />}
-          title="Loading Dashboard"
-          phrases={[
-            'Counting your bugs...',
-            'Fetching your backlog shame...',
-            'Pretending to work...',
-            'Calculating sprint velocity excuses...',
-            'Polishing your burndown chart...',
-          ]}
+          title={t('loading.title')}
+          phrases={t('loading.phrases', { returnObjects: true }) as string[]}
         />
       }
     >
@@ -57,7 +53,7 @@ export function DashboardPage() {
       ) : (
         <div className="flex flex-col gap-6">
           <PageHeader
-            title="Dashboard"
+            title={t('title')}
             subtitle={project ?? undefined}
             actions={
               <button
@@ -68,7 +64,7 @@ export function DashboardPage() {
                 )}
               >
                 <ClipboardList size={12} />
-                Standup
+                {t('standup')}
               </button>
             }
           />

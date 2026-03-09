@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Palette, Sparkles, Bell } from 'lucide-react';
 import { Route } from '@/types/routes';
@@ -7,13 +8,13 @@ import type { SetupStepConfig } from './types';
 
 export const ONBOARDING_STORAGE_KEY = 'riva_onboarding_complete';
 
-const SETUP_STEPS: SetupStepConfig[] = [
-  { step: SetupStep.Theme, title: 'Choose your theme', subtitle: 'Pick a visual style that feels right', icon: Palette },
-  { step: SetupStep.Ai, title: 'AI summaries', subtitle: 'Generate standup summaries with OpenAI', icon: Sparkles },
-  { step: SetupStep.Notifications, title: 'Notifications', subtitle: 'Stay on top of what matters', icon: Bell },
-];
+const STEP_ICONS = {
+  [SetupStep.Theme]: Palette,
+  [SetupStep.Ai]: Sparkles,
+  [SetupStep.Notifications]: Bell,
+};
 
-const TOTAL_STEPS = SETUP_STEPS.length;
+const TOTAL_STEPS = Object.keys(STEP_ICONS).length;
 const LAST_STEP = TOTAL_STEPS - 1;
 
 function markOnboardingComplete() {
@@ -21,11 +22,18 @@ function markOnboardingComplete() {
 }
 
 export function useSetup() {
+  const { t } = useTranslation('setup');
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(SetupStep.Theme);
 
+  const setupSteps: SetupStepConfig[] = useMemo(() => [
+    { step: SetupStep.Theme, title: t('steps.theme.title'), subtitle: t('steps.theme.subtitle'), icon: STEP_ICONS[SetupStep.Theme] },
+    { step: SetupStep.Ai, title: t('steps.ai.title'), subtitle: t('steps.ai.subtitle'), icon: STEP_ICONS[SetupStep.Ai] },
+    { step: SetupStep.Notifications, title: t('steps.notifications.title'), subtitle: t('steps.notifications.subtitle'), icon: STEP_ICONS[SetupStep.Notifications] },
+  ], [t]);
+
   const isLastStep = currentStep === LAST_STEP;
-  const stepConfig = SETUP_STEPS[currentStep];
+  const stepConfig = setupSteps[currentStep];
 
   const goToDashboard = () => {
     markOnboardingComplete();

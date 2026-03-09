@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { SetupStep } from './types';
 import { useSetup } from './use-setup';
@@ -6,6 +7,7 @@ import { SetupAi } from './components/setup-ai';
 import { SetupNotifications } from './components/setup-notifications';
 
 export function SetupPage() {
+  const { t } = useTranslation('setup');
   const { currentStep, stepConfig, totalSteps, isLastStep, handleNext, handleSkip, handleSkipAll } = useSetup();
 
   const Icon = stepConfig.icon;
@@ -47,13 +49,13 @@ export function SetupPage() {
             onClick={handleSkip}
             className="cursor-pointer text-[13px] text-fg-muted transition-colors hover:text-fg"
           >
-            Skip
+            {t('actions.skip')}
           </button>
           <button
             onClick={handleNext}
             className="cursor-pointer rounded-md bg-accent px-5 py-2 text-[13px] font-medium text-accent-fg transition-opacity hover:opacity-80"
           >
-            {isLastStep ? 'Get Started' : 'Continue'}
+            {isLastStep ? t('actions.getStarted') : t('actions.continue')}
           </button>
         </div>
 
@@ -62,7 +64,7 @@ export function SetupPage() {
             onClick={handleSkipAll}
             className="cursor-pointer text-[11px] text-fg-disabled transition-colors hover:text-fg-muted"
           >
-            Skip all and go to dashboard
+            {t('actions.skipAll')}
           </button>
         </div>
       </div>

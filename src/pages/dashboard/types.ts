@@ -23,7 +23,7 @@ export type Pipeline = {
   target: string;
   status: PipelineStatus;
   duration: string;
-  ago: string;
+  agoDate: string;
   url: string;
 };
 
@@ -43,7 +43,7 @@ export type DashboardPR = {
   targetBranch: string;
   author: string;
   authorInitials: string;
-  createdAgo: string;
+  createdAgoDate: string;
   status: 'active' | 'draft';
   reviewerCount: number;
   approvedCount: number;

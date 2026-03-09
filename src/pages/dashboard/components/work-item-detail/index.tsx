@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   ExternalLink,
   Loader2,
@@ -13,6 +14,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { ShineBorder } from '@/components/ui/shine-border';
@@ -25,16 +27,6 @@ import { EditableTitle } from '../work-item-editable-title';
 import type { WorkItemDetailDialogProps, PriorityLabel, DisplayDetail } from './types';
 
 type DevFieldKey = 'effort' | 'completedWork' | 'remainingWork' | 'dueDate' | 'devStartDate' | 'devEndDate' | 'blocked';
-
-const DEV_FIELD_META: Record<DevFieldKey, { icon: React.ElementType; label: string }> = {
-  effort: { icon: Zap, label: 'Effort' },
-  completedWork: { icon: CheckCircle2, label: 'Completed Work' },
-  remainingWork: { icon: Hourglass, label: 'Remaining Work' },
-  dueDate: { icon: Calendar, label: 'Due Date' },
-  devStartDate: { icon: Calendar, label: 'Dev Start Date' },
-  devEndDate: { icon: Calendar, label: 'Dev End Date' },
-  blocked: { icon: ShieldAlert, label: 'Blocked' },
-};
 
 const DEV_FIELDS_BY_TYPE: Record<string, DevFieldKey[]> = {
   Task: ['effort', 'completedWork', 'remainingWork', 'dueDate', 'blocked'],
@@ -57,6 +49,17 @@ const priorityConfig: Record<PriorityLabel, string> = {
 export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
   const { itemId, project, onClose, onNavigate } = props;
   const { detail, theme, states, isLoading, isUpdating, updateState, updateTitle, isTitleUpdating, error } = useWorkItemDetail(project, itemId);
+  const { t } = useTranslation(['dashboard', 'common']);
+
+  const DEV_FIELD_META: Record<DevFieldKey, { icon: React.ElementType; label: string }> = useMemo(() => ({
+    effort: { icon: Zap, label: t('dashboard:workItemDetail.effort') },
+    completedWork: { icon: CheckCircle2, label: t('dashboard:workItemDetail.completedWork') },
+    remainingWork: { icon: Hourglass, label: t('dashboard:workItemDetail.remainingWork') },
+    dueDate: { icon: Calendar, label: t('dashboard:workItemDetail.dueDate') },
+    devStartDate: { icon: Calendar, label: t('dashboard:workItemDetail.devStartDate') },
+    devEndDate: { icon: Calendar, label: t('dashboard:workItemDetail.devEndDate') },
+    blocked: { icon: ShieldAlert, label: t('dashboard:workItemDetail.blocked') },
+  }), [t]);
 
   const isOpen = itemId !== null;
   const TypeIcon = theme.icon;
@@ -70,7 +73,7 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
             onClick={() => openUrl(detail.webUrl)}
             className="absolute right-14 top-4 flex cursor-pointer items-center gap-1 rounded-sm text-[11px] text-fg-muted opacity-70 transition-opacity hover:opacity-100"
           >
-            View in DevOps
+            {t('common:actions.viewInDevOps')}
             <ExternalLink size={11} />
           </button>
         )}
@@ -93,7 +96,7 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
               <span className="text-[14px] text-fg-disabled">#{itemId}</span>
               <DialogTitle className="sr-only">{detail.title}</DialogTitle>
               <EditableTitle title={detail.title} onSave={updateTitle} isUpdating={isTitleUpdating} />
-              <DialogDescription className="sr-only">Work item details for {detail.title}</DialogDescription>
+              <DialogDescription className="sr-only">{t('dashboard:workItemDetail.detailsFor', { title: detail.title })}</DialogDescription>
               <div className="flex items-center gap-2 pt-1">
                 <div className="flex items-center gap-1.5">
                   <TypeIcon size={12} className={theme.className} />
@@ -122,23 +125,23 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
                   isUpdating={isUpdating}
                   onSelect={updateState}
                 />
-                <DetailField icon={User} label="Assigned To" value={detail.assignee} />
-                <DetailField icon={GitBranch} label="Iteration" value={detail.iterationPath} />
+                <DetailField icon={User} label={t('dashboard:workItemDetail.assignedTo')} value={detail.assignee} />
+                <DetailField icon={GitBranch} label={t('dashboard:workItemDetail.iteration')} value={detail.iterationPath} />
                 <DetailField
                   icon={Flag}
-                  label="Priority"
+                  label={t('dashboard:workItemDetail.priority')}
                   value={detail.priority}
                   valueClassName={priorityConfig[detail.priority]}
                 />
-                <DetailField icon={User} label="Created By" value={detail.createdBy} />
-                <DetailField icon={Calendar} label="Created" value={detail.createdDate} />
-                <DetailField icon={Calendar} label="Last Updated" value={detail.changedDate} />
+                <DetailField icon={User} label={t('dashboard:workItemDetail.createdBy')} value={detail.createdBy} />
+                <DetailField icon={Calendar} label={t('dashboard:workItemDetail.created')} value={detail.createdDate} />
+                <DetailField icon={Calendar} label={t('dashboard:workItemDetail.lastUpdated')} value={detail.changedDate} />
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
                   <Clock size={11} />
-                  Dev
+                  {t('dashboard:workItemDetail.dev')}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {(DEV_FIELDS_BY_TYPE[detail.type] ?? DEFAULT_DEV_FIELDS).map((key) => {
@@ -168,7 +171,7 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
 
               {detail.description && (
                 <div className="space-y-1.5">
-                  <span className="text-[11px] text-fg-muted">Description</span>
+                  <span className="text-[11px] text-fg-muted">{t('dashboard:workItemDetail.description')}</span>
                   <div
                     className="text-[13px] text-fg-secondary leading-relaxed [&_a]:text-accent [&_a]:underline [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:mb-1"
                     dangerouslySetInnerHTML={{ __html: detail.description }}

@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { azure } from '@/lib/tauri';
 import type { Release, ReleaseDefinition, ReleaseApproval } from '@/types/azure';
 import { useSessionStore } from '@/store/session';
-import { formatAgo } from '@/utils/formatters';
 import { mapReleaseEnvironmentStatus, mapApprovalStatus } from '@/utils/mappers';
 import { fuzzyMatch } from '@/utils/search';
 import type { SortDirection } from '@/components/ui/sort-selector/types';
@@ -51,7 +50,7 @@ function mapRelease(raw: Release): ReleaseItem {
     definitionName: raw.releaseDefinition.name,
     createdBy: raw.createdBy.displayName,
     createdOn: raw.createdOn,
-    ago: formatAgo(lastDeployTime ?? raw.createdOn),
+    agoDate: lastDeployTime ?? raw.createdOn,
     environments: raw.environments
       .sort((a, b) => a.rank - b.rank)
       .map((env) => {

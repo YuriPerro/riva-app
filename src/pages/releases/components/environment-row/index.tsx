@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatAgo } from '@/utils/formatters';
+import { TimeAgo } from '@/components/ui/time-ago';
 import { ENV_STATUS_STYLES, STATUS_LABELS } from '../../constants';
 import { ApprovalActions } from '../approval-actions';
 import type { EnvironmentRowProps } from './types';
@@ -44,7 +44,7 @@ export function EnvironmentRow(props: EnvironmentRowProps) {
           {lastDeployedOn && (
             <>
               <span className="text-[10px] text-fg-disabled">·</span>
-              <span className="text-[10px] text-fg-disabled">{formatAgo(lastDeployedOn)}</span>
+              <TimeAgo date={lastDeployedOn} className="text-[10px] text-fg-disabled" />
             </>
           )}
         </div>

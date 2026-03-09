@@ -1,3 +1,4 @@
+import { TimeAgo } from '@/components/ui/time-ago';
 import { EnvironmentDot } from '../environment-dot';
 import type { ReleaseRowProps } from './types';
 
@@ -28,7 +29,7 @@ export function ReleaseRow(props: ReleaseRowProps) {
         })}
       </div>
 
-      <span className="w-16 shrink-0 text-right text-[11px] text-fg-disabled">{release.ago}</span>
+      <TimeAgo date={release.agoDate} className="w-16 shrink-0 text-right text-[11px] text-fg-disabled" />
     </button>
   );
 }

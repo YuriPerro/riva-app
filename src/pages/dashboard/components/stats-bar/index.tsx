@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { ListTodo, GitPullRequest, Workflow, GitPullRequestArrow } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Route } from '@/types/routes';
 import type { StatsBarProps } from './types';
@@ -6,13 +8,14 @@ import type { StatsBarProps } from './types';
 export function StatsBar(props: StatsBarProps) {
   const { stats } = props;
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
 
-  const items = [
-    { value: stats.myTasks, label: 'my tasks', icon: ListTodo, path: Route.Tasks },
-    { value: stats.inReview, label: 'in review', icon: GitPullRequest, path: `${Route.Tasks}?status=in-review` },
-    { value: stats.pipelinesRunning, label: 'pipelines running', icon: Workflow, path: `${Route.Pipelines}?status=running` },
-    { value: stats.openPRs, label: 'open PRs', icon: GitPullRequestArrow, path: `${Route.PullRequests}?status=active` },
-  ];
+  const items = useMemo(() => [
+    { value: stats.myTasks, label: t('stats.myTasks'), icon: ListTodo, path: Route.Tasks },
+    { value: stats.inReview, label: t('stats.inReview'), icon: GitPullRequest, path: `${Route.Tasks}?status=in-review` },
+    { value: stats.pipelinesRunning, label: t('stats.pipelinesRunning'), icon: Workflow, path: `${Route.Pipelines}?status=running` },
+    { value: stats.openPRs, label: t('stats.openPRs'), icon: GitPullRequestArrow, path: `${Route.PullRequests}?status=active` },
+  ], [stats, t]);
 
   return (
     <div className="flex gap-3 mt-3">

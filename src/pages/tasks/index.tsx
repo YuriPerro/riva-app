@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -11,30 +13,31 @@ import { TasksContent } from './components/tasks-content';
 import { useTasks, type StatusFilter, type TypeFilter, type TaskSortKey } from './use-tasks';
 import type { SortOption } from '@/components/ui/sort-selector/types';
 
-const SORT_OPTIONS: SortOption<TaskSortKey>[] = [
-  { value: 'relevance', label: 'Relevance' },
-  { value: 'title', label: 'Title (A-Z)' },
-  { value: 'status', label: 'Status' },
-  { value: 'type', label: 'Type' },
-];
-
-const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'todo', label: 'To Do' },
-  { value: 'in-progress', label: 'In Progress' },
-  { value: 'in-review', label: 'In Review' },
-  { value: 'done', label: 'Done' },
-];
-
-const TYPE_FILTERS: { value: TypeFilter; label: string }[] = [
-  { value: 'task', label: 'Task' },
-  { value: 'bug', label: 'Bug' },
-  { value: 'pbi', label: 'PBI' },
-  { value: 'feature', label: 'Feature' },
-  { value: 'epic', label: 'Epic' },
-];
-
 export function TasksPage() {
+  const { t } = useTranslation(['tasks', 'common']);
+
+  const SORT_OPTIONS: SortOption<TaskSortKey>[] = useMemo(() => [
+    { value: 'relevance', label: t('tasks:sort.relevance') },
+    { value: 'title', label: t('tasks:sort.title') },
+    { value: 'status', label: t('tasks:sort.status') },
+    { value: 'type', label: t('tasks:sort.type') },
+  ], [t]);
+
+  const STATUS_FILTERS: { value: StatusFilter; label: string }[] = useMemo(() => [
+    { value: 'all', label: t('common:filters.all') },
+    { value: 'todo', label: t('common:status.todo') },
+    { value: 'in-progress', label: t('common:status.inProgress') },
+    { value: 'in-review', label: t('common:status.inReview') },
+    { value: 'done', label: t('common:status.done') },
+  ], [t]);
+
+  const TYPE_FILTERS: { value: TypeFilter; label: string }[] = useMemo(() => [
+    { value: 'task', label: t('common:workItemTypes.task') },
+    { value: 'bug', label: t('common:workItemTypes.bug') },
+    { value: 'pbi', label: t('common:workItemTypes.pbi') },
+    { value: 'feature', label: t('common:workItemTypes.feature') },
+    { value: 'epic', label: t('common:workItemTypes.epic') },
+  ], [t]);
   const {
     filtered,
     items,
@@ -64,25 +67,19 @@ export function TasksPage() {
       loadingContent={
         <LoadingState
           icon={<Layers size={32} />}
-          title="Loading Tasks"
-          phrases={[
-            'Excavating your backlog...',
-            'Finding bugs you didn\'t know existed...',
-            'Ticket #9999 incoming...',
-            'Sorting by priority (everything is P1)...',
-            'Loading technical debt...',
-          ]}
+          title={t('tasks:loading.title')}
+          phrases={t('tasks:loading.phrases', { returnObjects: true }) as string[]}
         />
       }
     >
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <PageHeader
-          title="Tasks"
-          subtitle={`${items.length} item${items.length !== 1 ? 's' : ''} assigned to you`}
+          title={t('tasks:title')}
+          subtitle={t('tasks:subtitle', { count: items.length })}
         />
 
         <div className="flex flex-wrap items-center gap-1.5">
-          <SearchInput value={query} onChange={setQuery} placeholder="Search tasks..." />
+          <SearchInput value={query} onChange={setQuery} placeholder={t('tasks:searchPlaceholder')} />
           <span className="mx-0.5 h-4 w-px bg-border" />
           {STATUS_FILTERS.map(({ value, label }) => (
             <FilterPill key={value} active={statusFilter === value} onClick={() => setStatusFilter(value)}>

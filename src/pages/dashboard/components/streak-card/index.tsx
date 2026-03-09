@@ -1,10 +1,12 @@
 import { Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { FlameIcon } from '@/components/ui/flame';
 import { dayCircleClass } from '@/utils/streak';
 import type { StreakCardProps } from './types';
 
 export function StreakCard(props: StreakCardProps) {
   const { data, dayLabels, electric, onInfoClick } = props;
+  const { t } = useTranslation('dashboard');
 
   return (
     <div className={`relative flex h-full flex-col justify-between rounded-md bg-surface px-3 py-4 ${electric ? '' : 'border border-border-subtle'}`}>
@@ -24,11 +26,11 @@ export function StreakCard(props: StreakCardProps) {
             <span className="text-[28px] font-bold tabular-nums text-fg">{data.streak}</span>
           </div>
 
-          <span className="text-[11px] text-fg-muted">day streak</span>
+          <span className="text-[11px] text-fg-muted">{t('streak.dayStreak')}</span>
         </div>
 
         <div className="flex flex-col gap-2">
-          <div className="text-[11px] text-fg-muted">Best: {data.bestStreak} days</div>
+          <div className="text-[11px] text-fg-muted">{t('streak.bestDays', { count: data.bestStreak })}</div>
           <div className="flex items-center gap-1.5">
             {data.weekDays.map((active, i) => (
               <div key={i} className="flex flex-col items-center gap-1">

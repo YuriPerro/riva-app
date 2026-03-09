@@ -1,10 +1,12 @@
 import { ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { RelatedRow } from '../related-row';
 import type { RelatedItemsProps } from './types';
 
 export function RelatedItems(props: RelatedItemsProps) {
   const { parent, children, onSelect } = props;
+  const { t } = useTranslation('dashboard');
 
   const hasParent = parent !== null;
   const hasChildren = children.length > 0;
@@ -17,7 +19,7 @@ export function RelatedItems(props: RelatedItemsProps) {
         <Collapsible defaultOpen={true}>
           <CollapsibleTrigger className="group flex w-full cursor-pointer items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
             <ChevronRight size={11} className="transition-transform duration-200 group-data-[state=open]:rotate-90" />
-            Parent
+            {t('workItemDetail.parent')}
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="mt-1">
@@ -31,7 +33,7 @@ export function RelatedItems(props: RelatedItemsProps) {
         <Collapsible defaultOpen={false}>
           <CollapsibleTrigger className="group flex w-full cursor-pointer items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
             <ChevronRight size={11} className="transition-transform duration-200 group-data-[state=open]:rotate-90" />
-            Children
+            {t('workItemDetail.children')}
             <span className="font-normal normal-case tracking-normal text-fg-disabled">({children.length})</span>
           </CollapsibleTrigger>
           <CollapsibleContent>

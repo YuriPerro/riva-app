@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ExternalLink, Rocket, User, Calendar, Hash, Check, X } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -8,6 +9,7 @@ import { EnvironmentRow } from '../environment-row';
 import type { ReleaseDetailDialogProps } from './types';
 
 export function ReleaseDetailDialog(props: ReleaseDetailDialogProps) {
+  const { t } = useTranslation(['releases', 'common']);
   const { release, onClose, onApprove, onReject, isApproving, currentUserUniqueName, myPendingApproval } = props;
   const isOpen = release !== null;
 
@@ -22,7 +24,7 @@ export function ReleaseDetailDialog(props: ReleaseDetailDialogProps) {
               onClick={() => openUrl(release.url).catch(console.error)}
               className="absolute right-14 top-4 flex cursor-pointer items-center gap-1 rounded-sm text-[11px] text-fg-muted opacity-70 transition-opacity hover:opacity-100"
             >
-              View in DevOps
+              {t('common:actions.viewInDevOps')}
               <ExternalLink size={11} />
             </button>
 
@@ -31,12 +33,12 @@ export function ReleaseDetailDialog(props: ReleaseDetailDialogProps) {
                 <Rocket size={14} className="text-accent" />
                 <DialogTitle className="text-[17px] leading-snug">{release.name}</DialogTitle>
               </div>
-              <DialogDescription className="sr-only">Release details for {release.name}</DialogDescription>
+              <DialogDescription className="sr-only">{t('releases:detail.details')} — {release.name}</DialogDescription>
             </DialogHeader>
 
             <div className="flex flex-1 gap-5 overflow-y-auto py-1">
               <div className="flex-1 min-w-0">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-disabled">Pipeline</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-disabled">{t('releases:detail.pipeline')}</span>
                 <div className="mt-2">
                   {release.environments.map((env, idx) => (
                     <EnvironmentRow
@@ -55,13 +57,13 @@ export function ReleaseDetailDialog(props: ReleaseDetailDialogProps) {
               <div className="w-px bg-border" />
 
               <div className="flex-1 shrink-0">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-disabled">Details</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-disabled">{t('releases:detail.details')}</span>
 
                 <div className="mt-2 space-y-2.5">
                   <div className="space-y-0.5">
                     <span className="flex items-center gap-1 text-[10px] text-fg-disabled">
                       <Rocket size={9} />
-                      Definition
+                      {t('releases:detail.definition')}
                     </span>
                     <span className="text-[12px] text-fg-secondary">{release.definitionName}</span>
                   </div>
@@ -69,7 +71,7 @@ export function ReleaseDetailDialog(props: ReleaseDetailDialogProps) {
                   <div className="space-y-0.5">
                     <span className="flex items-center gap-1 text-[10px] text-fg-disabled">
                       <User size={9} />
-                      Created by
+                      {t('releases:detail.createdBy')}
                     </span>
                     <span className="text-[12px] text-fg-secondary">{release.createdBy}</span>
                   </div>
@@ -77,7 +79,7 @@ export function ReleaseDetailDialog(props: ReleaseDetailDialogProps) {
                   <div className="space-y-0.5">
                     <span className="flex items-center gap-1 text-[10px] text-fg-disabled">
                       <Calendar size={9} />
-                      Created
+                      {t('releases:detail.created')}
                     </span>
                     <span className="text-[12px] text-fg-secondary">{formatDate(release.createdOn)}</span>
                   </div>
@@ -85,7 +87,7 @@ export function ReleaseDetailDialog(props: ReleaseDetailDialogProps) {
                   <div className="space-y-0.5">
                     <span className="flex items-center gap-1 text-[10px] text-fg-disabled">
                       <Hash size={9} />
-                      Release ID
+                      {t('releases:detail.releaseId')}
                     </span>
                     <span className="font-mono text-[12px] text-fg-secondary">{release.id}</span>
                   </div>
@@ -102,7 +104,7 @@ export function ReleaseDetailDialog(props: ReleaseDetailDialogProps) {
                   className="border-border text-fg-muted hover:border-error"
                 >
                   <X size={12} />
-                  Reject
+                  {t('common:actions.reject')}
                 </FillButton>
                 <FillButton
                   onClick={() => onApprove(myPendingApproval.id)}
@@ -111,7 +113,7 @@ export function ReleaseDetailDialog(props: ReleaseDetailDialogProps) {
                   className="border-border text-fg-muted hover:border-success"
                 >
                   <Check size={12} />
-                  Approve
+                  {t('common:actions.approve')}
                 </FillButton>
               </div>
             )}

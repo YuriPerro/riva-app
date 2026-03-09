@@ -1,0 +1,26 @@
+{
+  "title": "Connect to Azure DevOps",
+  "subtitle": "Enter your organization URL and a Personal Access Token to get started.",
+  "form": {
+    "organizationUrl": "Organization URL",
+    "organizationUrlPlaceholder": "https://dev.azure.com/your-org",
+    "personalAccessToken": "Personal Access Token",
+    "howToCreate": "How to create"
+  },
+  "securityNotice": "Your PAT is stored locally and never leaves your device.",
+  "errors": {
+    "failedToConnect": "Failed to connect. Check your URL and PAT."
+  },
+  "projectSelect": {
+    "title": "Select a project",
+    "subtitle": "Choose the project you want to work on",
+    "searchPlaceholder": "Search projects...",
+    "noResults": "No projects matching \"{{query}}\""
+  },
+  "teamSelect": {
+    "title": "Select a team",
+    "subtitle": "Choose your team in",
+    "searchPlaceholder": "Search teams...",
+    "noResults": "No teams matching \"{{query}}\""
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "title": "Configurações",
+  "subtitle": "Gerencie sua conta e preferências",
+  "project": {
+    "title": "Projeto",
+    "currentlyWorkingOn": "Trabalhando atualmente em",
+    "noProjectSelected": "Nenhum projeto selecionado"
+  },
+  "ai": {
+    "title": "IA",
+    "description": "Gere resumos de standup em linguagem natural com IA",
+    "keySaved": "Chave da API salva. Resumos com IA estão prontos.",
+    "keyStoredLocally": "Sua chave é armazenada localmente em ~/.riva/openai.json",
+    "onlyTitlesSent": "Apenas títulos de tarefas, status e títulos de PRs são enviados — nunca código ou descrições",
+    "noDataCached": "Nenhum dado é armazenado após a geração"
+  },
+  "notifications": {
+    "title": "Notificações",
+    "description": "Receba notificações sobre revisões de PR, falhas de pipeline e menções em work items",
+    "pollingInterval": "Intervalo de verificação",
+    "prReviews": "Revisões de PR",
+    "prReviewsDescription": "Aprovadas ou rejeitadas",
+    "pipelineFailed": "Pipeline falhou",
+    "pipelineFailedDescription": "Falhas de build ou release",
+    "mentions": "Menções",
+    "mentionsDescription": "Marcado em work items"
+  },
+  "language": {
+    "title": "Idioma",
+    "description": "Escolha o idioma de exibição do app",
+    "en": "English",
+    "pt-BR": "Português (BR)"
+  },
+  "theme": {
+    "title": "Tema",
+    "description": "Escolha um estilo visual para o app"
+  },
+  "signOut": {
+    "title": "Sair",
+    "description": "Limpe suas credenciais e volte à tela de login",
+    "confirmTitle": "Sair do Riva?",
+    "confirmDescription": "Suas credenciais armazenadas serão removidas. Você precisará inserir sua URL da organização e token de acesso pessoal novamente para entrar."
+  },
+  "sunburnDialog": {
+    "title": "ESPERA!",
+    "description": "Você realmente quer fazer isso?",
+    "warning": "Se sim, prepare seus óculos de sol",
+    "cancel": "Não, tô de boa",
+    "confirm": "Traga a luz!"
+  }
+}

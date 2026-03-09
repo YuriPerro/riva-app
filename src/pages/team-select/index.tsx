@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2, AlertCircle, Users, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { fuzzyMatch } from '@/utils/search';
@@ -6,6 +7,7 @@ import { TeamInitial } from './components/team-initial';
 import { useTeamSelect } from './use-team-select';
 
 export function TeamSelectPage() {
+  const { t } = useTranslation('onboarding');
   const { project, teams, isLoading, error, selectTeam } = useTeamSelect();
   const [query, setQuery] = useState('');
 
@@ -19,9 +21,9 @@ export function TeamSelectPage() {
             <Users size={18} className="text-fg" />
           </div>
           <div className="text-center">
-            <h1 className="text-[15px] font-semibold text-fg">Select a team</h1>
+            <h1 className="text-[15px] font-semibold text-fg">{t('teamSelect.title')}</h1>
             <p className="mt-1 text-[13px] text-fg-muted">
-              Choose your team in <span className="text-fg-secondary">{project}</span>
+              {t('teamSelect.subtitle')} <span className="text-fg-secondary">{project}</span>
             </p>
           </div>
         </div>
@@ -47,7 +49,7 @@ export function TeamSelectPage() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search teams..."
+                  placeholder={t('teamSelect.searchPlaceholder')}
                   autoFocus
                   className="h-9 w-full rounded-md border border-border bg-surface pl-9 pr-3 text-[13px] text-fg placeholder:text-fg-disabled focus:border-accent focus:outline-none"
                 />
@@ -57,7 +59,7 @@ export function TeamSelectPage() {
             <div className="flex max-h-[340px] flex-col overflow-y-auto rounded-lg border border-border">
               {filtered.length === 0 && (
                 <div className="px-4 py-8 text-center text-[12px] text-fg-disabled">
-                  No teams matching "{query}"
+                  {t('teamSelect.noResults', { query })}
                 </div>
               )}
               {filtered.map((team, i) => (

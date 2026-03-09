@@ -1,0 +1,33 @@
+{
+  "title": "Releases",
+  "loading": {
+    "title": "Loading Releases",
+    "phrases": [
+      "Deploying to production on a Friday...",
+      "Rolling dice on staging...",
+      "Praying to the deploy gods...",
+      "Checking if rollback works...",
+      "Crossing fingers for zero downtime..."
+    ]
+  },
+  "subtitle_one": "{{count}} release pipeline",
+  "subtitle_other": "{{count}} release pipelines",
+  "searchPlaceholder": "Search releases...",
+  "sort": {
+    "relevance": "Relevance",
+    "newest": "Newest",
+    "name": "Name (A-Z)",
+    "status": "Status"
+  },
+  "filterRelease": "Release",
+  "filterEnvironment": "Environment",
+  "noResults": "No release definitions found",
+  "detail": {
+    "pipeline": "Pipeline",
+    "details": "Details",
+    "definition": "Definition",
+    "createdBy": "Created by",
+    "created": "Created",
+    "releaseId": "Release ID"
+  }
+}

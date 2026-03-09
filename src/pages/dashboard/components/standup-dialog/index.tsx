@@ -1,4 +1,5 @@
 import { Copy, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { PeriodSelector } from '../standup-period-selector';
 import { StandupContent } from '../standup-content';
@@ -10,13 +11,14 @@ export function StandupDialog(props: StandupDialogProps) {
   const { open, onOpenChange, standup, isLoading, period, onPeriodChange } = props;
   const { copied, isEmpty, pastLabel, yesterdayGroups, todayGroups, hasTodayContent, clipboardText, handleCopy } =
     useStandupDialog(standup);
+  const { t } = useTranslation(['dashboard', 'common']);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[70vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <div className="flex items-center justify-between pr-8">
-            <DialogTitle className="text-[13px] font-semibold">Standup Summary</DialogTitle>
+            <DialogTitle className="text-[13px] font-semibold">{t('dashboard:standupDialog.title')}</DialogTitle>
             <div className="flex items-center gap-2">
               <PeriodSelector value={period} onChange={onPeriodChange} />
               <button
@@ -25,12 +27,12 @@ export function StandupDialog(props: StandupDialogProps) {
                 className="flex cursor-pointer items-center gap-1 rounded-md border border-border bg-elevated px-2 py-0.5 text-[11px] text-fg-muted transition-colors hover:text-fg disabled:cursor-default disabled:opacity-40"
               >
                 {copied ? <Check size={10} className="text-success" /> : <Copy size={10} />}
-                {copied ? 'Copied' : 'Copy'}
+                {copied ? t('common:actions.copied') : t('common:actions.copy')}
               </button>
             </div>
           </div>
           <DialogDescription className="sr-only">
-            Summary of your recent work activity for standup meetings
+            {t('dashboard:standupDialog.description')}
           </DialogDescription>
         </DialogHeader>
 

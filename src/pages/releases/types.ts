@@ -27,7 +27,7 @@ export interface ReleaseItem {
   definitionName: string;
   createdBy: string;
   createdOn: string;
-  ago: string;
+  agoDate: string;
   environments: ReleaseEnvironmentItem[];
   url: string;
 }

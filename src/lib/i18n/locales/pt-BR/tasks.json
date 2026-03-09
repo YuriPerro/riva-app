@@ -1,0 +1,26 @@
+{
+  "title": "Tarefas",
+  "loading": {
+    "title": "Carregando Tarefas",
+    "phrases": [
+      "Escavando seu backlog...",
+      "Encontrando bugs que você nem sabia que existiam...",
+      "Ticket #9999 chegando...",
+      "Ordenando por prioridade (tudo é P1)...",
+      "Carregando dívida técnica..."
+    ]
+  },
+  "subtitle_one": "{{count}} item atribuído a você",
+  "subtitle_other": "{{count}} itens atribuídos a você",
+  "searchPlaceholder": "Buscar tarefas...",
+  "sort": {
+    "relevance": "Relevância",
+    "title": "Título (A-Z)",
+    "status": "Status",
+    "type": "Tipo"
+  },
+  "noResults": "Nenhum item corresponde aos filtros selecionados",
+  "errors": {
+    "failedToLoad": "Falha ao carregar work items"
+  }
+}

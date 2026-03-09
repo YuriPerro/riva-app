@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Route } from '@/types/routes';
@@ -7,26 +9,27 @@ import { getWorkItemTheme } from '@/utils/work-item-theme';
 import type { WorkItemStatus } from '@/types/work-item';
 import type { WorkItemsListProps } from './types';
 
-const statusConfig: Record<WorkItemStatus, { label: string; className: string }> = {
-  todo: { label: 'To Do', className: 'text-fg-disabled' },
-  'in-progress': { label: 'In Progress', className: 'text-info' },
-  'in-review': { label: 'In Review', className: 'text-warning' },
-  done: { label: 'Done', className: 'text-success' },
-};
-
 export function WorkItemsList(props: WorkItemsListProps) {
   const { items, onSelect } = props;
   const navigate = useNavigate();
+  const { t } = useTranslation(['dashboard', 'common']);
+
+  const statusConfig: Record<WorkItemStatus, { label: string; className: string }> = useMemo(() => ({
+    todo: { label: t('common:status.todo'), className: 'text-fg-disabled' },
+    'in-progress': { label: t('common:status.inProgress'), className: 'text-info' },
+    'in-review': { label: t('common:status.inReview'), className: 'text-warning' },
+    done: { label: t('common:status.done'), className: 'text-success' },
+  }), [t]);
 
   return (
     <div className="flex flex-col">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Tasks</span>
+        <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">{t('dashboard:workItems.title')}</span>
         <button
           onClick={() => navigate(Route.Tasks)}
           className="flex cursor-pointer items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary"
         >
-          View all <ArrowRight size={10} />
+          {t('common:actions.viewAll')} <ArrowRight size={10} />
         </button>
       </div>
 

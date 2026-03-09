@@ -1,7 +1,9 @@
 import { CheckCircle2, XCircle, Loader2, MinusCircle, ArrowRight } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { TimeAgo } from '@/components/ui/time-ago';
 import { Route } from '@/types/routes';
 import type { PipelineStatus } from '@/types/pipeline';
 import type { PipelinesListProps } from './types';
@@ -16,16 +18,17 @@ const statusConfig: Record<PipelineStatus, { icon: React.ElementType; className:
 export function PipelinesList(props: PipelinesListProps) {
   const { pipelines } = props;
   const navigate = useNavigate();
+  const { t } = useTranslation(['dashboard', 'common']);
 
   return (
     <div className="flex flex-col">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">Pipelines</span>
+        <span className="text-[11px] font-medium uppercase tracking-wider text-fg-muted">{t('dashboard:pipelinesList.title')}</span>
         <button
           onClick={() => navigate(Route.Pipelines)}
           className="flex cursor-pointer items-center gap-1 text-[11px] text-fg-disabled transition-colors hover:text-fg-secondary"
         >
-          View all <ArrowRight size={10} />
+          {t('common:actions.viewAll')} <ArrowRight size={10} />
         </button>
       </div>
 
@@ -49,12 +52,12 @@ export function PipelinesList(props: PipelinesListProps) {
                   {pipeline.name} · {pipeline.branch}
                 </span>
                 <span className="text-[11px] text-fg-disabled">
-                  trigger: {pipeline.target} · {pipeline.duration}
+                  {t('common:labels.trigger')} {pipeline.target} · {pipeline.duration}
                 </span>
               </div>
 
               <div className="shrink-0 text-right">
-                <span className="text-[11px] text-fg-disabled">{pipeline.ago}</span>
+                <TimeAgo date={pipeline.agoDate} className="text-[11px] text-fg-disabled" />
               </div>
             </div>
           );

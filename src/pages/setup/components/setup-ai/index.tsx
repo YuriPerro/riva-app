@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, Shield, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSetupAi } from './use-setup-ai';
 
 export function SetupAi() {
+  const { t } = useTranslation(['setup', 'common']);
   const { keyInput, setKeyInput, isVisible, setIsVisible, isSaving, isSaved, handleSave } = useSetupAi();
 
   return (
@@ -11,7 +13,7 @@ export function SetupAi() {
         {isSaved ? (
           <div className="flex items-center gap-2 rounded-md border border-success/20 bg-success/5 px-3 py-2.5">
             <CheckCircle2 size={14} className="shrink-0 text-success" />
-            <span className="text-[12px] text-success">API key saved. AI summaries are ready.</span>
+            <span className="text-[12px] text-success">{t('setup:ai.keySaved')}</span>
           </div>
         ) : (
           <div className="flex items-center gap-2">
@@ -40,7 +42,7 @@ export function SetupAi() {
                 'hover:bg-elevated disabled:cursor-default disabled:opacity-40',
               )}
             >
-              {isSaving ? 'Saving...' : 'Save'}
+              {isSaving ? t('common:actions.saving') : t('common:actions.save')}
             </button>
           </div>
         )}
@@ -49,8 +51,8 @@ export function SetupAi() {
       <div className="flex items-start gap-2.5 rounded-md border border-border-subtle bg-surface/50 px-3 py-2.5">
         <Shield size={13} className="mt-0.5 shrink-0 text-fg-disabled" />
         <div className="flex flex-col gap-1 text-[11px] leading-relaxed text-fg-disabled">
-          <span>Stored locally at ~/.riva/openai.json</span>
-          <span>Only task titles and statuses are sent — never code</span>
+          <span>{t('setup:ai.storedLocally')}</span>
+          <span>{t('setup:ai.onlyTitlesSent')}</span>
         </div>
       </div>
     </div>

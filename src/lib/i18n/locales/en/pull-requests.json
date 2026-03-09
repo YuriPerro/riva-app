@@ -1,0 +1,27 @@
+{
+  "title": "Pull Requests",
+  "loading": {
+    "title": "Loading Pull Requests",
+    "phrases": [
+      "Loading unsolicited opinions...",
+      "LGTM farming in progress...",
+      "Fetching passive-aggressive comments...",
+      "Counting merge conflicts...",
+      "Reviewing your 2000-line PR..."
+    ]
+  },
+  "subtitle_one": "{{count}} active pull request",
+  "subtitle_other": "{{count}} active pull requests",
+  "searchPlaceholder": "Search pull requests...",
+  "sort": {
+    "relevance": "Relevance",
+    "newest": "Newest",
+    "oldest": "Oldest",
+    "title": "Title (A-Z)"
+  },
+  "filterPlaceholder": "Repo",
+  "noResults": "No pull requests found",
+  "errors": {
+    "failedToLoad": "Failed to load pull requests"
+  }
+}

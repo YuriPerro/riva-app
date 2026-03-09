@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Star, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -11,22 +13,23 @@ import { PipelinesContent } from './components/pipelines-content';
 import { usePipelines, type StatusFilter, type PipelineSortKey } from './use-pipelines';
 import type { SortOption } from '@/components/ui/sort-selector/types';
 
-const SORT_OPTIONS: SortOption<PipelineSortKey>[] = [
-  { value: 'relevance', label: 'Relevance' },
-  { value: 'newest', label: 'Newest' },
-  { value: 'name', label: 'Name (A-Z)' },
-  { value: 'status', label: 'Status' },
-];
-
-const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'running', label: 'Running' },
-  { value: 'succeeded', label: 'Succeeded' },
-  { value: 'failed', label: 'Failed' },
-  { value: 'cancelled', label: 'Cancelled' },
-];
-
 export function PipelinesPage() {
+  const { t } = useTranslation(['pipelines', 'common']);
+
+  const SORT_OPTIONS: SortOption<PipelineSortKey>[] = useMemo(() => [
+    { value: 'relevance', label: t('pipelines:sort.relevance') },
+    { value: 'newest', label: t('pipelines:sort.newest') },
+    { value: 'name', label: t('pipelines:sort.name') },
+    { value: 'status', label: t('pipelines:sort.status') },
+  ], [t]);
+
+  const STATUS_FILTERS: { value: StatusFilter; label: string }[] = useMemo(() => [
+    { value: 'all', label: t('common:filters.all') },
+    { value: 'running', label: t('common:status.running') },
+    { value: 'succeeded', label: t('common:status.succeeded') },
+    { value: 'failed', label: t('common:status.failed') },
+    { value: 'cancelled', label: t('common:status.cancelled') },
+  ], [t]);
   const pipelines = usePipelines();
   const {
     runs,
@@ -59,25 +62,19 @@ export function PipelinesPage() {
       loadingContent={
         <LoadingState
           icon={<Zap size={32} />}
-          title="Loading Pipelines"
-          phrases={[
-            'Waiting for CI to fail...',
-            'Green builds are a myth...',
-            'Blame game loading...',
-            'Compiling excuses...',
-            'Queueing your hopes and dreams...',
-          ]}
+          title={t('pipelines:loading.title')}
+          phrases={t('pipelines:loading.phrases', { returnObjects: true }) as string[]}
         />
       }
     >
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <PageHeader
-          title="Pipelines"
-          subtitle={`${groups.length} pipeline${groups.length !== 1 ? 's' : ''}`}
+          title={t('pipelines:title')}
+          subtitle={t('pipelines:subtitle', { count: groups.length })}
         />
 
         <div className="flex flex-wrap items-center gap-1.5">
-          <SearchInput value={query} onChange={setQuery} placeholder="Search pipelines..." />
+          <SearchInput value={query} onChange={setQuery} placeholder={t('pipelines:searchPlaceholder')} />
           <span className="mx-0.5 h-4 w-px bg-border" />
           {STATUS_FILTERS.map(({ value, label }) => (
             <FilterPill key={value} active={statusFilter === value} onClick={() => setStatusFilter(value)}>
@@ -99,7 +96,7 @@ export function PipelinesPage() {
               <FilterPill active={showFavoritesOnly} onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}>
                 <span className="flex items-center gap-1">
                   <Star size={10} className={showFavoritesOnly ? 'fill-current' : ''} />
-                  Favorites
+                  {t('common:filters.favorites')}
                   <span
                     className={cn(
                       'rounded-full px-1.5 py-0.5 text-[9px]',
@@ -121,7 +118,7 @@ export function PipelinesPage() {
                 selected={definitionFilters}
                 onAdd={addDefinitionFilter}
                 onRemove={removeDefinitionFilter}
-                placeholder="Pipeline"
+                placeholder={t('pipelines:filterPlaceholder')}
               />
             </>
           )}

@@ -1,4 +1,5 @@
 import { Circle, ClipboardList, GitPullRequest } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { LoadingState } from '@/components/ui/loading-state';
 import { StandupSection } from '../standup-section';
 import { TransitionGroupView } from '../standup-transition-group';
@@ -7,18 +8,14 @@ import type { StandupContentProps } from './types';
 
 export function StandupContent(props: StandupContentProps) {
   const { isLoading, isEmpty, standup, pastLabel, yesterdayGroups, todayGroups, hasTodayContent } = props;
+  const { t } = useTranslation(['dashboard', 'common']);
 
   if (isLoading) {
     return (
       <LoadingState
         icon={<ClipboardList size={28} />}
-        title="Loading Standup"
-        phrases={[
-          'Summoning yesterday\'s work...',
-          'Finding what you actually did...',
-          'Generating believable updates...',
-          'Checking if you pushed code...',
-        ]}
+        title={t('dashboard:standupDialog.loading.title')}
+        phrases={t('dashboard:standupDialog.loading.phrases', { returnObjects: true }) as string[]}
         compact
       />
     );
@@ -27,7 +24,7 @@ export function StandupContent(props: StandupContentProps) {
   if (isEmpty || !standup) {
     return (
       <div className="flex items-center justify-center py-10">
-        <span className="text-[12px] text-fg-disabled">No activity found for this period</span>
+        <span className="text-[12px] text-fg-disabled">{t('dashboard:standupDialog.noActivity')}</span>
       </div>
     );
   }
@@ -40,7 +37,7 @@ export function StandupContent(props: StandupContentProps) {
         ))}
       </StandupSection>
 
-      <StandupSection label="Today" color="text-success" empty={!hasTodayContent}>
+      <StandupSection label={t('common:labels.today')} color="text-success" empty={!hasTodayContent}>
         {todayGroups.map((group) => (
           <TransitionGroupView key={group.toState} group={group} />
         ))}
@@ -49,7 +46,7 @@ export function StandupContent(props: StandupContentProps) {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1.5 text-[11px] text-fg-muted">
               <Circle size={7} className="fill-current text-running animate-pulse" />
-              <span className="font-medium">Working on</span>
+              <span className="font-medium">{t('dashboard:standupDialog.workingOn')}</span>
               <span className="text-fg-disabled">({standup.today.length})</span>
             </div>
             <div className="flex flex-col gap-1 pl-4">
@@ -68,7 +65,7 @@ export function StandupContent(props: StandupContentProps) {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1.5 text-[11px] text-fg-muted">
               <GitPullRequest size={10} className="text-info" />
-              <span className="font-medium">Pull Requests</span>
+              <span className="font-medium">{t('dashboard:standupDialog.pullRequests')}</span>
               <span className="text-fg-disabled">({standup.todayPrs.length})</span>
             </div>
             <div className="flex flex-col gap-1 pl-4">
@@ -88,7 +85,7 @@ export function StandupContent(props: StandupContentProps) {
       </StandupSection>
 
       {standup.blockers.length > 0 && (
-        <StandupSection label="Blockers" color="text-error">
+        <StandupSection label={t('dashboard:standupDialog.blockers')} color="text-error">
           {standup.blockers.map((b) => (
             <div key={b.id} className="flex items-center gap-1.5 text-[12px]">
               <TypeIcon type={b.workItemType} />

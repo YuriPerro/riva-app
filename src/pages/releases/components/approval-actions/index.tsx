@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import type { ApprovalActionsProps } from './types';
 
 export function ApprovalActions(props: ApprovalActionsProps) {
   const { approvals, currentUserUniqueName } = props;
+  const { t } = useTranslation('dashboard');
 
   if (approvals.length === 0) return null;
 
@@ -22,9 +24,9 @@ export function ApprovalActions(props: ApprovalActionsProps) {
               isPending && isMe ? 'text-warning' : 'text-fg-disabled',
             )}
           >
-            {isApproved && `Approved by ${approval.approverName}`}
-            {isRejected && `Rejected by ${approval.approverName}`}
-            {isPending && (isMe ? 'Waiting for your approval' : `Pending: ${approval.approverName}`)}
+            {isApproved && t('approvals.approvedBy', { name: approval.approverName })}
+            {isRejected && t('approvals.rejectedBy', { name: approval.approverName })}
+            {isPending && (isMe ? t('approvals.waitingForYourApproval') : t('approvals.pending', { name: approval.approverName }))}
           </span>
         );
       })}

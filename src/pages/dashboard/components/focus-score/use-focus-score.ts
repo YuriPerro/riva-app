@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { azure } from '@/lib/tauri';
 import { useSessionStore } from '@/store/session';
 import type { FocusScoreData, ScoreTier, ActiveCard } from './types';
@@ -19,11 +20,11 @@ function getScoreTier(score: number): ScoreTier {
   return 'error';
 }
 
-function getScoreLabel(score: number): string {
-  if (score >= 80) return 'Great focus';
-  if (score >= 60) return 'Good momentum';
-  if (score >= 40) return 'Keep going';
-  return 'Needs attention';
+function getScoreLabelKey(score: number): string {
+  if (score >= 80) return 'focusScore.greatFocus';
+  if (score >= 60) return 'focusScore.goodMomentum';
+  if (score >= 40) return 'focusScore.keepGoing';
+  return 'focusScore.needsAttention';
 }
 
 function getMondayOfWeek(date: Date): Date {
@@ -173,6 +174,7 @@ function buildFocusData(activeDates: string[], thisWeekCount: number, lastWeekCo
 }
 
 export function useFocusScore() {
+  const { t } = useTranslation('dashboard');
   const project = useSessionStore((s) => s.project);
   const team = useSessionStore((s) => s.team);
   const [activeCard, setActiveCard] = useState<ActiveCard>(null);
@@ -189,7 +191,7 @@ export function useFocusScore() {
     : { score: 0, streak: 0, bestStreak: getStoredBestStreak(), weekDays: Array(7).fill(false), thisWeekItems: 0, lastWeekItems: 0 };
 
   const tier = getScoreTier(data.score);
-  const label = getScoreLabel(data.score);
+  const label = t(getScoreLabelKey(data.score) as 'focusScore.greatFocus');
   const strokeColor = TIER_COLORS[tier];
   const delta = data.thisWeekItems - data.lastWeekItems;
   const maxItems = Math.max(data.thisWeekItems, data.lastWeekItems, 1);

@@ -1,0 +1,153 @@
+{
+  "title": "Painel",
+  "standup": "Standup",
+  "loading": {
+    "title": "Carregando Painel",
+    "phrases": [
+      "Contando seus bugs...",
+      "Buscando a vergonha do backlog...",
+      "Fingindo trabalhar...",
+      "Calculando desculpas de velocity...",
+      "Polindo seu burndown chart..."
+    ]
+  },
+  "sprint": {
+    "noActiveSprint": "Nenhuma sprint ativa",
+    "daysRemaining": "dias restantes"
+  },
+  "stats": {
+    "myTasks": "minhas tarefas",
+    "inReview": "em revisão",
+    "pipelinesRunning": "pipelines rodando",
+    "openPRs": "PRs abertas"
+  },
+  "focusScore": {
+    "title": "Foco",
+    "thisWeek": "Esta Semana",
+    "lastWeek": "Semana Passada",
+    "vsLastWeek": "vs semana passada",
+    "greatFocus": "Ótimo foco",
+    "goodMomentum": "Bom ritmo",
+    "keepGoing": "Continue assim",
+    "needsAttention": "Precisa de atenção"
+  },
+  "streak": {
+    "dayStreak": "dias seguidos",
+    "bestDays": "Melhor: {{count}} dias",
+    "details": "Detalhes da Sequência",
+    "description": "{{current}} dias de sequência atual, {{best}} dias melhor",
+    "howItWorks": "Como Funciona",
+    "rules": {
+      "consecutive": "Conta dias úteis consecutivos com pelo menos uma atividade",
+      "weekends": "Fins de semana são ignorados automaticamente (não contam como pausas)",
+      "activities": "Atividades: mudanças de estado, PRs, pushes ou aprovações",
+      "persisted": "Melhor sequência é mantida entre sessões"
+    },
+    "activeWorkdays": "{{count}}/5 dias úteis ativos esta semana",
+    "electricBorder": "Borda elétrica ativa com 7+ dias de sequência"
+  },
+  "score": {
+    "breakdown": "Detalhamento da Pontuação",
+    "howCalculated": "Como sua pontuação de foco de {{score}}/100 é calculada",
+    "formula": "Fórmula",
+    "streakPoints": "Pontos de Sequência",
+    "comparisonPoints": "Pontos de Comparação",
+    "consistencyPoints": "Pontos de Consistência",
+    "thresholds": "Limites",
+    "greatFocusRange": "Ótimo foco: {{range}}",
+    "keepGoingRange": "Continue assim: {{range}}",
+    "needsAttentionRange": "Precisa de atenção: {{range}}"
+  },
+  "activity": {
+    "breakdown": "Detalhamento de Atividade",
+    "comparison": "{{thisWeek}} atividades esta semana vs {{lastWeek}} semana passada",
+    "sources": "Fontes de Atividade",
+    "workItemChanges": "Mudanças de estado de work items (transições de tarefas, atualizações de bugs)",
+    "prCreated": "Pull requests criadas ou atualizadas",
+    "codePushes": "Pushes de código para repositórios",
+    "prApprovals": "Aprovações e revisões de PRs",
+    "weekComparison": "Comparação Semanal",
+    "improvement": "melhoria",
+    "decrease": "queda",
+    "differenceFromLastWeek": "diferença ({{direction}} em relação à semana passada)"
+  },
+  "dayNames": {
+    "mon": "Seg",
+    "tue": "Ter",
+    "wed": "Qua",
+    "thu": "Qui",
+    "fri": "Sex",
+    "sat": "Sáb",
+    "sun": "Dom"
+  },
+  "workItems": {
+    "title": "Tarefas",
+    "viewAll": "Ver todas"
+  },
+  "pipelinesList": {
+    "title": "Pipelines",
+    "viewAll": "Ver todas"
+  },
+  "standupDialog": {
+    "title": "Resumo do Standup",
+    "description": "Resumo da sua atividade recente para reuniões de standup",
+    "loading": {
+      "title": "Carregando Standup",
+      "phrases": [
+        "Invocando o trabalho de ontem...",
+        "Descobrindo o que você realmente fez...",
+        "Gerando atualizações convincentes...",
+        "Verificando se você fez push..."
+      ]
+    },
+    "noActivity": "Nenhuma atividade encontrada para este período",
+    "workingOn": "Trabalhando em",
+    "pullRequests": "Pull Requests",
+    "blockers": "Bloqueios"
+  },
+  "aiSummary": {
+    "title": "Resumo IA",
+    "hidePrompt": "Ocultar prompt",
+    "viewPrompt": "Ver prompt",
+    "sentToAi": "Enviado para IA:",
+    "generating": "Gerando...",
+    "generateSummary": "Gerar resumo",
+    "regenerate": "Regenerar",
+    "copied": "Resumo IA copiado"
+  },
+  "periodSelector": {
+    "yesterday": "Ontem",
+    "last2Days": "Últimos 2 dias",
+    "last3Days": "Últimos 3 dias",
+    "lastFriday": "Última sexta",
+    "last4Days": "Últimos 4 dias",
+    "last5Days": "Últimos 5 dias"
+  },
+  "workItemDetail": {
+    "detailsFor": "Detalhes do work item para {{title}}",
+    "effort": "Esforço",
+    "completedWork": "Trabalho Concluído",
+    "remainingWork": "Trabalho Restante",
+    "dueDate": "Data de Entrega",
+    "devStartDate": "Início do Dev",
+    "devEndDate": "Fim do Dev",
+    "blocked": "Bloqueado",
+    "assignedTo": "Atribuído a",
+    "iteration": "Iteração",
+    "priority": "Prioridade",
+    "createdBy": "Criado por",
+    "created": "Criado",
+    "lastUpdated": "Última Atualização",
+    "dev": "Dev",
+    "description": "Descrição",
+    "suggestedBranch": "Nome de Branch Sugerido",
+    "parent": "Pai",
+    "children": "Filhos"
+  },
+  "approvals": {
+    "approvedBy": "Aprovado por {{name}}",
+    "rejectedBy": "Rejeitado por {{name}}",
+    "waitingForYourApproval": "Aguardando sua aprovação",
+    "pending": "Pendente: {{name}}"
+  }
+}

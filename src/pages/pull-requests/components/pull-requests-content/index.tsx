@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertCircle, GitPullRequest } from 'lucide-react';
 import type { PR } from '../../use-pull-requests';
 import { PRCard } from '../pr-card';
@@ -15,6 +16,7 @@ function groupByRepo(prs: PR[]) {
 
 export function PullRequestsContent(props: PullRequestsContentProps) {
   const { error, filtered, openPR, reviewPR, isReviewing } = props;
+  const { t } = useTranslation('pull-requests');
   const repoGroups = useMemo(() => groupByRepo(filtered), [filtered]);
 
   if (error) {
@@ -30,7 +32,7 @@ export function PullRequestsContent(props: PullRequestsContentProps) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2">
         <GitPullRequest size={24} className="text-fg-disabled" />
-        <span className="text-[13px] text-fg-disabled">No pull requests found</span>
+        <span className="text-[13px] text-fg-disabled">{t('noResults')}</span>
       </div>
     );
   }

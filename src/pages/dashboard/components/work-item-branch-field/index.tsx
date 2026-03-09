@@ -1,4 +1,5 @@
 import { GitBranch, Copy, CheckCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { buildBranchName } from '@/utils/formatters';
 import { mapWorkItemType } from '@/utils/mappers';
@@ -7,6 +8,7 @@ import type { BranchFieldProps } from './types';
 
 export function BranchField(props: BranchFieldProps) {
   const { id, type } = props;
+  const { t } = useTranslation('dashboard');
   const branch = buildBranchName(id, mapWorkItemType(type));
   const { copied, handleCopy } = useBranchField(branch);
   const CopyIcon = copied ? CheckCheck : Copy;
@@ -15,7 +17,7 @@ export function BranchField(props: BranchFieldProps) {
     <div className="space-y-1.5">
       <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-fg-muted">
         <GitBranch size={11} />
-        Suggested Branch Name
+        {t('workItemDetail.suggestedBranch')}
       </div>
       <button
         onClick={handleCopy}

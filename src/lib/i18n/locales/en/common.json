@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "tasks": "Tasks",
+    "pipelines": "Pipelines",
+    "pullRequests": "Pull Requests",
+    "releases": "Releases",
+    "settings": "Settings"
+  },
+  "status": {
+    "onTrack": "On Track",
+    "atRisk": "At Risk",
+    "offTrack": "Off Track",
+    "succeeded": "Succeeded",
+    "failed": "Failed",
+    "running": "Running",
+    "cancelled": "Cancelled",
+    "inProgress": "In Progress",
+    "rejected": "Rejected",
+    "partiallySucceeded": "Partially Succeeded",
+    "notStarted": "Not Started",
+    "todo": "To Do",
+    "inReview": "In Review",
+    "done": "Done",
+    "active": "Active",
+    "draft": "Draft",
+    "approved": "approved",
+    "updated": "updated"
+  },
+  "actions": {
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "skip": "Skip",
+    "signOut": "Sign out",
+    "connect": "Connect",
+    "connecting": "Connecting...",
+    "remove": "Remove",
+    "removing": "Removing...",
+    "copy": "Copy",
+    "copied": "Copied",
+    "approve": "Approve",
+    "reject": "Reject",
+    "getStarted": "Get Started",
+    "viewAll": "View all",
+    "viewInDevOps": "View in DevOps",
+    "signingOut": "Signing out..."
+  },
+  "filters": {
+    "all": "All",
+    "search": "Search...",
+    "sort": "Sort",
+    "favorites": "Favorites",
+    "relevance": "Relevance",
+    "newest": "Newest",
+    "oldest": "Oldest",
+    "nameAZ": "Name (A-Z)",
+    "titleAZ": "Title (A-Z)"
+  },
+  "workItemTypes": {
+    "task": "Task",
+    "bug": "Bug",
+    "pbi": "PBI",
+    "feature": "Feature",
+    "epic": "Epic"
+  },
+  "labels": {
+    "beta": "beta",
+    "notify": "Notify",
+    "clearCache": "Clear Cache",
+    "trigger": "trigger:",
+    "today": "Today",
+    "noActivity": "No activity"
+  },
+  "sync": {
+    "justNow": "just now",
+    "secondsAgo": "{{count}}s ago",
+    "minutesAgo": "{{count}}m ago"
+  },
+  "game": {
+    "letsPlay": "Lets play?",
+    "fire": "FIRE!",
+    "levelClear": "Level Clear!",
+    "nextLevel": "Next: Lv.{{level}}",
+    "gameOver": "GAME OVER",
+    "level": "Level {{level}}",
+    "levelShort": "Lv.{{level}}",
+    "newBest": "New Best!",
+    "best": "Best: {{score}}",
+    "bestLevel": "Best Level: {{level}}",
+    "restart": "Restart",
+    "moveHint": "← → move",
+    "fireHint": "space/k fire"
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong"
+  },
+  "polling": {
+    "disabled": "Disabled",
+    "min_one": "{{count}} min",
+    "min_other": "{{count}} min"
+  }
+}

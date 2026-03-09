@@ -1,5 +1,6 @@
 import { CheckCircle2, Loader2, MinusCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TimeAgo } from '@/components/ui/time-ago';
 import type { RunRowProps, StatusConfigMap } from './types';
 
 const STATUS_CONFIG: StatusConfigMap = {
@@ -34,7 +35,7 @@ export function RunRow(props: RunRowProps) {
 
       <span className="w-14 shrink-0 text-right text-[11px] text-fg-disabled">{run.duration}</span>
 
-      <span className="w-16 shrink-0 text-right text-[11px] text-fg-disabled">{run.ago}</span>
+      <TimeAgo date={run.agoDate} className="w-16 shrink-0 text-right text-[11px] text-fg-disabled" />
     </button>
   );
 }

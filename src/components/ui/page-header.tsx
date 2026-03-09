@@ -1,15 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TeamSwitcher } from '@/components/layout/team-switcher';
 
-function formatSyncTime(timestamp: number): string {
+function useSyncTimeLabel(timestamp: number): string {
+  const { t } = useTranslation('common');
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 5) return 'just now';
-  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 5) return t('sync.justNow');
+  if (seconds < 60) return t('sync.secondsAgo', { count: seconds });
   const minutes = Math.floor(seconds / 60);
-  return `${minutes}m ago`;
+  return t('sync.minutesAgo', { count: minutes });
 }
 
 export function PageHeader({
@@ -24,6 +26,7 @@ export function PageHeader({
   const queryClient = useQueryClient();
   const [spinning, setSpinning] = useState(false);
   const [lastSync, setLastSync] = useState(Date.now);
+  const syncLabel = useSyncTimeLabel(lastSync);
   const [, setTick] = useState(0);
 
   useEffect(() => {
@@ -64,7 +67,7 @@ export function PageHeader({
         >
           <RefreshCw size={13} className={cn(spinning && 'animate-spin')} />
         </button>
-        <span className="text-[10px] text-fg-disabled">{formatSyncTime(lastSync)}</span>
+        <span className="text-[10px] text-fg-disabled">{syncLabel}</span>
       </div>
 
       <div className="flex items-center gap-3">

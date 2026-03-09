@@ -1,26 +1,28 @@
 import { useMemo } from 'react';
 import { ChevronDown } from 'lucide-react';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { usePeriodSelector } from './use-period-selector';
 import type { PeriodSelectorProps } from './types';
 
-const WEEKDAY_PERIODS = [
-  { value: 1, label: 'Yesterday' },
-  { value: 2, label: 'Last 2 days' },
-  { value: 3, label: 'Last 3 days' },
-];
-
-const MONDAY_PERIODS = [
-  { value: 3, label: 'Last Friday' },
-  { value: 4, label: 'Last 4 days' },
-  { value: 5, label: 'Last 5 days' },
-];
-
 export function PeriodSelector(props: PeriodSelectorProps) {
   const { value, onChange } = props;
   const { ref, open, toggle, select } = usePeriodSelector(onChange);
-  const periods = useMemo(() => (dayjs().day() === 1 ? MONDAY_PERIODS : WEEKDAY_PERIODS), []);
+  const { t } = useTranslation('dashboard');
+  const periods = useMemo(() => {
+    const weekdayPeriods = [
+      { value: 1, label: t('periodSelector.yesterday') },
+      { value: 2, label: t('periodSelector.last2Days') },
+      { value: 3, label: t('periodSelector.last3Days') },
+    ];
+    const mondayPeriods = [
+      { value: 3, label: t('periodSelector.lastFriday') },
+      { value: 4, label: t('periodSelector.last4Days') },
+      { value: 5, label: t('periodSelector.last5Days') },
+    ];
+    return dayjs().day() === 1 ? mondayPeriods : weekdayPeriods;
+  }, [t]);
   const current = periods.find((p) => p.value === value) ?? periods[0];
 
   return (

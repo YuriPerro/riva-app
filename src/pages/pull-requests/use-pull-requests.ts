@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { azure } from '@/lib/tauri';
 import type { PullRequest } from '@/types/azure';
 import { useSessionStore } from '@/store/session';
-import { formatAgo, initials, stripRefs } from '@/utils/formatters';
+import { initials, stripRefs } from '@/utils/formatters';
 import { fuzzyMatch } from '@/utils/search';
 import type { SortDirection } from '@/components/ui/sort-selector/types';
 
@@ -32,7 +32,6 @@ export interface PR {
   author: string;
   authorInitials: string;
   createdDate: string;
-  createdAgo: string;
   status: PRStatus;
   reviewers: Reviewer[];
   url: string;
@@ -56,7 +55,6 @@ function mapPR(raw: PullRequest): PR {
     author: raw.createdBy.displayName,
     authorInitials: initials(raw.createdBy.displayName),
     createdDate: raw.creationDate,
-    createdAgo: formatAgo(raw.creationDate),
     status: raw.isDraft ? 'draft' : 'active',
     reviewers: raw.reviewers.map((r) => ({
       displayName: r.displayName,
