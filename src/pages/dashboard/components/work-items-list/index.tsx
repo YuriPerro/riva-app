@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
@@ -9,17 +8,17 @@ import { getWorkItemTheme } from '@/utils/work-item-theme';
 import type { WorkItemStatus } from '@/types/work-item';
 import type { WorkItemsListProps } from './types';
 
+const STATUS_CLASS: Record<WorkItemStatus, string> = {
+  todo: 'text-fg-disabled',
+  'in-progress': 'text-info',
+  'in-review': 'text-warning',
+  done: 'text-success',
+};
+
 export function WorkItemsList(props: WorkItemsListProps) {
   const { items, onSelect } = props;
   const navigate = useNavigate();
   const { t } = useTranslation(['dashboard', 'common']);
-
-  const statusConfig: Record<WorkItemStatus, { label: string; className: string }> = useMemo(() => ({
-    todo: { label: t('common:status.todo'), className: 'text-fg-disabled' },
-    'in-progress': { label: t('common:status.inProgress'), className: 'text-info' },
-    'in-review': { label: t('common:status.inReview'), className: 'text-warning' },
-    done: { label: t('common:status.done'), className: 'text-success' },
-  }), [t]);
 
   return (
     <div className="flex flex-col">
@@ -37,7 +36,6 @@ export function WorkItemsList(props: WorkItemsListProps) {
         {items.map((item) => {
           const itemTheme = getWorkItemTheme(item.type);
           const Icon = itemTheme.icon;
-          const status = statusConfig[item.status];
 
           return (
             <div
@@ -65,7 +63,7 @@ export function WorkItemsList(props: WorkItemsListProps) {
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <span className={cn('text-[11px]', status.className)}>{status.label}</span>
+                <span className={cn('text-[11px]', STATUS_CLASS[item.status])}>{item.rawState}</span>
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-elevated text-[9px] font-medium text-fg-muted">
                   {item.assigneeInitials}
                 </span>

@@ -91,6 +91,7 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
       title: w.fields['System.Title'],
       type: mapWorkItemType(w.fields['System.WorkItemType']),
       status: mapWorkItemStatus(w.fields['System.State']),
+      rawState: w.fields['System.State'],
       assigneeInitials: getAssigneeInitials(w.fields['System.AssignedTo'] as { displayName: string } | null),
       iterationPath: w.fields['System.IterationPath'],
       url: w.webUrl,

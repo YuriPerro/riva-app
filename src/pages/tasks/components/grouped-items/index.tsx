@@ -19,13 +19,6 @@ const STATUS_DOT: Record<WorkItemStatus, string> = {
   done: 'bg-success',
 };
 
-const STATUS_KEY = {
-  todo: 'status.todo',
-  'in-progress': 'status.inProgress',
-  'in-review': 'status.inReview',
-  done: 'status.done',
-} as const;
-
 export function GroupedItems(props: GroupedItemsProps) {
   const { items, onSelect, openItem } = props;
   const { t } = useTranslation('common');
@@ -88,7 +81,7 @@ export function GroupedItems(props: GroupedItemsProps) {
                       <div className="flex items-center gap-1.5">
                         <span className={cn('h-1.5 w-1.5 rounded-full', STATUS_DOT[item.status])} />
                         <span className={cn('text-[11px]', STATUS_COLOR[item.status])}>
-                          {t(STATUS_KEY[item.status])}
+                          {item.rawState}
                         </span>
                       </div>
 

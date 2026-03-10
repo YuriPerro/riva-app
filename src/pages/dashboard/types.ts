@@ -8,6 +8,7 @@ export type WorkItem = {
   title: string;
   type: WorkItemType;
   status: WorkItemStatus;
+  rawState: string;
   assigneeInitials: string;
   iterationPath?: string;
   url: string;
