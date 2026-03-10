@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -10,34 +9,10 @@ import { SearchInput } from '@/components/ui/search-input';
 import { SortSelector } from '@/components/ui/sort-selector';
 import { WorkItemDetailDialog } from '@/pages/dashboard/components/work-item-detail';
 import { TasksContent } from './components/tasks-content';
-import { useTasks, type StatusFilter, type TypeFilter, type TaskSortKey } from './use-tasks';
-import type { SortOption } from '@/components/ui/sort-selector/types';
+import { useTasks, type TaskSortKey } from './use-tasks';
 
 export function TasksPage() {
   const { t } = useTranslation(['tasks', 'common']);
-
-  const SORT_OPTIONS: SortOption<TaskSortKey>[] = useMemo(() => [
-    { value: 'relevance', label: t('tasks:sort.relevance') },
-    { value: 'title', label: t('tasks:sort.title') },
-    { value: 'status', label: t('tasks:sort.status') },
-    { value: 'type', label: t('tasks:sort.type') },
-  ], [t]);
-
-  const STATUS_FILTERS: { value: StatusFilter; label: string }[] = useMemo(() => [
-    { value: 'all', label: t('common:filters.all') },
-    { value: 'todo', label: t('common:status.todo') },
-    { value: 'in-progress', label: t('common:status.inProgress') },
-    { value: 'in-review', label: t('common:status.inReview') },
-    { value: 'done', label: t('common:status.done') },
-  ], [t]);
-
-  const TYPE_FILTERS: { value: TypeFilter; label: string }[] = useMemo(() => [
-    { value: 'task', label: t('common:workItemTypes.task') },
-    { value: 'bug', label: t('common:workItemTypes.bug') },
-    { value: 'pbi', label: t('common:workItemTypes.pbi') },
-    { value: 'feature', label: t('common:workItemTypes.feature') },
-    { value: 'epic', label: t('common:workItemTypes.epic') },
-  ], [t]);
   const {
     filtered,
     items,
@@ -57,9 +32,11 @@ export function TasksPage() {
     sortKey,
     sortDirection,
     setSort,
+    sortOptions,
+    statusFilters,
+    typeFilters,
+    countByStatus,
   } = useTasks();
-
-  const countByStatus = (s: StatusFilter) => (s === 'all' ? items.length : items.filter((i) => i.status === s).length);
 
   return (
     <PageTransition
@@ -81,7 +58,7 @@ export function TasksPage() {
         <div className="flex flex-wrap items-center gap-1.5">
           <SearchInput value={query} onChange={setQuery} placeholder={t('tasks:searchPlaceholder')} />
           <span className="mx-0.5 h-4 w-px bg-border" />
-          {STATUS_FILTERS.map(({ value, label }) => (
+          {statusFilters.map(({ value, label }) => (
             <FilterPill key={value} active={statusFilter === value} onClick={() => setStatusFilter(value)}>
               {label}
               <span
@@ -97,11 +74,11 @@ export function TasksPage() {
 
           <span className="mx-1 h-4 w-px bg-border" />
 
-          {TYPE_FILTERS.map(({ value, label }) => (
+          {typeFilters.map(({ value, label }) => (
             <FilterPill
               key={value}
               active={typeFilter === value}
-              onClick={() => setTypeFilter(typeFilter === value ? 'all' : (value as TypeFilter))}
+              onClick={() => setTypeFilter(typeFilter === value ? 'all' : value)}
             >
               {label}
             </FilterPill>
@@ -109,7 +86,7 @@ export function TasksPage() {
 
           <span className="ml-auto" />
           <SortSelector<TaskSortKey>
-            options={SORT_OPTIONS}
+            options={sortOptions}
             value={sortKey}
             direction={sortDirection}
             onChange={setSort}

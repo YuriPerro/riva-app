@@ -19,6 +19,7 @@
     "oldest": "Oldest",
     "title": "Title (A-Z)"
   },
+  "myReviews": "My Reviews",
   "filterPlaceholder": "Repo",
   "noResults": "No pull requests found",
   "errors": {

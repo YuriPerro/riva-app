@@ -15,7 +15,7 @@ function groupByRepo(prs: PR[]) {
 }
 
 export function PullRequestsContent(props: PullRequestsContentProps) {
-  const { error, filtered, openPR, reviewPR, isReviewing } = props;
+  const { error, filtered, openPR, reviewPR, isReviewing, currentUser } = props;
   const { t } = useTranslation('pull-requests');
   const repoGroups = useMemo(() => groupByRepo(filtered), [filtered]);
 
@@ -55,9 +55,11 @@ export function PullRequestsContent(props: PullRequestsContentProps) {
                 <PRCard
                   key={pr.id}
                   pr={pr}
+                  currentUser={currentUser}
                   onOpen={() => openPR(pr.url)}
                   onApprove={() => reviewPR(pr.repoId, pr.id, 10)}
                   onReject={() => reviewPR(pr.repoId, pr.id, -10)}
+                  onResetVote={() => reviewPR(pr.repoId, pr.id, 0)}
                   isReviewing={isReviewing}
                 />
               ))}

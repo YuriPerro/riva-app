@@ -1,5 +1,5 @@
 import type { ReleaseEnvironmentStatus, ReleaseApprovalStatus } from '@/types/release';
-import type { SortDirection } from '@/components/ui/sort-selector/types';
+import type { SortDirection, SortOption } from '@/components/ui/sort-selector/types';
 
 export type ReleaseSortKey = 'relevance' | 'newest' | 'name' | 'status';
 
@@ -42,6 +42,8 @@ export interface ReleaseGroup {
 
 export interface ReleasesData {
   groups: ReleaseGroup[];
+  sortOptions: SortOption<ReleaseSortKey>[];
+  statusFilterOptions: { value: ReleaseStatusFilter; label: string }[];
   isLoading: boolean;
   error: string | null;
   definitions: string[];

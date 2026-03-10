@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Star, Rocket } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -12,8 +11,7 @@ import { SortSelector } from '@/components/ui/sort-selector';
 import { ReleasesContent } from './components/releases-content';
 import { ReleaseDetailDialog } from './components/release-detail-dialog';
 import { useReleases } from './use-releases';
-import type { ReleaseStatusFilter, ReleaseSortKey } from './types';
-import type { SortOption } from '@/components/ui/sort-selector/types';
+import type { ReleaseSortKey } from './types';
 
 export function ReleasesPage() {
   const { t } = useTranslation(['releases', 'common']);
@@ -40,24 +38,9 @@ export function ReleasesPage() {
     sortKey,
     sortDirection,
     setSort,
+    sortOptions,
+    statusFilterOptions,
   } = releases;
-
-  const sortOptions: SortOption<ReleaseSortKey>[] = useMemo(() => [
-    { value: 'relevance', label: t('releases:sort.relevance') },
-    { value: 'newest', label: t('releases:sort.newest') },
-    { value: 'name', label: t('releases:sort.name') },
-    { value: 'status', label: t('releases:sort.status') },
-  ], [t]);
-
-  const statusPills: ReleaseStatusFilter[] = ['all', 'succeeded', 'inProgress', 'rejected', 'failed', 'cancelled'];
-  const statusPillLabels: Record<string, string> = useMemo(() => ({
-    all: t('common:filters.all'),
-    succeeded: t('common:status.succeeded'),
-    inProgress: t('common:status.inProgress'),
-    rejected: t('common:status.rejected'),
-    failed: t('common:status.failed'),
-    cancelled: t('common:status.cancelled'),
-  }), [t]);
 
   return (
     <PageTransition
@@ -79,18 +62,18 @@ export function ReleasesPage() {
         <div className="flex flex-wrap items-center gap-1.5">
           <SearchInput value={query} onChange={setQuery} placeholder={t('releases:searchPlaceholder')} />
           <span className="mx-0.5 h-4 w-px bg-border" />
-          {statusPills.map((s) => {
-            const count = countByStatus(s);
-            const isVisible = s === 'all' || count > 0;
+          {statusFilterOptions.map(({ value, label }) => {
+            const count = countByStatus(value);
+            const isVisible = value === 'all' || count > 0;
             if (!isVisible) return null;
             return (
-              <FilterPill key={s} active={statusFilter === s} onClick={() => setStatusFilter(s)}>
+              <FilterPill key={value} active={statusFilter === value} onClick={() => setStatusFilter(value)}>
                 <span className="flex items-center gap-1">
-                  {statusPillLabels[s]}
+                  {label}
                   <span
                     className={cn(
                       'rounded-full px-1.5 py-0.5 text-[9px]',
-                      statusFilter === s ? 'bg-accent/20 text-accent' : 'bg-elevated text-fg-disabled',
+                      statusFilter === value ? 'bg-accent/20 text-accent' : 'bg-elevated text-fg-disabled',
                     )}
                   >
                     {count}

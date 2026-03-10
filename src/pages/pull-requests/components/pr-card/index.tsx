@@ -1,11 +1,11 @@
-import { GitPullRequest, GitBranch, CircleCheck, CircleX, ExternalLink } from 'lucide-react';
+import { GitPullRequest, GitBranch, CircleCheck, CircleX, Undo2, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TimeAgo } from '@/components/ui/time-ago';
 import { ReviewerDot } from '../reviewer-dot';
 import type { PRCardProps } from './types';
 
 export function PRCard(props: PRCardProps) {
-  const { pr, onOpen, onApprove, onReject, isReviewing } = props;
+  const { pr, currentUser, onOpen, onApprove, onReject, onResetVote, isReviewing } = props;
   const approved = pr.reviewers.filter((r) => r.vote === 'approved').length;
   const rejected = pr.reviewers.filter((r) => r.vote === 'rejected').length;
   const reqApproved = pr.reviewers.filter((r) => r.isRequired && r.vote === 'approved').length;
@@ -13,6 +13,8 @@ export function PRCard(props: PRCardProps) {
 
   const allRequiredApproved = reqTotal > 0 && reqApproved === reqTotal;
   const hasRejection = rejected > 0;
+  const myReview = pr.reviewers.find((r) => r.uniqueName === currentUser);
+  const alreadyApproved = myReview?.vote === 'approved';
 
   return (
     <div className="group flex w-full flex-col gap-2.5 rounded-lg border border-border bg-surface p-4 text-left transition-colors hover:bg-elevated">
@@ -39,14 +41,25 @@ export function PRCard(props: PRCardProps) {
         </div>
 
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
-          <button
-            onClick={onApprove}
-            disabled={isReviewing}
-            className="flex h-6 cursor-pointer items-center gap-1 rounded-md border border-success/30 bg-success/10 px-2 text-[11px] font-medium text-success transition-colors hover:bg-success/20 disabled:opacity-50"
-          >
-            <CircleCheck size={12} />
-            Approve
-          </button>
+          {alreadyApproved ? (
+            <button
+              onClick={onResetVote}
+              disabled={isReviewing}
+              className="flex h-6 cursor-pointer items-center gap-1 rounded-md border border-fg-muted/30 bg-fg-muted/10 px-2 text-[11px] font-medium text-fg-muted transition-colors hover:bg-fg-muted/20 disabled:opacity-50"
+            >
+              <Undo2 size={12} />
+              Unapprove
+            </button>
+          ) : (
+            <button
+              onClick={onApprove}
+              disabled={isReviewing}
+              className="flex h-6 cursor-pointer items-center gap-1 rounded-md border border-success/30 bg-success/10 px-2 text-[11px] font-medium text-success transition-colors hover:bg-success/20 disabled:opacity-50"
+            >
+              <CircleCheck size={12} />
+              Approve
+            </button>
+          )}
           <button
             onClick={onReject}
             disabled={isReviewing}

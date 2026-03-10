@@ -105,6 +105,7 @@ export interface PullRequestIdentity {
 
 export interface PullRequestReviewer {
   displayName: string;
+  uniqueName: string;
   vote: number;
   isRequired: boolean;
 }

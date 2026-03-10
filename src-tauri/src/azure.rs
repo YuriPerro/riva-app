@@ -155,6 +155,8 @@ pub struct PullRequestIdentity {
 pub struct PullRequestReviewer {
     #[serde(rename = "displayName")]
     pub display_name: String,
+    #[serde(rename = "uniqueName", default)]
+    pub unique_name: String,
     pub vote: i32,
     #[serde(rename = "isRequired", default)]
     pub is_required: bool,

@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -8,7 +9,7 @@ import type { PullRequest } from '@/types/azure';
 import { useSessionStore } from '@/store/session';
 import { initials, stripRefs } from '@/utils/formatters';
 import { fuzzyMatch } from '@/utils/search';
-import type { SortDirection } from '@/components/ui/sort-selector/types';
+import type { SortDirection, SortOption } from '@/components/ui/sort-selector/types';
 
 export type PRSortKey = 'relevance' | 'newest' | 'oldest' | 'title';
 
@@ -17,6 +18,7 @@ export type ReviewVote = 'approved' | 'rejected' | 'waiting' | 'none';
 
 export interface Reviewer {
   displayName: string;
+  uniqueName: string;
   initials: string;
   vote: ReviewVote;
   isRequired: boolean;
@@ -58,6 +60,7 @@ function mapPR(raw: PullRequest): PR {
     status: raw.isDraft ? 'draft' : 'active',
     reviewers: raw.reviewers.map((r) => ({
       displayName: r.displayName,
+      uniqueName: r.uniqueName,
       initials: initials(r.displayName),
       vote: mapVote(r.vote),
       isRequired: r.isRequired,
@@ -66,12 +69,14 @@ function mapPR(raw: PullRequest): PR {
   };
 }
 
-export type PRFilter = 'all' | 'active' | 'draft';
+export type PRFilter = 'all' | 'active' | 'draft' | 'myReviews';
 
 export type PullRequestsData = ReturnType<typeof usePullRequests>;
 
 export function usePullRequests() {
+  const { t } = useTranslation(['pull-requests', 'common']);
   const project = useSessionStore((s) => s.project);
+  const currentUser = useSessionStore((s) => s.uniqueName);
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const initialFilter = (searchParams.get('status') ?? 'all') as PRFilter;
@@ -103,7 +108,12 @@ export function usePullRequests() {
   }, [prs]);
 
   const filtered = useMemo(() => {
-    let result = filter === 'all' ? prs : prs.filter((pr) => pr.status === filter);
+    let result = prs;
+    if (filter === 'myReviews') {
+      result = result.filter((pr) => pr.reviewers.some((r) => r.uniqueName === currentUser));
+    } else if (filter !== 'all') {
+      result = result.filter((pr) => pr.status === filter);
+    }
     if (repoFilters.length > 0) result = result.filter((pr) => repoFilters.includes(pr.repo));
 
     if (query) {
@@ -124,7 +134,7 @@ export function usePullRequests() {
     }
 
     return result;
-  }, [prs, filter, repoFilters, query, sortKey, sortDirection]);
+  }, [prs, filter, repoFilters, query, sortKey, sortDirection, currentUser]);
 
   const reviewMutation = useMutation({
     mutationFn: (params: { repoId: string; prId: number; vote: number }) =>
@@ -135,6 +145,27 @@ export function usePullRequests() {
       queryClient.invalidateQueries({ queryKey: ['pull-requests', project] });
     },
   });
+
+  const sortOptions: SortOption<PRSortKey>[] = useMemo(() => [
+    { value: 'relevance', label: t('pull-requests:sort.relevance') },
+    { value: 'newest', label: t('pull-requests:sort.newest') },
+    { value: 'oldest', label: t('pull-requests:sort.oldest') },
+    { value: 'title', label: t('pull-requests:sort.title') },
+  ], [t]);
+
+  const filterOptions: { value: PRFilter; label: string }[] = useMemo(() => [
+    { value: 'all', label: t('common:filters.all') },
+    { value: 'active', label: t('common:status.active') },
+    { value: 'draft', label: t('common:status.draft') },
+    { value: 'myReviews', label: t('pull-requests:myReviews') },
+  ], [t]);
+
+  const countByFilter = useCallback((f: PRFilter) => {
+    const base = repoFilters.length > 0 ? prs.filter((p) => repoFilters.includes(p.repo)) : prs;
+    if (f === 'all') return base.length;
+    if (f === 'myReviews') return base.filter((p) => p.reviewers.some((r) => r.uniqueName === currentUser)).length;
+    return base.filter((p) => p.status === f).length;
+  }, [prs, repoFilters, currentUser]);
 
   return {
     prs,
@@ -150,6 +181,10 @@ export function usePullRequests() {
     openPR: openUrl,
     reviewPR: (repoId: string, prId: number, vote: number) => reviewMutation.mutate({ repoId, prId, vote }),
     isReviewing: reviewMutation.isPending,
+    currentUser,
+    sortOptions,
+    filterOptions,
+    countByFilter,
     query,
     setQuery,
     sortKey,

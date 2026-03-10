@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GitPullRequest } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,33 +10,16 @@ import { SearchInput } from '@/components/ui/search-input';
 import { SortSelector } from '@/components/ui/sort-selector';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PullRequestsContent } from './components/pull-requests-content';
-import { usePullRequests, type PRFilter, type PRSortKey } from './use-pull-requests';
-import type { SortOption } from '@/components/ui/sort-selector/types';
+import { usePullRequests, type PRSortKey } from './use-pull-requests';
 
 export function PullRequestsPage() {
   const { t } = useTranslation(['pull-requests', 'common']);
-
-  const SORT_OPTIONS: SortOption<PRSortKey>[] = useMemo(() => [
-    { value: 'relevance', label: t('pull-requests:sort.relevance') },
-    { value: 'newest', label: t('pull-requests:sort.newest') },
-    { value: 'oldest', label: t('pull-requests:sort.oldest') },
-    { value: 'title', label: t('pull-requests:sort.title') },
-  ], [t]);
-
-  const FILTERS: { value: PRFilter; label: string }[] = useMemo(() => [
-    { value: 'all', label: t('common:filters.all') },
-    { value: 'active', label: t('common:status.active') },
-    { value: 'draft', label: t('common:status.draft') },
-  ], [t]);
   const pullRequests = usePullRequests();
   const {
     prs, isLoading, filter, setFilter, repos, repoFilters, addRepoFilter, removeRepoFilter,
     query, setQuery, sortKey, sortDirection, setSort,
+    sortOptions, filterOptions, countByFilter,
   } = pullRequests;
-
-  const baseForCount = repoFilters.length > 0 ? prs.filter((p) => repoFilters.includes(p.repo)) : prs;
-  const countByFilter = (f: PRFilter) =>
-    f === 'all' ? baseForCount.length : baseForCount.filter((p) => p.status === f).length;
 
   return (
     <PageTransition
@@ -60,7 +42,7 @@ export function PullRequestsPage() {
           <div className="flex flex-wrap items-center gap-1.5">
             <SearchInput value={query} onChange={setQuery} placeholder={t('pull-requests:searchPlaceholder')} />
             <span className="mx-0.5 h-4 w-px bg-border" />
-            {FILTERS.map(({ value, label }) => (
+            {filterOptions.map(({ value, label }) => (
               <FilterPill key={value} active={filter === value} onClick={() => setFilter(value)}>
                 {label}
                 <span
@@ -89,7 +71,7 @@ export function PullRequestsPage() {
 
             <span className="ml-auto" />
             <SortSelector<PRSortKey>
-              options={SORT_OPTIONS}
+              options={sortOptions}
               value={sortKey}
               direction={sortDirection}
               onChange={setSort}

@@ -88,22 +88,20 @@ export function useWorkItemDetail(project: string, itemId: number | null) {
     staleTime: 300_000,
   });
 
+  const invalidateRelatedQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['work-item-detail'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    queryClient.invalidateQueries({ queryKey: ['tasks'] });
+  };
+
   const stateMutation = useMutation({
     mutationFn: (newState: string) => azure.updateWorkItemState(project, itemId!, newState),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['work-item-detail', project, itemId] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    },
+    onSuccess: invalidateRelatedQueries,
   });
 
   const titleMutation = useMutation({
     mutationFn: (title: string) => azure.updateWorkItemTitle(project, itemId!, title),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['work-item-detail', project, itemId] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    },
+    onSuccess: invalidateRelatedQueries,
   });
 
   return {

@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Star, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -10,29 +9,12 @@ import { FilterSelector } from '@/components/ui/filter-selector';
 import { SearchInput } from '@/components/ui/search-input';
 import { SortSelector } from '@/components/ui/sort-selector';
 import { PipelinesContent } from './components/pipelines-content';
-import { usePipelines, type StatusFilter, type PipelineSortKey } from './use-pipelines';
-import type { SortOption } from '@/components/ui/sort-selector/types';
+import { usePipelines, type PipelineSortKey } from './use-pipelines';
 
 export function PipelinesPage() {
   const { t } = useTranslation(['pipelines', 'common']);
-
-  const SORT_OPTIONS: SortOption<PipelineSortKey>[] = useMemo(() => [
-    { value: 'relevance', label: t('pipelines:sort.relevance') },
-    { value: 'newest', label: t('pipelines:sort.newest') },
-    { value: 'name', label: t('pipelines:sort.name') },
-    { value: 'status', label: t('pipelines:sort.status') },
-  ], [t]);
-
-  const STATUS_FILTERS: { value: StatusFilter; label: string }[] = useMemo(() => [
-    { value: 'all', label: t('common:filters.all') },
-    { value: 'running', label: t('common:status.running') },
-    { value: 'succeeded', label: t('common:status.succeeded') },
-    { value: 'failed', label: t('common:status.failed') },
-    { value: 'cancelled', label: t('common:status.cancelled') },
-  ], [t]);
   const pipelines = usePipelines();
   const {
-    runs,
     statusFilter,
     setStatusFilter,
     definitions,
@@ -49,12 +31,10 @@ export function PipelinesPage() {
     sortKey,
     sortDirection,
     setSort,
+    sortOptions,
+    statusFilters,
+    countByStatus,
   } = pipelines;
-
-  const baseForCount =
-    definitionFilters.length > 0 ? runs.filter((r) => definitionFilters.includes(r.definitionName)) : runs;
-  const countByStatus = (s: StatusFilter) =>
-    s === 'all' ? baseForCount.length : baseForCount.filter((r) => r.status === s).length;
 
   return (
     <PageTransition
@@ -68,15 +48,12 @@ export function PipelinesPage() {
       }
     >
       <div className="flex h-full flex-col gap-4 overflow-hidden">
-        <PageHeader
-          title={t('pipelines:title')}
-          subtitle={t('pipelines:subtitle', { count: groups.length })}
-        />
+        <PageHeader title={t('pipelines:title')} subtitle={t('pipelines:subtitle', { count: groups.length })} />
 
         <div className="flex flex-wrap items-center gap-1.5">
           <SearchInput value={query} onChange={setQuery} placeholder={t('pipelines:searchPlaceholder')} />
           <span className="mx-0.5 h-4 w-px bg-border" />
-          {STATUS_FILTERS.map(({ value, label }) => (
+          {statusFilters.map(({ value, label }) => (
             <FilterPill key={value} active={statusFilter === value} onClick={() => setStatusFilter(value)}>
               {label}
               <span
@@ -125,7 +102,7 @@ export function PipelinesPage() {
 
           <span className="ml-auto" />
           <SortSelector<PipelineSortKey>
-            options={SORT_OPTIONS}
+            options={sortOptions}
             value={sortKey}
             direction={sortDirection}
             onChange={setSort}

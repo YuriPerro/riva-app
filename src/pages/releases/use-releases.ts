@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { azure } from '@/lib/tauri';
@@ -6,7 +7,7 @@ import type { Release, ReleaseDefinition, ReleaseApproval } from '@/types/azure'
 import { useSessionStore } from '@/store/session';
 import { mapReleaseEnvironmentStatus, mapApprovalStatus } from '@/utils/mappers';
 import { fuzzyMatch } from '@/utils/search';
-import type { SortDirection } from '@/components/ui/sort-selector/types';
+import type { SortDirection, SortOption } from '@/components/ui/sort-selector/types';
 import type { ReleaseItem, ReleaseApprovalItem, ReleaseEnvironmentItem, ReleaseGroup, ReleasesData, ReleaseStatusFilter, ReleaseSortKey } from './types';
 
 function readFavorites(project: string | null): Set<number> {
@@ -93,6 +94,7 @@ function findMyPendingApproval(
 const MAX_RELEASES_PER_DEFINITION = 3;
 
 export function useReleases(): ReleasesData {
+  const { t } = useTranslation(['releases', 'common']);
   const project = useSessionStore((s) => s.project);
   const queryClient = useQueryClient();
   const [definitionFilters, setDefinitionFilters] = useState<string[]>([]);
@@ -296,8 +298,26 @@ export function useReleases(): ReleasesData {
     [selectedRelease, currentUserUniqueName],
   );
 
+  const sortOptions: SortOption<ReleaseSortKey>[] = useMemo(() => [
+    { value: 'relevance', label: t('releases:sort.relevance') },
+    { value: 'newest', label: t('releases:sort.newest') },
+    { value: 'name', label: t('releases:sort.name') },
+    { value: 'status', label: t('releases:sort.status') },
+  ], [t]);
+
+  const statusFilterOptions: { value: ReleaseStatusFilter; label: string }[] = useMemo(() => [
+    { value: 'all', label: t('common:filters.all') },
+    { value: 'succeeded', label: t('common:status.succeeded') },
+    { value: 'inProgress', label: t('common:status.inProgress') },
+    { value: 'rejected', label: t('common:status.rejected') },
+    { value: 'failed', label: t('common:status.failed') },
+    { value: 'cancelled', label: t('common:status.cancelled') },
+  ], [t]);
+
   return {
     groups,
+    sortOptions,
+    statusFilterOptions,
     isLoading: !!project && (isLoadingDefs || isLoadingReleases),
     error: error ? (error instanceof Error ? error.message : typeof error === 'string' ? error : String(error)) : null,
     definitions,

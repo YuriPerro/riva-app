@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useQuery } from '@tanstack/react-query';
 import { azure } from '@/lib/tauri';
@@ -9,7 +10,7 @@ import { formatDuration, stripRefs } from '@/utils/formatters';
 import { mapPipelineStatus } from '@/utils/mappers';
 import { fuzzyMatch } from '@/utils/search';
 import type { PipelineStatus } from '@/types/pipeline';
-import type { SortDirection } from '@/components/ui/sort-selector/types';
+import type { SortDirection, SortOption } from '@/components/ui/sort-selector/types';
 
 export type { PipelineStatus };
 export type StatusFilter = 'all' | PipelineStatus;
@@ -51,10 +52,14 @@ function mapRun(raw: PipelineRun): PipelineRunItem {
 }
 
 export interface PipelinesData {
+  allRuns: PipelineRunItem[];
   runs: PipelineRunItem[];
   groups: PipelineGroup[];
   isLoading: boolean;
   error: string | null;
+  sortOptions: SortOption<PipelineSortKey>[];
+  statusFilters: { value: StatusFilter; label: string }[];
+  countByStatus: (s: StatusFilter) => number;
   statusFilter: StatusFilter;
   setStatusFilter: (f: StatusFilter) => void;
   definitions: string[];
@@ -91,6 +96,7 @@ function writeFavorites(project: string, favorites: Set<number>) {
 const MAX_RUNS_PER_DEFINITION = 3;
 
 export function usePipelines(): PipelinesData {
+  const { t } = useTranslation(['pipelines', 'common']);
   const project = useSessionStore((s) => s.project);
   const teamId = useSessionStore((s) => s.teamId);
   const [searchParams] = useSearchParams();
@@ -164,6 +170,7 @@ export function usePipelines(): PipelinesData {
         const defRuns = (runsByDefId.get(def.id) ?? []).slice(0, MAX_RUNS_PER_DEFINITION);
 
         const filtered = statusFilter === 'all' ? defRuns : defRuns.filter((r) => r.status === statusFilter);
+        if (statusFilter !== 'all' && filtered.length === 0) return null;
         if (definitionFilters.length > 0 && !definitionFilters.includes(def.name)) {
           return null;
         }
@@ -216,11 +223,37 @@ export function usePipelines(): PipelinesData {
 
   const allFilteredRuns = useMemo(() => groups.flatMap((g) => g.runs), [groups]);
 
+  const sortOptions: SortOption<PipelineSortKey>[] = useMemo(() => [
+    { value: 'relevance', label: t('pipelines:sort.relevance') },
+    { value: 'newest', label: t('pipelines:sort.newest') },
+    { value: 'name', label: t('pipelines:sort.name') },
+    { value: 'status', label: t('pipelines:sort.status') },
+  ], [t]);
+
+  const statusFilters: { value: StatusFilter; label: string }[] = useMemo(() => [
+    { value: 'all', label: t('common:filters.all') },
+    { value: 'running', label: t('common:status.running') },
+    { value: 'succeeded', label: t('common:status.succeeded') },
+    { value: 'failed', label: t('common:status.failed') },
+    { value: 'cancelled', label: t('common:status.cancelled') },
+  ], [t]);
+
+  const countByStatus = useCallback((s: StatusFilter) => {
+    const base = definitionFilters.length > 0
+      ? runs.filter((r) => definitionFilters.includes(r.definitionName))
+      : runs;
+    return s === 'all' ? base.length : base.filter((r) => r.status === s).length;
+  }, [runs, definitionFilters]);
+
   return {
+    allRuns: runs,
     runs: allFilteredRuns,
     groups,
     isLoading: !!project && (isLoadingDefs || isLoadingRuns),
     error: error ? (typeof error === 'string' ? error : 'Failed to load pipelines') : null,
+    sortOptions,
+    statusFilters,
+    countByStatus,
     statusFilter,
     setStatusFilter,
     definitions,
