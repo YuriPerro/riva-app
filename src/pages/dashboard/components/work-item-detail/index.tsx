@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { ShineBorder } from '@/components/ui/shine-border';
+import { getRawTypeI18nKey } from '@/utils/mappers';
 import { useWorkItemDetail } from './use-work-item-detail';
 import { StatusField } from '../work-item-status-field';
 import { BranchField } from '../work-item-branch-field';
@@ -100,7 +101,7 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
               <div className="flex items-center gap-2 pt-1">
                 <div className="flex items-center gap-1.5">
                   <TypeIcon size={12} className={theme.className} />
-                  <span className={cn('text-[11px] font-medium', theme.className)}>{detail.type}</span>
+                  <span className={cn('text-[11px] font-medium', theme.className)}>{t(`common:${getRawTypeI18nKey(detail.type)}`)}</span>
                 </div>
                 {detail.tags.length > 0 && (
                   <>

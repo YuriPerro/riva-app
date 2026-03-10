@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { getWorkItemTheme } from '@/utils/work-item-theme';
 import type { TaskItem, WorkItemStatus } from '../../use-tasks';
@@ -18,15 +19,17 @@ const STATUS_DOT: Record<WorkItemStatus, string> = {
   done: 'bg-success',
 };
 
-const STATUS_LABEL: Record<WorkItemStatus, string> = {
-  todo: 'To Do',
-  'in-progress': 'In Progress',
-  'in-review': 'In Review',
-  done: 'Done',
-};
+const STATUS_KEY = {
+  todo: 'status.todo',
+  'in-progress': 'status.inProgress',
+  'in-review': 'status.inReview',
+  done: 'status.done',
+} as const;
 
 export function GroupedItems(props: GroupedItemsProps) {
   const { items, onSelect, openItem } = props;
+  const { t } = useTranslation('common');
+
 
   const groups = new Map<string, TaskItem[]>();
   for (const item of items) {
@@ -85,12 +88,12 @@ export function GroupedItems(props: GroupedItemsProps) {
                       <div className="flex items-center gap-1.5">
                         <span className={cn('h-1.5 w-1.5 rounded-full', STATUS_DOT[item.status])} />
                         <span className={cn('text-[11px]', STATUS_COLOR[item.status])}>
-                          {STATUS_LABEL[item.status]}
+                          {t(STATUS_KEY[item.status])}
                         </span>
                       </div>
 
                       <span className="rounded border border-border px-1.5 py-0.5 text-[10px] text-fg-disabled">
-                        {item.rawType}
+                        {t(`workItemTypes.${item.type}`)}
                       </span>
 
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-elevated text-[9px] font-medium text-fg-muted">

@@ -28,6 +28,32 @@ export function mapWorkItemStatus(state: string): WorkItemStatus {
   return 'todo';
 }
 
+type StatusI18nKey = 'status.todo' | 'status.inProgress' | 'status.inReview' | 'status.done';
+type TypeI18nKey = 'workItemTypes.task' | 'workItemTypes.bug' | 'workItemTypes.pbi' | 'workItemTypes.feature' | 'workItemTypes.epic';
+
+const STATUS_I18N_KEY: Record<WorkItemStatus, StatusI18nKey> = {
+  todo: 'status.todo',
+  'in-progress': 'status.inProgress',
+  'in-review': 'status.inReview',
+  done: 'status.done',
+};
+
+const TYPE_I18N_KEY: Record<WorkItemType, TypeI18nKey> = {
+  task: 'workItemTypes.task',
+  bug: 'workItemTypes.bug',
+  pbi: 'workItemTypes.pbi',
+  feature: 'workItemTypes.feature',
+  epic: 'workItemTypes.epic',
+};
+
+export function getStateI18nKey(rawState: string): StatusI18nKey {
+  return STATUS_I18N_KEY[mapWorkItemStatus(rawState)];
+}
+
+export function getRawTypeI18nKey(rawType: string): TypeI18nKey {
+  return TYPE_I18N_KEY[mapWorkItemType(rawType)];
+}
+
 export function mapPipelineStatus(run: PipelineRun): PipelineStatus {
   if (run.status === 'inProgress') return 'running';
   if (run.status === 'cancelling' || run.result === 'canceled') return 'cancelled';

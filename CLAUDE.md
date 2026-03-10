@@ -156,12 +156,12 @@ components/pipeline-card/
 **`use-[name].ts`** — all state, effects, and handlers.
 **`types.ts`** — types and interfaces scoped to this component.
 
-### No Constants or Logic in `index.tsx` — Strict Rule
+### No Computed Values or Logic in Page `index.tsx` — Strict Rule
 
-**NEVER** define constants, computed values, or helper functions inside page or component `index.tsx` files. All filter option arrays, sort option arrays, `countBy*` functions, and any derived data must live in the `use-[name].ts` hook and be returned from it.
+**NEVER** define `useMemo`, `useCallback`, `useState`, `useEffect`, computed values, or helper functions inside **page** `index.tsx` files. All filter option arrays, sort option arrays, `countBy*` functions, and any derived data must live in the `use-[page].ts` hook and be returned from it.
 
 ```typescript
-// ❌ Wrong — constants and logic in index.tsx
+// ❌ Wrong — computed values and logic in page index.tsx
 export function PipelinesPage() {
   const { t } = useTranslation(['pipelines', 'common']);
   const SORT_OPTIONS = useMemo(() => [...], [t]);
@@ -178,7 +178,7 @@ export function PipelinesPage() {
 }
 ```
 
-`index.tsx` may only contain: the hook call, `useTranslation` (for inline JSX text), and JSX rendering.
+Page `index.tsx` may only contain: the hook call, `useTranslation` (for inline JSX text), and JSX rendering. Static config maps (color lookups, style mappings) are allowed in **component** `index.tsx` files but not in page files.
 
 ---
 

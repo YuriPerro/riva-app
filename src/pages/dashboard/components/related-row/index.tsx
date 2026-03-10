@@ -1,6 +1,7 @@
 import { ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { mapWorkItemType, mapWorkItemStatus } from '@/utils/mappers';
+import { mapWorkItemType, mapWorkItemStatus, getStateI18nKey } from '@/utils/mappers';
 import { getWorkItemTheme } from '@/utils/work-item-theme';
 import type { RelatedRowProps } from './types';
 
@@ -13,6 +14,7 @@ const statusColors: Record<string, string> = {
 
 export function RelatedRow(props: RelatedRowProps) {
   const { item, onSelect } = props;
+  const { t } = useTranslation('common');
   const theme = getWorkItemTheme(mapWorkItemType(item.workItemType));
   const Icon = theme.icon;
   const status = mapWorkItemStatus(item.state);
@@ -31,7 +33,7 @@ export function RelatedRow(props: RelatedRowProps) {
         {item.title}
       </span>
       <span className={cn('shrink-0 text-[10px]', statusColors[status] ?? 'text-fg-disabled')}>
-        {item.state}
+        {t(getStateI18nKey(item.state))}
       </span>
       <ChevronRight size={10} className="shrink-0 text-fg-disabled opacity-0 group-hover:opacity-100 transition-opacity" />
     </button>

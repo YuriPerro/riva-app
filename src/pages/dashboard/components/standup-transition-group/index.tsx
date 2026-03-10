@@ -1,10 +1,13 @@
 import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { getStateI18nKey } from '@/utils/mappers';
 import { TypeIcon } from '../standup-type-icon';
 import type { TransitionGroupViewProps } from './types';
 
 export function TransitionGroupView(props: TransitionGroupViewProps) {
   const { group } = props;
+  const { t } = useTranslation('common');
 
   return (
     <div className="flex flex-col gap-1">
@@ -14,7 +17,7 @@ export function TransitionGroupView(props: TransitionGroupViewProps) {
         ) : (
           <ArrowRight size={9} className="text-fg-disabled" />
         )}
-        <span className={cn('font-medium', group.isDone && 'text-success')}>{group.toState}</span>
+        <span className={cn('font-medium', group.isDone && 'text-success')}>{t(getStateI18nKey(group.toState))}</span>
         <span className="text-fg-disabled">({group.items.length})</span>
       </div>
       <div className="flex flex-col gap-1 pl-4">
