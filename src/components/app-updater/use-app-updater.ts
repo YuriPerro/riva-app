@@ -32,7 +32,8 @@ export function useAppUpdater() {
     }
 
     checkForUpdate();
-    return () => { cancelled = true; };
+    const interval = setInterval(checkForUpdate, 30 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(interval); };
   }, []);
 
   const install = useCallback(async () => {
