@@ -128,9 +128,10 @@ async fn get_my_work_items(
     state: State<'_, AppState>,
     project: String,
     team: Option<String>,
+    only_mine: Option<bool>,
 ) -> Result<Vec<WorkItem>, String> {
     let (org_url, pat) = session_creds(&state)?;
-    azure::get_my_work_items(&org_url, &pat, &project, team.as_deref()).await
+    azure::get_my_work_items(&org_url, &pat, &project, team.as_deref(), only_mine.unwrap_or(true)).await
 }
 
 #[tauri::command]
@@ -220,6 +221,18 @@ async fn update_work_item_title(
 ) -> Result<WorkItemDetail, String> {
     let (org_url, pat) = session_creds(&state)?;
     azure::update_work_item_title(&org_url, &pat, &project, id, &title).await
+}
+
+#[tauri::command]
+async fn update_work_item_field(
+    state: State<'_, AppState>,
+    project: String,
+    id: u64,
+    field_path: String,
+    value: serde_json::Value,
+) -> Result<WorkItemDetail, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::update_work_item_field(&org_url, &pat, &project, id, &field_path, value).await
 }
 
 #[tauri::command]
@@ -380,6 +393,7 @@ pub fn run() {
             get_work_item_type_states,
             update_work_item_state,
             update_work_item_title,
+            update_work_item_field,
             review_pull_request,
             get_standup_data,
             get_work_item_summaries,

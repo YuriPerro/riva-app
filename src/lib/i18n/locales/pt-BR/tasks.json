@@ -12,12 +12,18 @@
   },
   "subtitle_one": "{{count}} item atribuído a você",
   "subtitle_other": "{{count}} itens atribuídos a você",
+  "subtitleAll_one": "{{count}} item na sprint",
+  "subtitleAll_other": "{{count}} itens na sprint",
   "searchPlaceholder": "Buscar tarefas...",
   "sort": {
     "relevance": "Relevância",
     "title": "Título (A-Z)",
     "status": "Status",
     "type": "Tipo"
+  },
+  "assignee": {
+    "me": "Meus",
+    "all": "Todos"
   },
   "noResults": "Nenhum item corresponde aos filtros selecionados",
   "errors": {

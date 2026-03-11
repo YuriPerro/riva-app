@@ -41,6 +41,8 @@ function mapToDisplay(detail: WorkItemDetail): DisplayDetail {
     webUrl: detail.webUrl,
     effort:
       fields['Microsoft.VSTS.Scheduling.Effort'] != null ? String(fields['Microsoft.VSTS.Scheduling.Effort']) : null,
+    estimateDays:
+      fields['Microsoft.VSTS.Scheduling.OriginalEstimate'] != null ? String(fields['Microsoft.VSTS.Scheduling.OriginalEstimate']) : null,
     completedWork:
       fields['Microsoft.VSTS.Scheduling.CompletedWork'] != null
         ? String(fields['Microsoft.VSTS.Scheduling.CompletedWork'])
@@ -104,6 +106,12 @@ export function useWorkItemDetail(project: string, itemId: number | null) {
     onSuccess: invalidateRelatedQueries,
   });
 
+  const fieldMutation = useMutation({
+    mutationFn: ({ fieldPath, value }: { fieldPath: string; value: string | number | null }) =>
+      azure.updateWorkItemField(project, itemId!, fieldPath, value),
+    onSuccess: invalidateRelatedQueries,
+  });
+
   return {
     detail,
     theme,
@@ -113,6 +121,10 @@ export function useWorkItemDetail(project: string, itemId: number | null) {
     updateState: (newState: string) => stateMutation.mutate(newState),
     updateTitle: (title: string) => titleMutation.mutate(title),
     isTitleUpdating: titleMutation.isPending,
+    updateField: (fieldPath: string, value: string | number | null) =>
+      fieldMutation.mutate({ fieldPath, value }),
+    isFieldUpdating: fieldMutation.isPending,
+    updatingFieldPath: fieldMutation.variables?.fieldPath ?? null,
     error: error ? 'Failed to load work item details' : null,
   };
 }

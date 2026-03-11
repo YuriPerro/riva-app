@@ -9,16 +9,20 @@ import { SearchInput } from '@/components/ui/search-input';
 import { SortSelector } from '@/components/ui/sort-selector';
 import { WorkItemDetailDialog } from '@/pages/dashboard/components/work-item-detail';
 import { TasksContent } from './components/tasks-content';
+import { ViewToggle } from './components/view-toggle';
 import { useTasks, type TaskSortKey } from './use-tasks';
 
 export function TasksPage() {
   const { t } = useTranslation(['tasks', 'common']);
   const {
     filtered,
+    kanbanItems,
     items,
     isLoading,
     error,
     project,
+    viewMode,
+    setViewMode,
     statusFilter,
     typeFilter,
     setStatusFilter,
@@ -36,7 +40,13 @@ export function TasksPage() {
     statusFilters,
     typeFilters,
     countByStatus,
+    orderedStates,
+    moveItemToState,
+    assigneeFilter,
+    setAssigneeFilter,
   } = useTasks();
+
+  const isKanban = viewMode === 'kanban';
 
   return (
     <PageTransition
@@ -52,52 +62,72 @@ export function TasksPage() {
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <PageHeader
           title={t('tasks:title')}
-          subtitle={t('tasks:subtitle', { count: items.length })}
+          subtitle={t(assigneeFilter === 'me' ? 'tasks:subtitle' : 'tasks:subtitleAll', { count: items.length })}
         />
 
         <div className="flex flex-wrap items-center gap-1.5">
           <SearchInput value={query} onChange={setQuery} placeholder={t('tasks:searchPlaceholder')} />
+
           <span className="mx-0.5 h-4 w-px bg-border" />
-          {statusFilters.map(({ value, label }) => (
-            <FilterPill key={value} active={statusFilter === value} onClick={() => setStatusFilter(value)}>
-              {label}
-              <span
-                className={cn(
-                  'ml-1.5 rounded-full px-1.5 py-0.5 text-[9px]',
-                  statusFilter === value ? 'bg-accent/20 text-accent' : 'bg-elevated text-fg-disabled',
-                )}
-              >
-                {countByStatus(value)}
-              </span>
-            </FilterPill>
-          ))}
+          <FilterPill active={assigneeFilter === 'me'} onClick={() => setAssigneeFilter('me')}>
+            {t('tasks:assignee.me')}
+          </FilterPill>
+          <FilterPill active={assigneeFilter === 'all'} onClick={() => setAssigneeFilter('all')}>
+            {t('tasks:assignee.all')}
+          </FilterPill>
 
-          <span className="mx-1 h-4 w-px bg-border" />
+          {!isKanban && (
+            <>
+              <span className="mx-0.5 h-4 w-px bg-border" />
+              {statusFilters.map(({ value, label }) => (
+                <FilterPill key={value} active={statusFilter === value} onClick={() => setStatusFilter(value)}>
+                  {label}
+                  <span
+                    className={cn(
+                      'ml-1.5 rounded-full px-1.5 py-0.5 text-[9px]',
+                      statusFilter === value ? 'bg-accent/20 text-accent' : 'bg-elevated text-fg-disabled',
+                    )}
+                  >
+                    {countByStatus(value)}
+                  </span>
+                </FilterPill>
+              ))}
 
-          {typeFilters.map(({ value, label }) => (
-            <FilterPill
-              key={value}
-              active={typeFilter === value}
-              onClick={() => setTypeFilter(typeFilter === value ? 'all' : value)}
-            >
-              {label}
-            </FilterPill>
-          ))}
+              <span className="mx-1 h-4 w-px bg-border" />
+
+              {typeFilters.map(({ value, label }) => (
+                <FilterPill
+                  key={value}
+                  active={typeFilter === value}
+                  onClick={() => setTypeFilter(typeFilter === value ? 'all' : value)}
+                >
+                  {label}
+                </FilterPill>
+              ))}
+            </>
+          )}
 
           <span className="ml-auto" />
-          <SortSelector<TaskSortKey>
-            options={sortOptions}
-            value={sortKey}
-            direction={sortDirection}
-            onChange={setSort}
-          />
+          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+          {!isKanban && (
+            <SortSelector<TaskSortKey>
+              options={sortOptions}
+              value={sortKey}
+              direction={sortDirection}
+              onChange={setSort}
+            />
+          )}
         </div>
 
         <TasksContent
           error={error}
           filtered={filtered}
+          kanbanItems={kanbanItems}
+          viewMode={viewMode}
           selectWorkItem={selectWorkItem}
           openItem={openItem}
+          orderedStates={orderedStates}
+          moveItemToState={moveItemToState}
         />
 
         {project && (

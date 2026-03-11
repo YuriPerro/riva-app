@@ -34,10 +34,12 @@ export interface WorkItemDetailFields extends WorkItemFields {
   'Microsoft.VSTS.Scheduling.RemainingWork'?: number;
   'Microsoft.VSTS.Scheduling.CompletedWork'?: number;
   'Microsoft.VSTS.Scheduling.Effort'?: number;
+  'Microsoft.VSTS.Scheduling.OriginalEstimate'?: number;
   'Microsoft.VSTS.Scheduling.DueDate'?: string;
   'Microsoft.VSTS.Scheduling.StartDate'?: string;
   'Microsoft.VSTS.Scheduling.FinishDate'?: string;
   'Microsoft.VSTS.CMMI.Blocked'?: string;
+  extra: Record<string, unknown>;
 }
 
 export interface RelatedWorkItem {

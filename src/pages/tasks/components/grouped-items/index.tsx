@@ -2,7 +2,8 @@ import { ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { getWorkItemTheme } from '@/utils/work-item-theme';
-import type { TaskItem, WorkItemStatus } from '../../use-tasks';
+import type { WorkItemStatus } from '@/types/work-item';
+import type { TaskItem } from '../../use-tasks';
 import type { GroupedItemsProps } from './types';
 
 const STATUS_COLOR: Record<WorkItemStatus, string> = {

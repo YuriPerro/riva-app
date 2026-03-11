@@ -23,8 +23,8 @@ export const azure = {
 
   getTeams: (project: string) => invoke<Team[]>(TauriCommand.GetTeams, { project }),
 
-  getTasks: (project: string, team?: string) =>
-    invoke<WorkItem[]>(TauriCommand.GetTasks, { project, team: team ?? null }),
+  getTasks: (project: string, team?: string, onlyMine?: boolean) =>
+    invoke<WorkItem[]>(TauriCommand.GetTasks, { project, team: team ?? null, onlyMine: onlyMine ?? true }),
 
   getRecentPipelines: (project: string, teamId?: string) =>
     invoke<PipelineRun[]>(TauriCommand.GetRecentPipelines, { project, teamId: teamId ?? null }),
@@ -48,6 +48,9 @@ export const azure = {
 
   updateWorkItemTitle: (project: string, id: number, title: string) =>
     invoke<WorkItemDetail>(TauriCommand.UpdateWorkItemTitle, { project, id, title }),
+
+  updateWorkItemField: (project: string, id: number, fieldPath: string, value: string | number | null) =>
+    invoke<WorkItemDetail>(TauriCommand.UpdateWorkItemField, { project, id, fieldPath, value }),
 
   reviewPullRequest: (project: string, repoId: string, prId: number, vote: number) =>
     invoke<void>(TauriCommand.ReviewPullRequest, { project, repoId, prId, vote }),

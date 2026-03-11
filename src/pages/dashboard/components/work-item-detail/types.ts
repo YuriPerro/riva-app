@@ -28,6 +28,7 @@ export type DisplayDetail = {
   priority: PriorityLabel;
   webUrl: string;
   effort: string | null;
+  estimateDays: string | null;
   completedWork: string | null;
   remainingWork: string | null;
   dueDate: string | null;

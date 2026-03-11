@@ -277,6 +277,8 @@ pub struct WorkItemDetailFields {
     pub completed_work: Option<f64>,
     #[serde(rename = "Microsoft.VSTS.Scheduling.Effort", default)]
     pub effort: Option<f64>,
+    #[serde(rename = "Microsoft.VSTS.Scheduling.OriginalEstimate", default)]
+    pub original_estimate: Option<f64>,
     #[serde(rename = "Microsoft.VSTS.Scheduling.DueDate", default)]
     pub due_date: Option<String>,
     #[serde(rename = "Microsoft.VSTS.Scheduling.StartDate", default)]
@@ -285,6 +287,8 @@ pub struct WorkItemDetailFields {
     pub finish_date: Option<String>,
     #[serde(rename = "Microsoft.VSTS.CMMI.Blocked", default)]
     pub blocked: Option<String>,
+    #[serde(skip_deserializing, default)]
+    pub extra: std::collections::HashMap<String, serde_json::Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -384,6 +388,7 @@ pub async fn get_my_work_items(
     pat: &str,
     project: &str,
     team: Option<&str>,
+    only_mine: bool,
 ) -> Result<Vec<WorkItem>, String> {
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
@@ -391,39 +396,57 @@ pub async fn get_my_work_items(
 
     let enc_team = team.map(|t| encode_path_segment(t));
 
+    let assignee_clause = if only_mine {
+        "AND [System.AssignedTo] = @Me "
+    } else {
+        ""
+    };
+
+    let iteration_clause = if only_mine {
+        "AND [System.IterationPath] = @CurrentIteration "
+    } else {
+        ""
+    };
+
     let wiql_query = if let Some(t) = team {
         match get_team_area_path(&client, base, project, t).await {
             Some(area_path) => format!(
                 "SELECT [System.Id] FROM WorkItems \
                  WHERE [System.TeamProject] = @project \
-                 AND [System.AssignedTo] = @Me \
+                 {}\
                  AND [System.AreaPath] UNDER '{}' \
-                 AND [System.IterationPath] = @CurrentIteration \
+                 {}\
                  AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
                  ORDER BY [System.ChangedDate] DESC",
-                area_path
+                assignee_clause, area_path, iteration_clause
             ),
-            None => "SELECT [System.Id] FROM WorkItems \
-                     WHERE [System.TeamProject] = @project \
-                     AND [System.AssignedTo] = @Me \
-                     AND [System.IterationPath] = @CurrentIteration \
-                     AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
-                     ORDER BY [System.ChangedDate] DESC"
-                .to_string(),
+            None => format!(
+                "SELECT [System.Id] FROM WorkItems \
+                 WHERE [System.TeamProject] = @project \
+                 {}\
+                 {}\
+                 AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
+                 ORDER BY [System.ChangedDate] DESC",
+                assignee_clause, iteration_clause
+            ),
         }
     } else {
-        "SELECT [System.Id] FROM WorkItems \
-         WHERE [System.TeamProject] = @project \
-         AND [System.AssignedTo] = @Me \
-         AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
-         ORDER BY [System.ChangedDate] DESC"
-            .to_string()
+        format!(
+            "SELECT [System.Id] FROM WorkItems \
+             WHERE [System.TeamProject] = @project \
+             {}\
+             {}\
+             AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
+             ORDER BY [System.ChangedDate] DESC",
+            assignee_clause, iteration_clause
+        )
     };
 
+    let top = if only_mine { 100 } else { 200 };
     let wiql_url = if let Some(ref et) = enc_team {
-        format!("{}/{}/{}/_apis/wit/wiql?api-version=7.1&$top=100", base, enc_project, et)
+        format!("{}/{}/{}/_apis/wit/wiql?api-version=7.1&$top={}", base, enc_project, et, top)
     } else {
-        format!("{}/{}/_apis/wit/wiql?api-version=7.1&$top=100", base, enc_project)
+        format!("{}/{}/_apis/wit/wiql?api-version=7.1&$top={}", base, enc_project, top)
     };
     let wiql = serde_json::json!({ "query": wiql_query });
     let wiql_resp = client
@@ -443,8 +466,8 @@ pub async fn get_my_work_items(
         return Ok(vec![]);
     }
 
-    // Batch fetch work item details (up to 50 items)
-    let ids: Vec<String> = refs.work_items.iter().take(50).map(|w| w.id.to_string()).collect();
+    let batch_limit = if only_mine { 50 } else { 200 };
+    let ids: Vec<String> = refs.work_items.iter().take(batch_limit).map(|w| w.id.to_string()).collect();
     let ids_str = ids.join(",");
     let fields = "System.Title,System.WorkItemType,System.State,System.AssignedTo,System.IterationPath,System.Parent";
     let batch_url = format!(
@@ -752,8 +775,15 @@ pub async fn get_work_item_detail(
         }
     }
 
+    let raw_fields = raw["fields"].as_object().cloned().unwrap_or_default();
     let mut item: WorkItemDetail = serde_json::from_value(raw).map_err(|e| e.to_string())?;
     item.web_url = format!("{}/{}/_workitems/edit/{}", base, project, item.id);
+
+    for (key, value) in &raw_fields {
+        if !key.starts_with("System.") {
+            item.fields.extra.insert(key.clone(), value.clone());
+        }
+    }
 
     let mut all_ids: Vec<u64> = child_ids.clone();
     if let Some(pid) = parent_id {
@@ -867,6 +897,62 @@ pub async fn update_work_item_title(
             "value": title
         }
     ]);
+
+    let resp = client
+        .patch(&url)
+        .header("Content-Type", "application/json-patch+json")
+        .json(&patch_body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+
+    let mut item: WorkItemDetail = resp.json().await.map_err(|e| e.to_string())?;
+    item.web_url = format!("{}/{}/_workitems/edit/{}", base, project, item.id);
+    Ok(item)
+}
+
+const EDITABLE_FIELDS: &[&str] = &[
+    "Microsoft.VSTS.Scheduling.Effort",
+    "Microsoft.VSTS.Scheduling.OriginalEstimate",
+    "Microsoft.VSTS.Scheduling.CompletedWork",
+    "Microsoft.VSTS.Scheduling.RemainingWork",
+    "Microsoft.VSTS.Scheduling.DueDate",
+    "Microsoft.VSTS.Scheduling.StartDate",
+    "Microsoft.VSTS.Scheduling.FinishDate",
+    "Microsoft.VSTS.CMMI.Blocked",
+    "Microsoft.VSTS.Common.Priority",
+];
+
+pub async fn update_work_item_field(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    id: u64,
+    field_path: &str,
+    value: serde_json::Value,
+) -> Result<WorkItemDetail, String> {
+    if !EDITABLE_FIELDS.contains(&field_path) {
+        return Err(format!("Field '{}' is not editable", field_path));
+    }
+
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/wit/workitems/{}?api-version=7.1",
+        base, project, id
+    );
+
+    let op = if value.is_null() { "remove" } else { "replace" };
+
+    let patch_body = if value.is_null() {
+        serde_json::json!([{ "op": op, "path": format!("/fields/{}", field_path) }])
+    } else {
+        serde_json::json!([{ "op": op, "path": format!("/fields/{}", field_path), "value": value }])
+    };
 
     let resp = client
         .patch(&url)

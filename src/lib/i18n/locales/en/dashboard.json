@@ -126,6 +126,7 @@
   "workItemDetail": {
     "detailsFor": "Work item details for {{title}}",
     "effort": "Effort",
+    "estimateDays": "Estimate Days",
     "completedWork": "Completed Work",
     "remainingWork": "Remaining Work",
     "dueDate": "Due Date",

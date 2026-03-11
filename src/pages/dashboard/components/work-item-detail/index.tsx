@@ -25,19 +25,45 @@ import { BranchField } from '../work-item-branch-field';
 import { DetailField } from '../work-item-detail-field';
 import { RelatedItems } from '../work-item-related-items';
 import { EditableTitle } from '../work-item-editable-title';
+import { EditableNumberField } from '../work-item-editable-number-field';
+import { EditableDateField } from '../work-item-editable-date-field';
+import { EditableToggleField } from '../work-item-editable-toggle-field';
+import { EditableSelectField } from '../work-item-editable-select-field';
 import type { WorkItemDetailDialogProps, PriorityLabel, DisplayDetail } from './types';
 
-type DevFieldKey = 'effort' | 'completedWork' | 'remainingWork' | 'dueDate' | 'devStartDate' | 'devEndDate' | 'blocked';
+type DevFieldKey = 'effort' | 'estimateDays' | 'completedWork' | 'remainingWork' | 'dueDate' | 'devStartDate' | 'devEndDate' | 'blocked';
 
 const DEV_FIELDS_BY_TYPE: Record<string, DevFieldKey[]> = {
   Task: ['effort', 'completedWork', 'remainingWork', 'dueDate', 'blocked'],
   Bug: ['effort', 'completedWork', 'remainingWork', 'devStartDate', 'devEndDate', 'blocked'],
-  'Product Backlog Item': ['effort', 'devStartDate', 'devEndDate', 'blocked'],
+  'Product Backlog Item': ['estimateDays', 'devStartDate', 'devEndDate', 'blocked'],
   Feature: ['effort', 'devStartDate', 'devEndDate', 'blocked'],
   Epic: ['effort', 'devStartDate', 'devEndDate', 'blocked'],
 };
 
 const DEFAULT_DEV_FIELDS: DevFieldKey[] = ['effort', 'blocked'];
+
+const DEV_FIELD_PATH: Record<DevFieldKey, string> = {
+  effort: 'Microsoft.VSTS.Scheduling.Effort',
+  estimateDays: 'Microsoft.VSTS.Scheduling.OriginalEstimate',
+  completedWork: 'Microsoft.VSTS.Scheduling.CompletedWork',
+  remainingWork: 'Microsoft.VSTS.Scheduling.RemainingWork',
+  dueDate: 'Microsoft.VSTS.Scheduling.DueDate',
+  devStartDate: 'Microsoft.VSTS.Scheduling.StartDate',
+  devEndDate: 'Microsoft.VSTS.Scheduling.FinishDate',
+  blocked: 'Microsoft.VSTS.CMMI.Blocked',
+};
+
+const DEV_FIELD_TYPE: Record<DevFieldKey, 'number' | 'date' | 'toggle'> = {
+  effort: 'number',
+  estimateDays: 'number',
+  completedWork: 'number',
+  remainingWork: 'number',
+  dueDate: 'date',
+  devStartDate: 'date',
+  devEndDate: 'date',
+  blocked: 'toggle',
+};
 
 const priorityConfig: Record<PriorityLabel, string> = {
   Critical: 'text-error',
@@ -47,13 +73,24 @@ const priorityConfig: Record<PriorityLabel, string> = {
   None: 'text-fg-disabled',
 };
 
+const PRIORITY_OPTIONS = [
+  { value: 1, label: 'Critical', className: 'text-error' },
+  { value: 2, label: 'High', className: 'text-warning' },
+  { value: 3, label: 'Medium', className: 'text-info' },
+  { value: 4, label: 'Low', className: 'text-fg-muted' },
+];
+
 export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
   const { itemId, project, onClose, onNavigate } = props;
-  const { detail, theme, states, isLoading, isUpdating, updateState, updateTitle, isTitleUpdating, error } = useWorkItemDetail(project, itemId);
+  const {
+    detail, theme, states, isLoading, isUpdating, updateState, updateTitle, isTitleUpdating,
+    updateField, isFieldUpdating, updatingFieldPath, error,
+  } = useWorkItemDetail(project, itemId);
   const { t } = useTranslation(['dashboard', 'common']);
 
   const DEV_FIELD_META: Record<DevFieldKey, { icon: React.ElementType; label: string }> = useMemo(() => ({
     effort: { icon: Zap, label: t('dashboard:workItemDetail.effort') },
+    estimateDays: { icon: Zap, label: t('dashboard:workItemDetail.estimateDays') },
     completedWork: { icon: CheckCircle2, label: t('dashboard:workItemDetail.completedWork') },
     remainingWork: { icon: Hourglass, label: t('dashboard:workItemDetail.remainingWork') },
     dueDate: { icon: Calendar, label: t('dashboard:workItemDetail.dueDate') },
@@ -128,10 +165,14 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
                 />
                 <DetailField icon={User} label={t('dashboard:workItemDetail.assignedTo')} value={detail.assignee} />
                 <DetailField icon={GitBranch} label={t('dashboard:workItemDetail.iteration')} value={detail.iterationPath} />
-                <DetailField
+                <EditableSelectField
                   icon={Flag}
                   label={t('dashboard:workItemDetail.priority')}
                   value={detail.priority}
+                  fieldPath="Microsoft.VSTS.Common.Priority"
+                  options={PRIORITY_OPTIONS}
+                  onSave={updateField}
+                  isUpdating={isFieldUpdating && updatingFieldPath === 'Microsoft.VSTS.Common.Priority'}
                   valueClassName={priorityConfig[detail.priority]}
                 />
                 <DetailField icon={User} label={t('dashboard:workItemDetail.createdBy')} value={detail.createdBy} />
@@ -148,14 +189,47 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
                   {(DEV_FIELDS_BY_TYPE[detail.type] ?? DEFAULT_DEV_FIELDS).map((key) => {
                     const meta = DEV_FIELD_META[key];
                     const raw = detail[key as keyof DisplayDetail] as string | null;
-                    const value = raw ?? '—';
+                    const fieldPath = DEV_FIELD_PATH[key];
+                    const fieldType = DEV_FIELD_TYPE[key];
+                    const isCurrentFieldUpdating = isFieldUpdating && updatingFieldPath === fieldPath;
+
+                    if (fieldType === 'number') {
+                      return (
+                        <EditableNumberField
+                          key={key}
+                          icon={meta.icon}
+                          label={meta.label}
+                          value={raw}
+                          fieldPath={fieldPath}
+                          onSave={updateField}
+                          isUpdating={isCurrentFieldUpdating}
+                        />
+                      );
+                    }
+
+                    if (fieldType === 'date') {
+                      return (
+                        <EditableDateField
+                          key={key}
+                          icon={meta.icon}
+                          label={meta.label}
+                          value={raw}
+                          fieldPath={fieldPath}
+                          onSave={updateField}
+                          isUpdating={isCurrentFieldUpdating}
+                        />
+                      );
+                    }
+
                     return (
-                      <DetailField
+                      <EditableToggleField
                         key={key}
                         icon={meta.icon}
                         label={meta.label}
-                        value={value}
-                        valueClassName={key === 'blocked' && value === 'Yes' ? 'text-error' : undefined}
+                        value={raw ?? 'No'}
+                        fieldPath={fieldPath}
+                        onSave={updateField}
+                        isUpdating={isCurrentFieldUpdating}
                       />
                     );
                   })}

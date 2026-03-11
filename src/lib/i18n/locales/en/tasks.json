@@ -12,12 +12,18 @@
   },
   "subtitle_one": "{{count}} item assigned to you",
   "subtitle_other": "{{count}} items assigned to you",
+  "subtitleAll_one": "{{count}} item in the sprint",
+  "subtitleAll_other": "{{count}} items in the sprint",
   "searchPlaceholder": "Search tasks...",
   "sort": {
     "relevance": "Relevance",
     "title": "Title (A-Z)",
     "status": "Status",
     "type": "Type"
+  },
+  "assignee": {
+    "me": "Mine",
+    "all": "Everyone"
   },
   "noResults": "No items match the selected filters",
   "errors": {
