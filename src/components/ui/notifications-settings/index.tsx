@@ -1,36 +1,25 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bell, GitPullRequest, CircleX, AtSign } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { PipelinePicker } from './pipeline-picker';
+import { DefinitionPicker } from './pipeline-picker';
 import { useNotificationsSettings } from './use-notifications-settings';
+
+function ChannelRow(props: { icon: React.ElementType; label: string; description: string; checked: boolean; onChange: (v: boolean) => void }) {
+  const { icon: Icon, label, description, checked, onChange } = props;
+  return (
+    <label className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-elevated">
+      <Icon className="size-3.5 shrink-0 text-fg-muted" />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="text-xs font-medium text-fg">{label}</span>
+        <span className="text-[11px] text-fg-disabled">{description}</span>
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </label>
+  );
+}
 
 export function NotificationsSettings() {
   const { t } = useTranslation('settings');
-
-  const notificationChannels = useMemo(
-    () => [
-      {
-        key: 'prReview' as const,
-        icon: GitPullRequest,
-        label: t('notifications.prReviews'),
-        description: t('notifications.prReviewsDescription'),
-      },
-      {
-        key: 'pipelineFailed' as const,
-        icon: CircleX,
-        label: t('notifications.pipelineFailed'),
-        description: t('notifications.pipelineFailedDescription'),
-      },
-      {
-        key: 'workItemMention' as const,
-        icon: AtSign,
-        label: t('notifications.mentions'),
-        description: t('notifications.mentionsDescription'),
-      },
-    ],
-    [t],
-  );
   const {
     pollingInterval,
     prReviewEnabled,
@@ -44,18 +33,18 @@ export function NotificationsSettings() {
     setWorkItemMentionEnabled,
     pipelineDefinitions,
     monitoredPipelineIds,
-    monitorAll,
+    monitorAllPipelines,
     togglePipelineMonitored,
     toggleAllPipelines,
+    releaseDefinitions,
+    monitoredReleaseIds,
+    monitorAllReleases,
+    toggleReleaseMonitored,
+    toggleAllReleases,
   } = useNotificationsSettings();
 
-  const toggles: Record<string, { checked: boolean; onChange: (v: boolean) => void }> = {
-    prReview: { checked: prReviewEnabled, onChange: setPrReviewEnabled },
-    pipelineFailed: { checked: pipelineFailedEnabled, onChange: setPipelineFailedEnabled },
-    workItemMention: { checked: workItemMentionEnabled, onChange: setWorkItemMentionEnabled },
-  };
-
   const showPipelinePicker = pipelineFailedEnabled && pipelineDefinitions.length > 0;
+  const showReleasePicker = pipelineFailedEnabled && releaseDefinitions.length > 0;
 
   return (
     <div className="flex flex-col rounded-lg border border-border bg-surface p-4 col-span-3">
@@ -82,33 +71,57 @@ export function NotificationsSettings() {
 
       {isPollingActive && (
         <div className="mt-3 flex flex-col gap-0.5">
-          {notificationChannels.map((channel) => {
-            const { checked, onChange } = toggles[channel.key];
-            const Icon = channel.icon;
-            return (
-              <label
-                key={channel.key}
-                className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-elevated"
-              >
-                <Icon className="size-3.5 shrink-0 text-fg-muted" />
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-xs font-medium text-fg">{channel.label}</span>
-                  <span className="text-[11px] text-fg-disabled">{channel.description}</span>
-                </div>
-                <Switch checked={checked} onCheckedChange={onChange} />
-              </label>
-            );
-          })}
+          <ChannelRow
+            icon={GitPullRequest}
+            label={t('notifications.prReviews')}
+            description={t('notifications.prReviewsDescription')}
+            checked={prReviewEnabled}
+            onChange={setPrReviewEnabled}
+          />
+
+          <ChannelRow
+            icon={CircleX}
+            label={t('notifications.pipelineFailed')}
+            description={t('notifications.pipelineFailedDescription')}
+            checked={pipelineFailedEnabled}
+            onChange={setPipelineFailedEnabled}
+          />
 
           {showPipelinePicker && (
-            <PipelinePicker
+            <DefinitionPicker
               definitions={pipelineDefinitions}
               monitoredIds={monitoredPipelineIds}
-              monitorAll={monitorAll}
+              monitorAll={monitorAllPipelines}
               onToggle={togglePipelineMonitored}
               onToggleAll={toggleAllPipelines}
+              allLabel={t('notifications.allPipelines')}
+              selectedLabel={(count) => t('notifications.pipelinesSelected', { count })}
+              searchPlaceholder={t('notifications.searchPipelines')}
+              noMatchLabel={t('notifications.noMatchingPipelines')}
             />
           )}
+
+          {showReleasePicker && (
+            <DefinitionPicker
+              definitions={releaseDefinitions}
+              monitoredIds={monitoredReleaseIds}
+              monitorAll={monitorAllReleases}
+              onToggle={toggleReleaseMonitored}
+              onToggleAll={toggleAllReleases}
+              allLabel={t('notifications.allReleases')}
+              selectedLabel={(count) => t('notifications.releasesSelected', { count })}
+              searchPlaceholder={t('notifications.searchReleases')}
+              noMatchLabel={t('notifications.noMatchingReleases')}
+            />
+          )}
+
+          <ChannelRow
+            icon={AtSign}
+            label={t('notifications.mentions')}
+            description={t('notifications.mentionsDescription')}
+            checked={workItemMentionEnabled}
+            onChange={setWorkItemMentionEnabled}
+          />
         </div>
       )}
     </div>

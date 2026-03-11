@@ -8,17 +8,21 @@ type NotificationSettingsState = {
   workItemMentionEnabled: boolean;
   monitorAllPipelines: boolean;
   monitoredPipelineIds: number[];
+  monitorAllReleases: boolean;
+  monitoredReleaseIds: number[];
   setPollingInterval: (interval: PollingInterval) => void;
   setPrReviewEnabled: (enabled: boolean) => void;
   setPipelineFailedEnabled: (enabled: boolean) => void;
   setWorkItemMentionEnabled: (enabled: boolean) => void;
   setMonitorAllPipelines: (all: boolean) => void;
   setMonitoredPipelineIds: (ids: number[]) => void;
+  setMonitorAllReleases: (all: boolean) => void;
+  setMonitoredReleaseIds: (ids: number[]) => void;
 };
 
 const STORAGE_KEY = 'riva_notification_settings';
 
-type PersistedSettings = Pick<NotificationSettingsState, 'pollingInterval' | 'prReviewEnabled' | 'pipelineFailedEnabled' | 'workItemMentionEnabled' | 'monitorAllPipelines' | 'monitoredPipelineIds'>;
+type PersistedSettings = Pick<NotificationSettingsState, 'pollingInterval' | 'prReviewEnabled' | 'pipelineFailedEnabled' | 'workItemMentionEnabled' | 'monitorAllPipelines' | 'monitoredPipelineIds' | 'monitorAllReleases' | 'monitoredReleaseIds'>;
 
 function loadSettings(): PersistedSettings {
   const stored = localStorage.getItem(STORAGE_KEY);
@@ -32,6 +36,8 @@ function loadSettings(): PersistedSettings {
         workItemMentionEnabled: parsed.workItemMentionEnabled ?? true,
         monitorAllPipelines: parsed.monitorAllPipelines ?? true,
         monitoredPipelineIds: Array.isArray(parsed.monitoredPipelineIds) ? parsed.monitoredPipelineIds : [],
+        monitorAllReleases: parsed.monitorAllReleases ?? true,
+        monitoredReleaseIds: Array.isArray(parsed.monitoredReleaseIds) ? parsed.monitoredReleaseIds : [],
       };
     } catch (e) {
       console.error(e);
@@ -44,6 +50,8 @@ function loadSettings(): PersistedSettings {
     workItemMentionEnabled: true,
     monitorAllPipelines: true,
     monitoredPipelineIds: [],
+    monitorAllReleases: true,
+    monitoredReleaseIds: [],
   };
 }
 
@@ -82,5 +90,15 @@ export const useNotificationSettingsStore = create<NotificationSettingsState>((s
   setMonitoredPipelineIds: (ids) => {
     set({ monitoredPipelineIds: ids });
     persistSettings({ ...get(), monitoredPipelineIds: ids });
+  },
+
+  setMonitorAllReleases: (all) => {
+    set({ monitorAllReleases: all });
+    persistSettings({ ...get(), monitorAllReleases: all });
+  },
+
+  setMonitoredReleaseIds: (ids) => {
+    set({ monitoredReleaseIds: ids });
+    persistSettings({ ...get(), monitoredReleaseIds: ids });
   },
 }));

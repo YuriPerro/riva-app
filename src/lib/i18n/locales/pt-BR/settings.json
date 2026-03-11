@@ -29,7 +29,12 @@
     "pipelinesSelected": "{{count}} pipeline selecionado",
     "pipelinesSelected_other": "{{count}} pipelines selecionados",
     "searchPipelines": "Buscar pipelines…",
-    "noMatchingPipelines": "Nenhum pipeline encontrado"
+    "noMatchingPipelines": "Nenhum pipeline encontrado",
+    "allReleases": "Todas as releases",
+    "releasesSelected": "{{count}} release selecionada",
+    "releasesSelected_other": "{{count}} releases selecionadas",
+    "searchReleases": "Buscar releases…",
+    "noMatchingReleases": "Nenhuma release encontrada"
   },
   "language": {
     "title": "Idioma",

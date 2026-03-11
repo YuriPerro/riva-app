@@ -5,7 +5,7 @@ import type { ReleasesContentProps } from './types';
 
 export function ReleasesContent(props: ReleasesContentProps) {
   const { t } = useTranslation('releases');
-  const { error, groups, toggleFavorite, selectRelease } = props;
+  const { error, groups, toggleFavorite, toggleNotification, selectRelease } = props;
 
   if (error) {
     return (
@@ -33,6 +33,7 @@ export function ReleasesContent(props: ReleasesContentProps) {
             key={group.definitionId}
             group={group}
             onToggleFavorite={toggleFavorite}
+            onToggleNotification={toggleNotification}
             onSelectRelease={selectRelease}
           />
         ))}

@@ -26,12 +26,16 @@ export function useNotificationsSettings() {
   const workItemMentionEnabled = useNotificationSettingsStore((s) => s.workItemMentionEnabled);
   const monitorAllPipelines = useNotificationSettingsStore((s) => s.monitorAllPipelines);
   const monitoredPipelineIds = useNotificationSettingsStore((s) => s.monitoredPipelineIds);
+  const monitorAllReleases = useNotificationSettingsStore((s) => s.monitorAllReleases);
+  const monitoredReleaseIds = useNotificationSettingsStore((s) => s.monitoredReleaseIds);
   const setPollingInterval = useNotificationSettingsStore((s) => s.setPollingInterval);
   const setPrReviewEnabled = useNotificationSettingsStore((s) => s.setPrReviewEnabled);
   const setPipelineFailedEnabled = useNotificationSettingsStore((s) => s.setPipelineFailedEnabled);
   const setWorkItemMentionEnabled = useNotificationSettingsStore((s) => s.setWorkItemMentionEnabled);
   const setMonitorAllPipelines = useNotificationSettingsStore((s) => s.setMonitorAllPipelines);
   const setMonitoredPipelineIds = useNotificationSettingsStore((s) => s.setMonitoredPipelineIds);
+  const setMonitorAllReleases = useNotificationSettingsStore((s) => s.setMonitorAllReleases);
+  const setMonitoredReleaseIds = useNotificationSettingsStore((s) => s.setMonitoredReleaseIds);
 
   const { data: pipelineDefinitions = [] } = useQuery({
     queryKey: ['pipeline-definitions', project],
@@ -80,6 +84,48 @@ export function useNotificationsSettings() {
     }
   }, [monitorAllPipelines, setMonitorAllPipelines, setMonitoredPipelineIds]);
 
+  const { data: releaseDefinitions = [] } = useQuery({
+    queryKey: ['release-definitions', project],
+    queryFn: () => azure.getReleaseDefinitions(project!),
+    enabled: !!project && pipelineFailedEnabled,
+    staleTime: 300_000,
+  });
+
+  const toggleReleaseMonitored = useCallback((definitionId: number) => {
+    if (monitorAllReleases) {
+      const allExceptThis = releaseDefinitions
+        .map((d) => d.id)
+        .filter((id) => id !== definitionId);
+      setMonitorAllReleases(false);
+      setMonitoredReleaseIds(allExceptThis);
+      return;
+    }
+
+    const isCurrentlyMonitored = monitoredReleaseIds.includes(definitionId);
+    if (isCurrentlyMonitored) {
+      setMonitoredReleaseIds(monitoredReleaseIds.filter((id) => id !== definitionId));
+    } else {
+      const updated = [...monitoredReleaseIds, definitionId];
+      const allSelected = releaseDefinitions.every((d) => updated.includes(d.id));
+      if (allSelected) {
+        setMonitorAllReleases(true);
+        setMonitoredReleaseIds([]);
+      } else {
+        setMonitoredReleaseIds(updated);
+      }
+    }
+  }, [monitorAllReleases, monitoredReleaseIds, releaseDefinitions, setMonitorAllReleases, setMonitoredReleaseIds]);
+
+  const toggleAllReleases = useCallback(() => {
+    if (monitorAllReleases) {
+      setMonitorAllReleases(false);
+      setMonitoredReleaseIds([]);
+    } else {
+      setMonitorAllReleases(true);
+      setMonitoredReleaseIds([]);
+    }
+  }, [monitorAllReleases, setMonitorAllReleases, setMonitoredReleaseIds]);
+
   const isPollingActive = pollingInterval !== 'off';
 
   return {
@@ -95,8 +141,13 @@ export function useNotificationsSettings() {
     setWorkItemMentionEnabled,
     pipelineDefinitions,
     monitoredPipelineIds,
-    monitorAll: monitorAllPipelines,
+    monitorAllPipelines,
     togglePipelineMonitored,
     toggleAllPipelines,
+    releaseDefinitions,
+    monitoredReleaseIds,
+    monitorAllReleases,
+    toggleReleaseMonitored,
+    toggleAllReleases,
   };
 }

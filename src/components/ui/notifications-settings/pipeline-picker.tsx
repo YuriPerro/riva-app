@@ -1,20 +1,21 @@
 import { useState, useRef, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { ChevronDown, Search, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { PipelineDefinition } from '@/types/azure';
 
-interface PipelinePickerProps {
-  definitions: PipelineDefinition[];
+interface DefinitionPickerProps {
+  definitions: { id: number; name: string }[];
   monitoredIds: number[];
   monitorAll: boolean;
   onToggle: (id: number) => void;
   onToggleAll: () => void;
+  allLabel: string;
+  selectedLabel: (count: number) => string;
+  searchPlaceholder: string;
+  noMatchLabel: string;
 }
 
-export function PipelinePicker(props: PipelinePickerProps) {
-  const { definitions, monitoredIds, monitorAll, onToggle, onToggleAll } = props;
-  const { t } = useTranslation('settings');
+export function DefinitionPicker(props: DefinitionPickerProps) {
+  const { definitions, monitoredIds, monitorAll, onToggle, onToggleAll, allLabel, selectedLabel, searchPlaceholder, noMatchLabel } = props;
 
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -43,9 +44,7 @@ export function PipelinePicker(props: PipelinePickerProps) {
     if (open) inputRef.current?.focus();
   }, [open]);
 
-  const label = monitorAll
-    ? t('notifications.allPipelines')
-    : t('notifications.pipelinesSelected', { count: selectedCount });
+  const label = monitorAll ? allLabel : selectedLabel(selectedCount);
 
   return (
     <div ref={containerRef} className="relative ml-9 mt-1">
@@ -71,7 +70,7 @@ export function PipelinePicker(props: PipelinePickerProps) {
               ref={inputRef}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('notifications.searchPipelines')}
+              placeholder={searchPlaceholder}
               className="w-full bg-transparent text-[11px] text-fg placeholder:text-fg-disabled focus:outline-none"
             />
           </div>
@@ -90,14 +89,14 @@ export function PipelinePicker(props: PipelinePickerProps) {
                   {monitorAll && <Check size={8} className="text-accent-fg" />}
                 </div>
                 <span className={cn('font-medium', monitorAll ? 'text-accent' : 'text-fg-secondary')}>
-                  {t('notifications.allPipelines')}
+                  {allLabel}
                 </span>
               </button>
             )}
 
             {filtered.length === 0 && (
               <div className="px-2.5 py-2 text-[11px] text-fg-disabled">
-                {t('notifications.noMatchingPipelines')}
+                {noMatchLabel}
               </div>
             )}
 

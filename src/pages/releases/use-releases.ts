@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { azure } from '@/lib/tauri';
 import type { Release, ReleaseDefinition, ReleaseApproval } from '@/types/azure';
 import { useSessionStore } from '@/store/session';
+import { useNotificationSettingsStore } from '@/store/notifications';
 import { mapReleaseEnvironmentStatus, mapApprovalStatus } from '@/utils/mappers';
 import { fuzzyMatch } from '@/utils/search';
 import type { SortDirection, SortOption } from '@/components/ui/sort-selector/types';
@@ -134,6 +135,12 @@ export function useReleases(): ReleasesData {
     [project],
   );
 
+  const monitorAllReleases = useNotificationSettingsStore((s) => s.monitorAllReleases);
+  const monitoredReleaseIds = useNotificationSettingsStore((s) => s.monitoredReleaseIds);
+  const pipelineFailedEnabled = useNotificationSettingsStore((s) => s.pipelineFailedEnabled);
+  const setMonitorAllReleases = useNotificationSettingsStore((s) => s.setMonitorAllReleases);
+  const setMonitoredReleaseIds = useNotificationSettingsStore((s) => s.setMonitoredReleaseIds);
+
   const { data: currentUserUniqueName = null } = useQuery({
     queryKey: ['my-unique-name'],
     queryFn: () => azure.getMyUniqueName(),
@@ -146,6 +153,35 @@ export function useReleases(): ReleasesData {
     enabled: !!project,
     refetchInterval: 60_000,
   });
+
+  const isNotifyEnabled = useCallback((definitionId: number) => {
+    if (!pipelineFailedEnabled) return false;
+    if (monitorAllReleases) return true;
+    return monitoredReleaseIds.includes(definitionId);
+  }, [pipelineFailedEnabled, monitorAllReleases, monitoredReleaseIds]);
+
+  const toggleNotification = useCallback((definitionId: number) => {
+    if (monitorAllReleases) {
+      const allIds = allDefinitions.map((d) => d.id);
+      setMonitorAllReleases(false);
+      setMonitoredReleaseIds(allIds.filter((id) => id !== definitionId));
+      return;
+    }
+
+    const isCurrentlyMonitored = monitoredReleaseIds.includes(definitionId);
+    if (isCurrentlyMonitored) {
+      setMonitoredReleaseIds(monitoredReleaseIds.filter((id) => id !== definitionId));
+    } else {
+      const updated = [...monitoredReleaseIds, definitionId];
+      const allSelected = allDefinitions.every((d) => updated.includes(d.id));
+      if (allSelected) {
+        setMonitorAllReleases(true);
+        setMonitoredReleaseIds([]);
+      } else {
+        setMonitoredReleaseIds(updated);
+      }
+    }
+  }, [monitorAllReleases, monitoredReleaseIds, allDefinitions, setMonitorAllReleases, setMonitoredReleaseIds]);
 
   const definitionIds = useMemo(() => allDefinitions.map((d) => d.id), [allDefinitions]);
 
@@ -209,6 +245,7 @@ export function useReleases(): ReleasesData {
           environmentNames,
           releases: defReleases,
           isFavorite,
+          isNotifyEnabled: isNotifyEnabled(def.id),
         };
       })
       .filter((g): g is ReleaseGroup => g !== null)
@@ -245,7 +282,7 @@ export function useReleases(): ReleasesData {
         if (aHasReleases !== bHasReleases) return aHasReleases ? -1 : 1;
         return a.definitionName.localeCompare(b.definitionName);
       });
-  }, [allDefinitions, releases, definitionFilters, favorites, showFavoritesOnly, environmentFilters, query, sortKey, sortDirection]);
+  }, [allDefinitions, releases, definitionFilters, favorites, showFavoritesOnly, isNotifyEnabled, environmentFilters, query, sortKey, sortDirection]);
 
   const groups = useMemo(() => {
     if (statusFilter === 'all') return baseGroups;
@@ -336,6 +373,7 @@ export function useReleases(): ReleasesData {
     closeReleaseDetail: () => setSelectedRelease(null),
     favorites,
     toggleFavorite,
+    toggleNotification,
     showFavoritesOnly,
     setShowFavoritesOnly,
     approveRelease,

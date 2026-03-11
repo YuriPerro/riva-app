@@ -38,6 +38,7 @@ export interface ReleaseGroup {
   environmentNames: string[];
   releases: ReleaseItem[];
   isFavorite: boolean;
+  isNotifyEnabled: boolean;
 }
 
 export interface ReleasesData {
@@ -62,6 +63,7 @@ export interface ReleasesData {
   closeReleaseDetail: () => void;
   favorites: Set<number>;
   toggleFavorite: (definitionId: number) => void;
+  toggleNotification: (definitionId: number) => void;
   showFavoritesOnly: boolean;
   setShowFavoritesOnly: (v: boolean) => void;
   approveRelease: (approvalId: number) => void;
