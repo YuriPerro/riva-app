@@ -93,6 +93,11 @@
     "moveHint": "← → move",
     "fireHint": "space/k fire"
   },
+  "updater": {
+    "available": "Riva v{{version}} is available",
+    "install": "Update & restart",
+    "installing": "Installing..."
+  },
   "errors": {
     "somethingWentWrong": "Something went wrong"
   },
