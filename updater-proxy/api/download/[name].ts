@@ -1,5 +1,5 @@
-const OWNER = 'yuribaumgartner';
-const REPO = 'riva';
+const OWNER = 'YuriPerro';
+const REPO = 'riva-app';
 
 export const config = { runtime: 'edge' };
 
