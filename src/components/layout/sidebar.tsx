@@ -126,9 +126,11 @@ export const Sidebar = memo(function Sidebar() {
       {!collapsed && <SidebarGame />}
 
       {version && (
-        <span className={cn('px-4 pb-2 text-[10px] text-fg-disabled', collapsed && 'px-0 text-center')}>
-          {collapsed ? `v${version}` : `Riva v${version}`}
-        </span>
+        <div className="flex w-full items-center justify-center pt-2">
+          <span className={cn('text-[11px] text-fg-disabled/50', collapsed && 'px-0 text-center')}>
+            {collapsed ? `v${version}` : `Riva v${version}`}
+          </span>
+        </div>
       )}
     </aside>
   );

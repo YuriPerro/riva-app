@@ -22,12 +22,12 @@ import { useSettings } from './use-settings';
 
 export function SettingsPage() {
   const { t } = useTranslation(['settings', 'common']);
-  const { isSigningOut, handleSignOut } = useSettings();
+  const { isSigningOut, version, handleSignOut } = useSettings();
   const currentProject = useSessionStore((s) => s.project);
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('settings:title')} subtitle={t('settings:subtitle')} />
+      <PageHeader title={t('settings:title')} subtitle={version ? `${t('settings:subtitle')} · v${version}` : t('settings:subtitle')} />
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-4">
