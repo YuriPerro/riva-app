@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/latest.json", "destination": "/api/update" },
+    { "source": "/download/:name", "destination": "/api/download/:name" }
+  ]
+}
