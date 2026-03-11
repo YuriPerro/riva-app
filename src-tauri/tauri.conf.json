@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Riva",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "identifier": "com.yuribaumgartner.riva",
   "build": {
     "beforeDevCommand": "bun dev",
@@ -39,6 +39,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "resources": ["sounds/notification.aiff"],
     "icon": [
       "icons/32x32.png",
