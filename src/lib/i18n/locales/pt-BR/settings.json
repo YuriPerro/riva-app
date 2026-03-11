@@ -23,7 +23,13 @@
     "pipelineFailed": "Pipeline falhou",
     "pipelineFailedDescription": "Falhas de build ou release",
     "mentions": "Menções",
-    "mentionsDescription": "Marcado em work items"
+    "mentionsDescription": "Marcado em work items",
+    "monitoredPipelines": "Pipelines monitorados",
+    "allPipelines": "Todos os pipelines",
+    "pipelinesSelected": "{{count}} pipeline selecionado",
+    "pipelinesSelected_other": "{{count}} pipelines selecionados",
+    "searchPipelines": "Buscar pipelines…",
+    "noMatchingPipelines": "Nenhum pipeline encontrado"
   },
   "language": {
     "title": "Idioma",

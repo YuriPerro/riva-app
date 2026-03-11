@@ -41,6 +41,8 @@ export function useAzureNotificationPolling() {
   const pollingInterval = useNotificationSettingsStore((s) => s.pollingInterval);
   const prReviewEnabled = useNotificationSettingsStore((s) => s.prReviewEnabled);
   const pipelineFailedEnabled = useNotificationSettingsStore((s) => s.pipelineFailedEnabled);
+  const monitorAllPipelines = useNotificationSettingsStore((s) => s.monitorAllPipelines);
+  const monitoredPipelineIds = useNotificationSettingsStore((s) => s.monitoredPipelineIds);
   const workItemMentionEnabled = useNotificationSettingsStore((s) => s.workItemMentionEnabled);
 
   const prSnapshotRef = useRef<PrReviewSnapshot | null>(null);
@@ -90,7 +92,11 @@ export function useAzureNotificationPolling() {
     if (pipelineFailedEnabled) {
       try {
         const pipelines = await azure.getRecentPipelines(project);
-        const currentFailedIds = buildFailedPipelineIds(pipelines);
+        const monitoredSet = new Set(monitoredPipelineIds);
+        const relevantPipelines = monitorAllPipelines
+          ? pipelines
+          : pipelines.filter((p) => monitoredSet.has(p.definition.id));
+        const currentFailedIds = buildFailedPipelineIds(relevantPipelines);
 
         if (pipelineSnapshotRef.current) {
           for (const id of currentFailedIds) {
@@ -134,7 +140,7 @@ export function useAzureNotificationPolling() {
         console.error(error);
       }
     }
-  }, [project, uniqueName, prReviewEnabled, pipelineFailedEnabled, workItemMentionEnabled]);
+  }, [project, uniqueName, prReviewEnabled, pipelineFailedEnabled, monitorAllPipelines, monitoredPipelineIds, workItemMentionEnabled]);
 
   useEffect(() => {
     if (pollingInterval === 'off' || !project || !uniqueName) return;

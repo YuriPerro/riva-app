@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { azure } from '@/lib/tauri';
 import type { PipelineRun, PipelineDefinition } from '@/types/azure';
 import { useSessionStore } from '@/store/session';
+import { useNotificationSettingsStore } from '@/store/notifications';
 import { formatDuration, stripRefs } from '@/utils/formatters';
 import { mapPipelineStatus } from '@/utils/mappers';
 import { fuzzyMatch } from '@/utils/search';
@@ -34,6 +35,7 @@ export interface PipelineGroup {
   definitionName: string;
   runs: PipelineRunItem[];
   isFavorite: boolean;
+  isNotifyEnabled: boolean;
 }
 
 function mapRun(raw: PipelineRun): PipelineRunItem {
@@ -69,6 +71,7 @@ export interface PipelinesData {
   openRun: (url: string) => void;
   favorites: Set<number>;
   toggleFavorite: (definitionId: number) => void;
+  toggleNotification: (definitionId: number) => void;
   showFavoritesOnly: boolean;
   setShowFavoritesOnly: (v: boolean) => void;
   query: string;
@@ -135,12 +138,47 @@ export function usePipelines(): PipelinesData {
     [project],
   );
 
+  const monitorAllPipelines = useNotificationSettingsStore((s) => s.monitorAllPipelines);
+  const monitoredPipelineIds = useNotificationSettingsStore((s) => s.monitoredPipelineIds);
+  const pipelineFailedEnabled = useNotificationSettingsStore((s) => s.pipelineFailedEnabled);
+  const setMonitorAllPipelines = useNotificationSettingsStore((s) => s.setMonitorAllPipelines);
+  const setMonitoredPipelineIds = useNotificationSettingsStore((s) => s.setMonitoredPipelineIds);
+
   const { data: allDefinitions = [], isLoading: isLoadingDefs } = useQuery({
     queryKey: ['pipeline-definitions', project],
     queryFn: () => azure.getPipelineDefinitions(project!),
     enabled: !!project,
     refetchInterval: 60_000,
   });
+
+  const isNotifyEnabled = useCallback((definitionId: number) => {
+    if (!pipelineFailedEnabled) return false;
+    if (monitorAllPipelines) return true;
+    return monitoredPipelineIds.includes(definitionId);
+  }, [pipelineFailedEnabled, monitorAllPipelines, monitoredPipelineIds]);
+
+  const toggleNotification = useCallback((definitionId: number) => {
+    if (monitorAllPipelines) {
+      const allIds = allDefinitions.map((d) => d.id);
+      setMonitorAllPipelines(false);
+      setMonitoredPipelineIds(allIds.filter((id) => id !== definitionId));
+      return;
+    }
+
+    const isCurrentlyMonitored = monitoredPipelineIds.includes(definitionId);
+    if (isCurrentlyMonitored) {
+      setMonitoredPipelineIds(monitoredPipelineIds.filter((id) => id !== definitionId));
+    } else {
+      const updated = [...monitoredPipelineIds, definitionId];
+      const allSelected = allDefinitions.every((d) => updated.includes(d.id));
+      if (allSelected) {
+        setMonitorAllPipelines(true);
+        setMonitoredPipelineIds([]);
+      } else {
+        setMonitoredPipelineIds(updated);
+      }
+    }
+  }, [monitorAllPipelines, monitoredPipelineIds, allDefinitions, setMonitorAllPipelines, setMonitoredPipelineIds]);
 
   const {
     data: runs = [],
@@ -183,6 +221,7 @@ export function usePipelines(): PipelinesData {
           definitionName: def.name,
           runs: filtered,
           isFavorite,
+          isNotifyEnabled: isNotifyEnabled(def.id),
         };
       })
       .filter((g): g is PipelineGroup => g !== null)
@@ -219,7 +258,7 @@ export function usePipelines(): PipelinesData {
         if (aHasRuns !== bHasRuns) return aHasRuns ? -1 : 1;
         return a.definitionName.localeCompare(b.definitionName);
       });
-  }, [allDefinitions, runs, statusFilter, definitionFilters, favorites, showFavoritesOnly, query, sortKey, sortDirection]);
+  }, [allDefinitions, runs, statusFilter, definitionFilters, favorites, showFavoritesOnly, isNotifyEnabled, query, sortKey, sortDirection]);
 
   const allFilteredRuns = useMemo(() => groups.flatMap((g) => g.runs), [groups]);
 
@@ -263,6 +302,7 @@ export function usePipelines(): PipelinesData {
     openRun: openUrl,
     favorites,
     toggleFavorite,
+    toggleNotification,
     showFavoritesOnly,
     setShowFavoritesOnly,
     query,

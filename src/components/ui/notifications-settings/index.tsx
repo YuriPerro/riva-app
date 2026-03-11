@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bell, GitPullRequest, CircleX, AtSign } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { PipelinePicker } from './pipeline-picker';
 import { useNotificationsSettings } from './use-notifications-settings';
 
 export function NotificationsSettings() {
@@ -41,6 +42,11 @@ export function NotificationsSettings() {
     setPrReviewEnabled,
     setPipelineFailedEnabled,
     setWorkItemMentionEnabled,
+    pipelineDefinitions,
+    monitoredPipelineIds,
+    monitorAll,
+    togglePipelineMonitored,
+    toggleAllPipelines,
   } = useNotificationsSettings();
 
   const toggles: Record<string, { checked: boolean; onChange: (v: boolean) => void }> = {
@@ -48,6 +54,8 @@ export function NotificationsSettings() {
     pipelineFailed: { checked: pipelineFailedEnabled, onChange: setPipelineFailedEnabled },
     workItemMention: { checked: workItemMentionEnabled, onChange: setWorkItemMentionEnabled },
   };
+
+  const showPipelinePicker = pipelineFailedEnabled && pipelineDefinitions.length > 0;
 
   return (
     <div className="flex flex-col rounded-lg border border-border bg-surface p-4 col-span-3">
@@ -91,6 +99,16 @@ export function NotificationsSettings() {
               </label>
             );
           })}
+
+          {showPipelinePicker && (
+            <PipelinePicker
+              definitions={pipelineDefinitions}
+              monitoredIds={monitoredPipelineIds}
+              monitorAll={monitorAll}
+              onToggle={togglePipelineMonitored}
+              onToggleAll={toggleAllPipelines}
+            />
+          )}
         </div>
       )}
     </div>

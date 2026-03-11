@@ -4,7 +4,7 @@ import { PipelineGroupCard } from '../pipeline-group-card';
 import type { PipelinesContentProps } from './types';
 
 export function PipelinesContent(props: PipelinesContentProps) {
-  const { error, groups, toggleFavorite, openRun } = props;
+  const { error, groups, toggleFavorite, toggleNotification, openRun } = props;
   const { t } = useTranslation('pipelines');
 
   if (error) {
@@ -33,6 +33,7 @@ export function PipelinesContent(props: PipelinesContentProps) {
             key={group.definitionId}
             group={group}
             onToggleFavorite={toggleFavorite}
+            onToggleNotification={toggleNotification}
             onOpenRun={openRun}
           />
         ))}

@@ -23,7 +23,13 @@
     "pipelineFailed": "Pipeline failed",
     "pipelineFailedDescription": "Build or release failures",
     "mentions": "Mentions",
-    "mentionsDescription": "Tagged in work items"
+    "mentionsDescription": "Tagged in work items",
+    "monitoredPipelines": "Monitored pipelines",
+    "allPipelines": "All pipelines",
+    "pipelinesSelected": "{{count}} pipeline selected",
+    "pipelinesSelected_other": "{{count}} pipelines selected",
+    "searchPipelines": "Search pipelines…",
+    "noMatchingPipelines": "No matching pipelines"
   },
   "language": {
     "title": "Language",

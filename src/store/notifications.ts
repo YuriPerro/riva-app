@@ -6,15 +6,21 @@ type NotificationSettingsState = {
   prReviewEnabled: boolean;
   pipelineFailedEnabled: boolean;
   workItemMentionEnabled: boolean;
+  monitorAllPipelines: boolean;
+  monitoredPipelineIds: number[];
   setPollingInterval: (interval: PollingInterval) => void;
   setPrReviewEnabled: (enabled: boolean) => void;
   setPipelineFailedEnabled: (enabled: boolean) => void;
   setWorkItemMentionEnabled: (enabled: boolean) => void;
+  setMonitorAllPipelines: (all: boolean) => void;
+  setMonitoredPipelineIds: (ids: number[]) => void;
 };
 
 const STORAGE_KEY = 'riva_notification_settings';
 
-function loadSettings(): Pick<NotificationSettingsState, 'pollingInterval' | 'prReviewEnabled' | 'pipelineFailedEnabled' | 'workItemMentionEnabled'> {
+type PersistedSettings = Pick<NotificationSettingsState, 'pollingInterval' | 'prReviewEnabled' | 'pipelineFailedEnabled' | 'workItemMentionEnabled' | 'monitorAllPipelines' | 'monitoredPipelineIds'>;
+
+function loadSettings(): PersistedSettings {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
     try {
@@ -24,6 +30,8 @@ function loadSettings(): Pick<NotificationSettingsState, 'pollingInterval' | 'pr
         prReviewEnabled: parsed.prReviewEnabled ?? true,
         pipelineFailedEnabled: parsed.pipelineFailedEnabled ?? true,
         workItemMentionEnabled: parsed.workItemMentionEnabled ?? true,
+        monitorAllPipelines: parsed.monitorAllPipelines ?? true,
+        monitoredPipelineIds: Array.isArray(parsed.monitoredPipelineIds) ? parsed.monitoredPipelineIds : [],
       };
     } catch (e) {
       console.error(e);
@@ -34,10 +42,12 @@ function loadSettings(): Pick<NotificationSettingsState, 'pollingInterval' | 'pr
     prReviewEnabled: true,
     pipelineFailedEnabled: true,
     workItemMentionEnabled: true,
+    monitorAllPipelines: true,
+    monitoredPipelineIds: [],
   };
 }
 
-function persistSettings(state: Pick<NotificationSettingsState, 'pollingInterval' | 'prReviewEnabled' | 'pipelineFailedEnabled' | 'workItemMentionEnabled'>) {
+function persistSettings(state: PersistedSettings) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
@@ -62,5 +72,15 @@ export const useNotificationSettingsStore = create<NotificationSettingsState>((s
   setWorkItemMentionEnabled: (enabled) => {
     set({ workItemMentionEnabled: enabled });
     persistSettings({ ...get(), workItemMentionEnabled: enabled });
+  },
+
+  setMonitorAllPipelines: (all) => {
+    set({ monitorAllPipelines: all });
+    persistSettings({ ...get(), monitorAllPipelines: all });
+  },
+
+  setMonitoredPipelineIds: (ids) => {
+    set({ monitoredPipelineIds: ids });
+    persistSettings({ ...get(), monitoredPipelineIds: ids });
   },
 }));

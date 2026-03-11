@@ -1,9 +1,12 @@
-import { Star } from 'lucide-react';
+import { Star, BellRing, BellOff } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { RunRow } from '../run-row';
 import type { PipelineGroupCardProps } from './types';
 
 export function PipelineGroupCard(props: PipelineGroupCardProps) {
-  const { group, onToggleFavorite, onOpenRun } = props;
+  const { group, onToggleFavorite, onToggleNotification, onOpenRun } = props;
+
+  const BellIcon = group.isNotifyEnabled ? BellRing : BellOff;
 
   return (
     <div>
@@ -13,6 +16,15 @@ export function PipelineGroupCard(props: PipelineGroupCardProps) {
           className="cursor-pointer text-fg-disabled transition-colors hover:text-fg"
         >
           <Star size={12} className={group.isFavorite ? 'fill-current text-fg' : ''} />
+        </button>
+        <button
+          onClick={() => onToggleNotification(group.definitionId)}
+          className={cn(
+            'cursor-pointer transition-colors',
+            group.isNotifyEnabled ? 'text-accent' : 'text-fg-disabled hover:text-fg',
+          )}
+        >
+          <BellIcon size={12} />
         </button>
         <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-disabled">
           {group.definitionName}
