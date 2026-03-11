@@ -1,6 +1,14 @@
 const OWNER = 'YuriPerro';
 const REPO = 'riva-app';
 
+const PLATFORM_PATTERNS: Record<string, RegExp> = {
+  mac: /\.dmg$/,
+  'mac-intel': /x86_64\.dmg$/,
+  'mac-arm': /aarch64\.dmg$/,
+  windows: /\.msi$/,
+  linux: /\.AppImage$/,
+};
+
 export const config = { runtime: 'edge' };
 
 export default async function handler(req: Request) {
@@ -15,9 +23,9 @@ export default async function handler(req: Request) {
 
   const url = new URL(req.url);
   const segments = url.pathname.split('/');
-  const assetName = decodeURIComponent(segments[segments.length - 1]);
+  const nameParam = decodeURIComponent(segments[segments.length - 1]);
 
-  if (!assetName) {
+  if (!nameParam) {
     return new Response('Missing asset name', { status: 400 });
   }
 
@@ -38,12 +46,13 @@ export default async function handler(req: Request) {
 
   const release = await releaseRes.json();
 
-  const asset = release.assets.find(
-    (a: { name: string }) => a.name === assetName,
-  );
+  const pattern = PLATFORM_PATTERNS[nameParam];
+  const asset = pattern
+    ? release.assets.find((a: { name: string }) => pattern.test(a.name))
+    : release.assets.find((a: { name: string }) => a.name === nameParam);
 
   if (!asset) {
-    return new Response(`Asset "${assetName}" not found`, { status: 404 });
+    return new Response(`Asset "${nameParam}" not found`, { status: 404 });
   }
 
   const downloadRes = await fetch(asset.url, {
