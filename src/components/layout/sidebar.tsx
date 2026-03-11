@@ -1,6 +1,7 @@
-import { memo, useRef } from 'react';
+import { memo, useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { getVersion } from '@tauri-apps/api/app';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/store/sidebar';
 import { HomeIcon, type HomeIconHandle } from '@/components/ui/home';
@@ -19,6 +20,11 @@ export const Sidebar = memo(function Sidebar() {
   const { t } = useTranslation('common');
   const collapsed = useSidebarStore((s) => s.collapsed);
   const toggle = useSidebarStore((s) => s.toggle);
+  const [version, setVersion] = useState('');
+
+  useEffect(() => {
+    getVersion().then(setVersion);
+  }, []);
 
   const homeRef = useRef<HomeIconHandle>(null);
   const layersRef = useRef<LayersIconHandle>(null);
@@ -118,6 +124,12 @@ export const Sidebar = memo(function Sidebar() {
       </nav>
 
       {!collapsed && <SidebarGame />}
+
+      {version && (
+        <span className={cn('px-4 pb-2 text-[10px] text-fg-disabled', collapsed && 'px-0 text-center')}>
+          {collapsed ? `v${version}` : `Riva v${version}`}
+        </span>
+      )}
     </aside>
   );
 });
