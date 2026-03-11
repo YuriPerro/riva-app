@@ -21,6 +21,7 @@ export function TasksPage() {
     isLoading,
     error,
     project,
+    isKanban,
     viewMode,
     setViewMode,
     statusFilter,
@@ -45,8 +46,6 @@ export function TasksPage() {
     assigneeFilter,
     setAssigneeFilter,
   } = useTasks();
-
-  const isKanban = viewMode === 'kanban';
 
   return (
     <PageTransition

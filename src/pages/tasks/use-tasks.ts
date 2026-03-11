@@ -13,8 +13,6 @@ import { fuzzyMatch } from '@/utils/search';
 import type { WorkItemType, WorkItemStatus } from '@/types/work-item';
 import type { SortDirection, SortOption } from '@/components/ui/sort-selector/types';
 
-export type { WorkItemType, WorkItemStatus };
-
 export type TaskSortKey = 'relevance' | 'title' | 'status' | 'type';
 
 export interface TaskItem {
@@ -72,8 +70,25 @@ export interface TasksData {
   orderedStates: string[];
   moveItemToState: (itemId: number, targetState: string) => void;
   isMoveUpdating: boolean;
+  isKanban: boolean;
   assigneeFilter: AssigneeFilter;
   setAssigneeFilter: (f: AssigneeFilter) => void;
+}
+
+const BOARD_TYPES: Set<WorkItemType> = new Set(['pbi', 'bug']);
+
+const CATEGORY_ORDER: Record<string, number> = {
+  Proposed: 0,
+  InProgress: 1,
+  Resolved: 2,
+  Completed: 3,
+  Removed: 4,
+};
+
+function categoryOrder(category: string): number {
+  if (CATEGORY_ORDER[category] !== undefined) return CATEGORY_ORDER[category];
+  const normalized = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+  return CATEGORY_ORDER[normalized] ?? 99;
 }
 
 export function useTasks(): TasksData {
@@ -128,8 +143,6 @@ export function useTasks(): TasksData {
     refetchInterval: 30_000,
   });
 
-  const BOARD_TYPES: Set<WorkItemType> = new Set(['pbi', 'bug']);
-
   const boardItems = useMemo(() => items.filter((i) => BOARD_TYPES.has(i.type)), [items]);
   const taskItems = useMemo(() => items.filter((i) => i.type === 'task'), [items]);
 
@@ -162,20 +175,6 @@ export function useTasks(): TasksData {
     () => [...new Set(kanbanItems.map((i) => i.rawType))],
     [kanbanItems],
   );
-
-  const CATEGORY_ORDER: Record<string, number> = {
-    Proposed: 0,
-    InProgress: 1,
-    Resolved: 2,
-    Completed: 3,
-    Removed: 4,
-  };
-
-  const categoryOrder = (category: string): number => {
-    if (CATEGORY_ORDER[category] !== undefined) return CATEGORY_ORDER[category];
-    const normalized = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
-    return CATEGORY_ORDER[normalized] ?? 99;
-  };
 
   const { data: orderedStates = [] } = useQuery({
     queryKey: ['kanban-states', project, kanbanRawTypes],
@@ -325,6 +324,7 @@ export function useTasks(): TasksData {
     orderedStates,
     moveItemToState,
     isMoveUpdating: moveMutation.isPending,
+    isKanban: viewMode === 'kanban',
     assigneeFilter,
     setAssigneeFilter,
   };
