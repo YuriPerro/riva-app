@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Layers } from 'lucide-react';
+import { Layers, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LoadingState } from '@/components/ui/loading-state';
 import { PageTransition } from '@/components/ui/page-transition';
@@ -45,6 +45,13 @@ export function TasksPage() {
     moveItemToState,
     assigneeFilter,
     setAssigneeFilter,
+    sprintName,
+    canGoPrev,
+    canGoNext,
+    goToPrevSprint,
+    goToNextSprint,
+    goToCurrentSprint,
+    isCurrentSprint,
   } = useTasks();
 
   return (
@@ -62,6 +69,41 @@ export function TasksPage() {
         <PageHeader
           title={t('tasks:title')}
           subtitle={t(assigneeFilter === 'me' ? 'tasks:subtitle' : 'tasks:subtitleAll', { count: items.length })}
+          actions={
+            sprintName ? (
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={goToPrevSprint}
+                  disabled={!canGoPrev}
+                  className="flex size-6 cursor-pointer items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-elevated hover:text-fg disabled:cursor-default disabled:opacity-30"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <span className={cn('text-xs font-medium', isCurrentSprint ? 'text-fg-secondary' : 'text-accent')}>
+                  {sprintName}
+                </span>
+                {!isCurrentSprint && (
+                  <button
+                    type="button"
+                    onClick={goToCurrentSprint}
+                    className="flex size-5 cursor-pointer items-center justify-center rounded-md text-accent transition-colors hover:bg-accent/10"
+                    title="Go to current sprint"
+                  >
+                    <RotateCcw size={11} />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={goToNextSprint}
+                  disabled={!canGoNext}
+                  className="flex size-6 cursor-pointer items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-elevated hover:text-fg disabled:cursor-default disabled:opacity-30"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            ) : undefined
+          }
         />
 
         <div className="flex flex-wrap items-center gap-1.5">

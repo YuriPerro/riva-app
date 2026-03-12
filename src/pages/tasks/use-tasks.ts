@@ -71,6 +71,13 @@ export interface TasksData {
   moveItemToState: (itemId: number, targetState: string) => void;
   isMoveUpdating: boolean;
   isKanban: boolean;
+  sprintName: string | null;
+  canGoPrev: boolean;
+  canGoNext: boolean;
+  goToPrevSprint: () => void;
+  goToNextSprint: () => void;
+  goToCurrentSprint: () => void;
+  isCurrentSprint: boolean;
   assigneeFilter: AssigneeFilter;
   setAssigneeFilter: (f: AssigneeFilter) => void;
 }
@@ -116,14 +123,49 @@ export function useTasks(): TasksData {
 
   const onlyMine = assigneeFilter === 'me';
 
+  const [sprintIndex, setSprintIndex] = useState<number | null>(null);
+
+  const { data: sprints = [] } = useQuery({
+    queryKey: ['sprints', project, team],
+    queryFn: () => azure.getSprints(project!, team ?? undefined),
+    enabled: !!project,
+    staleTime: 300_000,
+  });
+
+  const currentSprintIndex = useMemo(
+    () => sprints.findIndex((s) => s.attributes.timeFrame === 'current'),
+    [sprints],
+  );
+
+  const activeIndex = sprintIndex ?? currentSprintIndex;
+  const activeSprint = sprints[activeIndex] ?? null;
+  const sprintName = activeSprint?.name ?? null;
+  const isCurrentSprint = activeIndex === currentSprintIndex;
+  const canGoPrev = activeIndex > 0;
+  const canGoNext = activeIndex < sprints.length - 1;
+
+  const goToPrevSprint = useCallback(() => {
+    if (canGoPrev) setSprintIndex(activeIndex - 1);
+  }, [activeIndex, canGoPrev]);
+
+  const goToNextSprint = useCallback(() => {
+    if (canGoNext) setSprintIndex(activeIndex + 1);
+  }, [activeIndex, canGoNext]);
+
+  const goToCurrentSprint = useCallback(() => {
+    setSprintIndex(null);
+  }, []);
+
+  const iterationPath = activeSprint?.path ?? undefined;
+
   const {
     data: items = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['tasks', project, team, onlyMine],
+    queryKey: ['tasks', project, team, onlyMine, iterationPath],
     queryFn: () =>
-      azure.getTasks(project!, team ?? undefined, onlyMine).then((raw) =>
+      azure.getTasks(project!, team ?? undefined, onlyMine, iterationPath).then((raw) =>
         raw.map(
           (w): TaskItem => ({
             id: w.id,
@@ -200,7 +242,7 @@ export function useTasks(): TasksData {
     staleTime: 300_000,
   });
 
-  const tasksQueryKey = ['tasks', project, team, onlyMine];
+  const tasksQueryKey = ['tasks', project, team, onlyMine, iterationPath];
 
   const moveMutation = useMutation({
     mutationFn: ({ itemId, targetState }: { itemId: number; targetState: string }) =>
@@ -325,6 +367,13 @@ export function useTasks(): TasksData {
     moveItemToState,
     isMoveUpdating: moveMutation.isPending,
     isKanban: viewMode === 'kanban',
+    sprintName: sprintName ?? null,
+    canGoPrev,
+    canGoNext,
+    goToPrevSprint,
+    goToNextSprint,
+    goToCurrentSprint,
+    isCurrentSprint,
     assigneeFilter,
     setAssigneeFilter,
   };

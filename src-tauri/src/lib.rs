@@ -129,9 +129,20 @@ async fn get_my_work_items(
     project: String,
     team: Option<String>,
     only_mine: Option<bool>,
+    iteration_path: Option<String>,
 ) -> Result<Vec<WorkItem>, String> {
     let (org_url, pat) = session_creds(&state)?;
-    azure::get_my_work_items(&org_url, &pat, &project, team.as_deref(), only_mine.unwrap_or(true)).await
+    azure::get_my_work_items(&org_url, &pat, &project, team.as_deref(), only_mine.unwrap_or(true), iteration_path.as_deref()).await
+}
+
+#[tauri::command]
+async fn get_sprints(
+    state: State<'_, AppState>,
+    project: String,
+    team: Option<String>,
+) -> Result<Vec<SprintIteration>, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::get_sprints(&org_url, &pat, &project, team.as_deref()).await
 }
 
 #[tauri::command]
@@ -397,6 +408,7 @@ pub fn run() {
             get_pipeline_definitions,
             get_pull_requests,
             get_current_sprint,
+            get_sprints,
             get_work_item_detail,
             get_work_item_type_states,
             update_work_item_state,

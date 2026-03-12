@@ -383,12 +383,44 @@ async fn get_team_area_path(
 ///
 /// When `team` is provided the team's area path is fetched first and injected
 /// as a literal `UNDER` clause so results are scoped to that team's areas.
+pub async fn get_sprints(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    team: Option<&str>,
+) -> Result<Vec<SprintIteration>, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let enc_project = encode_path_segment(project);
+
+    let url = if let Some(team_name) = team {
+        let enc_team = encode_path_segment(team_name);
+        format!(
+            "{}/{}/{}/_apis/work/teamsettings/iterations?api-version=7.1",
+            base, enc_project, enc_team
+        )
+    } else {
+        format!(
+            "{}/{}/_apis/work/teamsettings/iterations?api-version=7.1",
+            base, enc_project
+        )
+    };
+
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Ok(vec![]);
+    }
+    let sprints: SprintResponse = resp.json().await.map_err(|e| e.to_string())?;
+    Ok(sprints.value)
+}
+
 pub async fn get_my_work_items(
     org_url: &str,
     pat: &str,
     project: &str,
     team: Option<&str>,
     only_mine: bool,
+    iteration_path: Option<&str>,
 ) -> Result<Vec<WorkItem>, String> {
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
@@ -402,10 +434,10 @@ pub async fn get_my_work_items(
         ""
     };
 
-    let iteration_clause = if only_mine {
-        "AND [System.IterationPath] = @CurrentIteration "
-    } else {
-        ""
+    let iteration_clause = match iteration_path {
+        Some(path) => format!("AND [System.IterationPath] = '{}' ", path),
+        None if only_mine => "AND [System.IterationPath] = @CurrentIteration ".to_string(),
+        None => String::new(),
     };
 
     let wiql_query = if let Some(t) = team {
