@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { azure } from '@/lib/tauri';
@@ -112,6 +112,18 @@ export function useWorkItemDetail(project: string, itemId: number | null) {
     onSuccess: invalidateRelatedQueries,
   });
 
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const isLightboxOpen = !!lightboxSrc;
+  const isDialogOpen = itemId !== null && !isLightboxOpen;
+
+  const handleImageClick = useCallback((src: string) => {
+    setLightboxSrc(src);
+  }, []);
+
+  const handleLightboxClose = useCallback(() => {
+    setLightboxSrc(null);
+  }, []);
+
   return {
     detail,
     theme,
@@ -126,5 +138,9 @@ export function useWorkItemDetail(project: string, itemId: number | null) {
     isFieldUpdating: fieldMutation.isPending,
     updatingFieldPath: fieldMutation.variables?.fieldPath ?? null,
     error: error ? 'Failed to load work item details' : null,
+    lightboxSrc,
+    isDialogOpen,
+    handleImageClick,
+    handleLightboxClose,
   };
 }

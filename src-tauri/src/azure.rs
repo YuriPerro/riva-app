@@ -2153,3 +2153,31 @@ pub async fn get_pbi_ids_with_children(
     Ok(results.into_iter().flatten().collect())
 }
 
+pub async fn proxy_image(_org_url: &str, pat: &str, url: &str) -> Result<String, String> {
+    let client = Client::builder()
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let resp = client
+        .get(url)
+        .header(header::AUTHORIZATION, basic_auth_header(pat))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(format!("Failed to fetch image: {}", resp.status()));
+    }
+
+    let content_type = resp
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("image/png")
+        .to_string();
+
+    let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
+    let b64 = STANDARD.encode(&bytes);
+    Ok(format!("data:{};base64,{}", content_type, b64))
+}
+

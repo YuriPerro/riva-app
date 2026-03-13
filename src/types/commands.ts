@@ -36,4 +36,6 @@ export enum TauriCommand {
   LoadOpenAiKey = 'load_openai_key',
   ClearOpenAiKey = 'clear_openai_key',
   GenerateStandupSummary = 'generate_standup_summary',
+  ProxyImage = 'proxy_image',
+  SaveImage = 'save_image',
 }

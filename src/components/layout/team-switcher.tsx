@@ -1,12 +1,27 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ChevronDown, Search, Check, Loader2 } from 'lucide-react';
+import { ChevronDown, Search, Check, Loader2, Star } from 'lucide-react';
 import { azure } from '@/lib/tauri';
 import type { Team } from '@/types/azure';
 import { cn } from '@/lib/utils';
 import { initials } from '@/utils/formatters';
 import { fuzzyMatch } from '@/utils/search';
 import { useSessionStore } from '@/store/session';
+
+function readFavoriteTeams(project: string | null): Set<string> {
+  if (!project) return new Set();
+  try {
+    const raw = localStorage.getItem(`riva_favorite_teams_${project}`);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeFavoriteTeams(project: string, favorites: Set<string>) {
+  localStorage.setItem(`riva_favorite_teams_${project}`, JSON.stringify([...favorites]));
+}
 
 export function TeamSwitcher() {
   const project = useSessionStore((s) => s.project);
@@ -18,8 +33,31 @@ export function TeamSwitcher() {
   const [search, setSearch] = useState('');
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(false);
+  const [favoriteTeams, setFavoriteTeams] = useState<Set<string>>(() => readFavoriteTeams(project));
   const containerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setFavoriteTeams(readFavoriteTeams(project));
+  }, [project]);
+
+  const toggleFavorite = useCallback(
+    (teamId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!project) return;
+      setFavoriteTeams((prev) => {
+        const next = new Set(prev);
+        if (next.has(teamId)) {
+          next.delete(teamId);
+        } else {
+          next.add(teamId);
+        }
+        writeFavoriteTeams(project, next);
+        return next;
+      });
+    },
+    [project],
+  );
 
   useEffect(() => {
     if (!open || teams.length > 0 || !project) return;
@@ -62,7 +100,15 @@ export function TeamSwitcher() {
     setOpen(false);
   };
 
-  const filtered = useMemo(() => (search ? teams.filter((t) => fuzzyMatch(search, t.name)) : teams), [search, teams]);
+  const filtered = useMemo(() => {
+    const matched = search ? teams.filter((t) => fuzzyMatch(search, t.name)) : teams;
+    return [...matched].sort((a, b) => {
+      const aFav = favoriteTeams.has(a.id);
+      const bFav = favoriteTeams.has(b.id);
+      if (aFav !== bFav) return aFav ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [search, teams, favoriteTeams]);
 
   if (!project) return null;
 
@@ -118,12 +164,13 @@ export function TeamSwitcher() {
             ) : (
               filtered.map((team) => {
                 const active = team.name === currentTeam;
+                const isFavorite = favoriteTeams.has(team.id);
                 return (
                   <button
                     key={team.id}
                     onClick={() => selectTeam(team.name, team.id)}
                     className={cn(
-                      'flex w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors',
+                      'group flex w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors',
                       active ? 'text-fg' : 'text-fg-secondary hover:bg-elevated hover:text-fg',
                     )}
                   >
@@ -136,6 +183,17 @@ export function TeamSwitcher() {
                       {initials(team.name)}
                     </span>
                     <span className="flex-1 truncate">{team.name}</span>
+                    <span
+                      onClick={(e) => toggleFavorite(team.id, e)}
+                      className={cn(
+                        'shrink-0 cursor-pointer transition-colors',
+                        isFavorite
+                          ? 'text-warning'
+                          : 'text-transparent group-hover:text-fg-disabled hover:!text-warning',
+                      )}
+                    >
+                      <Star size={11} fill={isFavorite ? 'currentColor' : 'none'} />
+                    </span>
                     {active && <Check size={11} className="shrink-0 text-accent" />}
                   </button>
                 );

@@ -96,4 +96,8 @@ export const azure = {
 
   getWorkItemRecentComments: (project: string, sinceTimestamp: string) =>
     invoke<WorkItemComment[]>(TauriCommand.GetWorkItemRecentComments, { project, sinceTimestamp }),
+
+  proxyImage: (url: string) => invoke<string>(TauriCommand.ProxyImage, { url }),
+
+  saveImage: (dataUri: string) => invoke<void>(TauriCommand.SaveImage, { dataUri }),
 };

@@ -16,6 +16,7 @@ import {
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ImageLightbox } from '@/components/ui/image-lightbox';
 import { cn } from '@/lib/utils';
 import { ShineBorder } from '@/components/ui/shine-border';
 import { getRawTypeI18nKey } from '@/utils/mappers';
@@ -29,6 +30,7 @@ import { EditableNumberField } from '../work-item-editable-number-field';
 import { EditableDateField } from '../work-item-editable-date-field';
 import { EditableToggleField } from '../work-item-editable-toggle-field';
 import { EditableSelectField } from '../work-item-editable-select-field';
+import { HtmlContent } from '@/components/ui/html-content';
 import type { WorkItemDetailDialogProps, PriorityLabel, DisplayDetail } from './types';
 
 type DevFieldKey = 'effort' | 'estimateDays' | 'completedWork' | 'remainingWork' | 'dueDate' | 'devStartDate' | 'devEndDate' | 'blocked';
@@ -85,6 +87,7 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
   const {
     detail, theme, states, isLoading, isUpdating, updateState, updateTitle, isTitleUpdating,
     updateField, isFieldUpdating, updatingFieldPath, error,
+    lightboxSrc, isDialogOpen, handleImageClick, handleLightboxClose,
   } = useWorkItemDetail(project, itemId);
   const { t } = useTranslation(['dashboard', 'common']);
 
@@ -99,11 +102,12 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
     blocked: { icon: ShieldAlert, label: t('dashboard:workItemDetail.blocked') },
   }), [t]);
 
-  const isOpen = itemId !== null;
   const TypeIcon = theme.icon;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <>
+    <ImageLightbox src={lightboxSrc} onClose={handleLightboxClose} />
+    <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-xl max-h-[80vh] flex flex-col overflow-hidden">
         <ShineBorder shineColor={theme.shineColors} borderWidth={1} duration={10} />
         {detail && (
@@ -247,9 +251,10 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
               {detail.description && (
                 <div className="space-y-1.5">
                   <span className="text-[11px] text-fg-muted">{t('dashboard:workItemDetail.description')}</span>
-                  <div
-                    className="text-[13px] text-fg-secondary leading-relaxed [&_a]:text-accent [&_a]:underline [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:mb-1"
-                    dangerouslySetInnerHTML={{ __html: detail.description }}
+                  <HtmlContent
+                    html={detail.description}
+                    className="text-[13px] text-fg-secondary leading-relaxed"
+                    onImageClick={handleImageClick}
                   />
                 </div>
               )}
@@ -258,5 +263,6 @@ export function WorkItemDetailDialog(props: WorkItemDetailDialogProps) {
         )}
       </DialogContent>
     </Dialog>
+    </>
   );
 }

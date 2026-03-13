@@ -2,6 +2,7 @@ mod azure;
 mod openai;
 
 use azure::{PipelineDefinition, PipelineRun, Project, PullRequest, Release, ReleaseDefinition, RelatedWorkItem, SprintIteration, StandupData, Team, UserActivitySummary, WorkItem, WorkItemComment, WorkItemDetail, WorkItemTypeState};
+use base64::Engine;
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::{Manager, State};
@@ -375,6 +376,53 @@ async fn generate_standup_summary(prompt: String) -> Result<String, String> {
     openai::generate_standup(&api_key, &prompt).await
 }
 
+#[tauri::command]
+async fn proxy_image(state: State<'_, AppState>, url: String) -> Result<String, String> {
+    let (org_url, pat) = session_creds(&state)?;
+    azure::proxy_image(&org_url, &pat, &url).await
+}
+
+#[tauri::command]
+async fn save_image(app: tauri::AppHandle, data_uri: String) -> Result<(), String> {
+    use tauri_plugin_dialog::DialogExt;
+
+    let parts: Vec<&str> = data_uri.splitn(2, ",").collect();
+    if parts.len() != 2 {
+        return Err("Invalid data URI".to_string());
+    }
+
+    let header = parts[0];
+    let ext = if header.contains("image/png") {
+        "png"
+    } else if header.contains("image/jpeg") || header.contains("image/jpg") {
+        "jpg"
+    } else if header.contains("image/gif") {
+        "gif"
+    } else if header.contains("image/webp") {
+        "webp"
+    } else {
+        "png"
+    };
+
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(parts[1])
+        .map_err(|e| format!("Failed to decode image: {}", e))?;
+
+    let file_path = app
+        .dialog()
+        .file()
+        .set_file_name(&format!("image.{}", ext))
+        .add_filter("Image", &[ext])
+        .blocking_save_file();
+
+    if let Some(path) = file_path {
+        std::fs::write(path.as_path().unwrap(), &bytes)
+            .map_err(|e| format!("Failed to save: {}", e))?;
+    }
+
+    Ok(())
+}
+
 // ============================================================
 // App entry point
 // ============================================================
@@ -386,6 +434,7 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(AppState {
             credentials: Mutex::new(None),
         })
@@ -430,6 +479,8 @@ pub fn run() {
             load_openai_key,
             clear_openai_key,
             generate_standup_summary,
+            proxy_image,
+            save_image,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application")
