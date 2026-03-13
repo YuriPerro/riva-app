@@ -313,6 +313,7 @@ export function useReleases(): ReleasesData {
     onSuccess: (_data, variables) => {
       const label = variables.status === 'approved' ? 'Approved' : 'Rejected';
       toast.success(`${label} successfully`);
+      setSelectedRelease(null);
       queryClient.invalidateQueries({ queryKey: ['releases', project] });
     },
     onError: (err) => {

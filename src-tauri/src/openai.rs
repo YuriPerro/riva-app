@@ -30,7 +30,9 @@ struct ChatChoice {
 }
 
 fn openai_key_path() -> Result<std::path::PathBuf, String> {
-    let home = std::env::var("HOME").map_err(|e| e.to_string())?;
+    let home = std::env::var("HOME")
+        .or_else(|_| std::env::var("USERPROFILE"))
+        .map_err(|_| "Could not determine home directory".to_string())?;
     let dir = std::path::PathBuf::from(home).join(".riva");
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     Ok(dir.join("openai.json"))

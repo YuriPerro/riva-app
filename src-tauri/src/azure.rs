@@ -448,7 +448,7 @@ pub async fn get_my_work_items(
                  {}\
                  AND [System.AreaPath] UNDER '{}' \
                  {}\
-                 AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
+                 AND [System.State] NOT IN ('Removed') \
                  ORDER BY [System.ChangedDate] DESC",
                 assignee_clause, area_path, iteration_clause
             ),
@@ -457,7 +457,7 @@ pub async fn get_my_work_items(
                  WHERE [System.TeamProject] = @project \
                  {}\
                  {}\
-                 AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
+                 AND [System.State] NOT IN ('Removed') \
                  ORDER BY [System.ChangedDate] DESC",
                 assignee_clause, iteration_clause
             ),
@@ -468,7 +468,7 @@ pub async fn get_my_work_items(
              WHERE [System.TeamProject] = @project \
              {}\
              {}\
-             AND [System.State] NOT IN ('Done', 'Closed', 'Resolved') \
+             AND [System.State] NOT IN ('Removed') \
              ORDER BY [System.ChangedDate] DESC",
             assignee_clause, iteration_clause
         )
