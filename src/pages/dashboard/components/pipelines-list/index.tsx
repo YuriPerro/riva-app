@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle, Loader2, MinusCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, MinusCircle, Clock, ArrowRight } from 'lucide-react';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ const statusConfig: Record<PipelineStatus, { icon: React.ElementType; className:
   succeeded: { icon: CheckCircle2, className: 'text-success' },
   failed: { icon: XCircle, className: 'text-error' },
   running: { icon: Loader2, className: 'text-running', spin: true },
+  queued: { icon: Clock, className: 'text-warning' },
   cancelled: { icon: MinusCircle, className: 'text-neutral' },
 };
 

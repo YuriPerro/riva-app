@@ -1,4 +1,4 @@
-import { CheckCircle2, Loader2, MinusCircle, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, Loader2, MinusCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TimeAgo } from '@/components/ui/time-ago';
 import type { RunRowProps, StatusConfigMap } from './types';
@@ -7,6 +7,7 @@ const STATUS_CONFIG: StatusConfigMap = {
   running: { icon: Loader2, className: 'text-info', spin: true, dot: 'bg-info' },
   succeeded: { icon: CheckCircle2, className: 'text-success', dot: 'bg-success' },
   failed: { icon: XCircle, className: 'text-error', dot: 'bg-error' },
+  queued: { icon: Clock, className: 'text-warning', dot: 'bg-warning' },
   cancelled: { icon: MinusCircle, className: 'text-fg-muted', dot: 'bg-fg-muted' },
 };
 

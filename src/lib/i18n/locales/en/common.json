@@ -14,6 +14,7 @@
     "succeeded": "Succeeded",
     "failed": "Failed",
     "running": "Running",
+    "queued": "Queued",
     "cancelled": "Cancelled",
     "inProgress": "In Progress",
     "rejected": "Rejected",

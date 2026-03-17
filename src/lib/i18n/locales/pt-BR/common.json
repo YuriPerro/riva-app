@@ -14,6 +14,7 @@
     "succeeded": "Sucesso",
     "failed": "Falhou",
     "running": "Executando",
+    "queued": "Na Fila",
     "cancelled": "Cancelado",
     "inProgress": "Em Andamento",
     "rejected": "Rejeitado",

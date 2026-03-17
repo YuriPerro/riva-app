@@ -272,6 +272,7 @@ export function usePipelines(): PipelinesData {
   const statusFilters: { value: StatusFilter; label: string }[] = useMemo(() => [
     { value: 'all', label: t('common:filters.all') },
     { value: 'running', label: t('common:status.running') },
+    { value: 'queued', label: t('common:status.queued') },
     { value: 'succeeded', label: t('common:status.succeeded') },
     { value: 'failed', label: t('common:status.failed') },
     { value: 'cancelled', label: t('common:status.cancelled') },

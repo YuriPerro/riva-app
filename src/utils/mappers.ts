@@ -56,10 +56,11 @@ export function getRawTypeI18nKey(rawType: string): TypeI18nKey {
 
 export function mapPipelineStatus(run: PipelineRun): PipelineStatus {
   if (run.status === 'inProgress') return 'running';
+  if (run.status === 'notStarted') return 'queued';
   if (run.status === 'cancelling' || run.result === 'canceled') return 'cancelled';
   if (run.result === 'failed') return 'failed';
   if (run.result === 'succeeded') return 'succeeded';
-  return 'cancelled';
+  return 'queued';
 }
 
 const RELEASE_ENV_STATUS_MAP: Record<string, ReleaseEnvironmentStatus> = {
