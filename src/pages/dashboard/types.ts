@@ -76,4 +76,10 @@ export interface DashboardData {
   setStandupPeriod: (days: number) => void;
   standupOpen: boolean;
   setStandupOpen: (open: boolean) => void;
+  canGoPrev: boolean;
+  canGoNext: boolean;
+  goToPrevSprint: () => void;
+  goToNextSprint: () => void;
+  goToCurrentSprint: () => void;
+  isCurrentSprint: boolean;
 }

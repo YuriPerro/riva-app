@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SprintHeaderProps } from './types';
 
 export function SprintHeader(props: SprintHeaderProps) {
-  const { sprint } = props;
+  const { sprint, canGoPrev, canGoNext, goToPrevSprint, goToNextSprint, goToCurrentSprint, isCurrentSprint } = props;
   const { t } = useTranslation(['dashboard', 'common']);
 
   const statusConfig = useMemo(() => ({
@@ -32,7 +33,36 @@ export function SprintHeader(props: SprintHeaderProps) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2 text-[12px] text-fg-muted">
-        <span className="text-fg-secondary">{sprint.name}</span>
+        <div className="flex items-center gap-0.5">
+          <button
+            type="button"
+            onClick={goToPrevSprint}
+            disabled={!canGoPrev}
+            className="flex size-5 cursor-pointer items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-elevated hover:text-fg disabled:cursor-default disabled:opacity-30"
+          >
+            <ChevronLeft size={13} />
+          </button>
+          <span className={cn('text-[12px]', isCurrentSprint ? 'text-fg-secondary' : 'font-medium text-accent')}>
+            {sprint.name}
+          </span>
+          {!isCurrentSprint && (
+            <button
+              type="button"
+              onClick={goToCurrentSprint}
+              className="flex size-4 cursor-pointer items-center justify-center rounded-md text-accent transition-colors hover:bg-accent/10"
+            >
+              <RotateCcw size={10} />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={goToNextSprint}
+            disabled={!canGoNext}
+            className="flex size-5 cursor-pointer items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-elevated hover:text-fg disabled:cursor-default disabled:opacity-30"
+          >
+            <ChevronRight size={13} />
+          </button>
+        </div>
         <span>·</span>
         <span>{sprint.daysRemaining} {t('dashboard:sprint.daysRemaining')}</span>
         <span>·</span>

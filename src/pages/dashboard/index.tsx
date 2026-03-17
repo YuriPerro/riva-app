@@ -33,6 +33,12 @@ export function DashboardPage() {
     setStandupPeriod,
     standupOpen,
     setStandupOpen,
+    canGoPrev,
+    canGoNext,
+    goToPrevSprint,
+    goToNextSprint,
+    goToCurrentSprint,
+    isCurrentSprint,
   } = useDashboard();
   const { t } = useTranslation('dashboard');
 
@@ -76,7 +82,15 @@ export function DashboardPage() {
           />
 
           <div>
-            <SprintHeader sprint={sprint} />
+            <SprintHeader
+              sprint={sprint}
+              canGoPrev={canGoPrev}
+              canGoNext={canGoNext}
+              goToPrevSprint={goToPrevSprint}
+              goToNextSprint={goToNextSprint}
+              goToCurrentSprint={goToCurrentSprint}
+              isCurrentSprint={isCurrentSprint}
+            />
             <StatsBar stats={stats} />
           </div>
 

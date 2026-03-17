@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { azure } from '@/lib/tauri';
-import type { PullRequest as ApiPullRequest } from '@/types/azure';
+import type { PullRequest as ApiPullRequest, SprintIteration } from '@/types/azure';
 import { Route } from '@/types/routes';
 import { useSessionStore } from '@/store/session';
 import {
@@ -19,6 +19,22 @@ import type { WorkItem, Pipeline, DashboardPR, SprintInfo, DashboardData } from 
 function mapSprintStatus(days: number): SprintInfo['status'] {
   if (days <= 2) return 'at-risk';
   return 'on-track';
+}
+
+function mapSprintInfo(sprint: SprintIteration): SprintInfo {
+  const finishDate = sprint.attributes.finishDate;
+  const startDate = sprint.attributes.startDate;
+  const days = finishDate ? Math.max(0, dayjs(finishDate).diff(dayjs(), 'day', true)) : 0;
+  const daysRemaining = Math.ceil(days);
+  const totalDays =
+    startDate && finishDate ? Math.max(1, Math.ceil(dayjs(finishDate).diff(dayjs(startDate), 'day', true))) : 0;
+  return {
+    name: sprint.name,
+    daysRemaining,
+    totalDays,
+    startDate: startDate ?? '',
+    status: mapSprintStatus(daysRemaining),
+  };
 }
 
 function mapPullRequest(pr: ApiPullRequest): DashboardPR {
@@ -41,31 +57,12 @@ function mapPullRequest(pr: ApiPullRequest): DashboardPR {
   };
 }
 
-async function fetchDashboardData(project: string, team: string, teamId: string) {
-  const [sprintData, rawItems, rawPipelines, rawPRs] = await Promise.all([
-    azure.getCurrentSprint(project, team),
-    azure.getTasks(project, team),
+async function fetchDashboardData(project: string, team: string, teamId: string, iterationPath?: string) {
+  const [rawItems, rawPipelines, rawPRs] = await Promise.all([
+    azure.getTasks(project, team, undefined, iterationPath),
     azure.getRecentPipelines(project, teamId),
     azure.getPullRequests(project),
   ]);
-
-  const sprint: SprintInfo | null = sprintData
-    ? (() => {
-        const finishDate = sprintData.attributes.finishDate;
-        const startDate = sprintData.attributes.startDate;
-        const days = finishDate ? Math.max(0, dayjs(finishDate).diff(dayjs(), 'day', true)) : 0;
-        const daysRemaining = Math.ceil(days);
-        const totalDays =
-          startDate && finishDate ? Math.max(1, Math.ceil(dayjs(finishDate).diff(dayjs(startDate), 'day', true))) : 0;
-        return {
-          name: sprintData.name,
-          daysRemaining,
-          totalDays,
-          startDate: startDate ?? '',
-          status: mapSprintStatus(daysRemaining),
-        };
-      })()
-    : null;
 
   const parentIds = rawItems.map((w) => w.fields['System.Parent']).filter((id): id is number => id != null);
   const uniqueParentIds = [...new Set(parentIds)];
@@ -118,7 +115,7 @@ async function fetchDashboardData(project: string, team: string, teamId: string)
 
   const pullRequests: DashboardPR[] = rawPRs.map(mapPullRequest);
 
-  return { sprint, workItems: filteredWorkItems, pipelines, pullRequests };
+  return { workItems: filteredWorkItems, pipelines, pullRequests };
 }
 
 export const useDashboard = (): DashboardData => {
@@ -140,10 +137,47 @@ export const useDashboard = (): DashboardData => {
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<number | null>(null);
   const [standupPeriod, setStandupPeriod] = useState<number>(() => (dayjs().day() === 1 ? 3 : 1));
   const [standupOpen, setStandupOpen] = useState(false);
+  const [sprintIndex, setSprintIndex] = useState<number | null>(null);
+
+  const { data: sprints = [] } = useQuery({
+    queryKey: ['sprints', project, team],
+    queryFn: () => azure.getSprints(project!, team ?? undefined),
+    enabled: !!project,
+    staleTime: 300_000,
+  });
+
+  const currentSprintIndex = useMemo(
+    () => sprints.findIndex((s) => s.attributes.timeFrame === 'current'),
+    [sprints],
+  );
+
+  const activeIndex = sprintIndex ?? currentSprintIndex;
+  const activeSprint = sprints[activeIndex] ?? null;
+  const isCurrentSprint = activeIndex === currentSprintIndex;
+  const canGoPrev = activeIndex > 0;
+  const canGoNext = activeIndex < sprints.length - 1;
+  const iterationPath = activeSprint?.path ?? undefined;
+
+  const goToPrevSprint = useCallback(() => {
+    if (canGoPrev) setSprintIndex(activeIndex - 1);
+  }, [activeIndex, canGoPrev]);
+
+  const goToNextSprint = useCallback(() => {
+    if (canGoNext) setSprintIndex(activeIndex + 1);
+  }, [activeIndex, canGoNext]);
+
+  const goToCurrentSprint = useCallback(() => {
+    setSprintIndex(null);
+  }, []);
+
+  const sprint = useMemo(
+    () => (activeSprint ? mapSprintInfo(activeSprint) : null),
+    [activeSprint],
+  );
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['dashboard', project, team, teamId],
-    queryFn: () => fetchDashboardData(project!, team!, teamId ?? ''),
+    queryKey: ['dashboard', project, team, teamId, iterationPath],
+    queryFn: () => fetchDashboardData(project!, team!, teamId ?? '', iterationPath),
     enabled,
     refetchInterval: 30_000,
   });
@@ -175,7 +209,7 @@ export const useDashboard = (): DashboardData => {
 
   return {
     project,
-    sprint: data?.sprint ?? null,
+    sprint,
     stats,
     workItems: data?.workItems ?? [],
     pipelines: data?.pipelines ?? [],
@@ -191,5 +225,11 @@ export const useDashboard = (): DashboardData => {
     setStandupPeriod,
     standupOpen,
     setStandupOpen,
+    canGoPrev,
+    canGoNext,
+    goToPrevSprint,
+    goToNextSprint,
+    goToCurrentSprint,
+    isCurrentSprint,
   };
 };
