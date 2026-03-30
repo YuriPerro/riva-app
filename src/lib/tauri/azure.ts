@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { TauriCommand } from '@/types/commands';
+import { demoInvoke } from './demo-invoke';
 import type {
   Project,
   Team,
@@ -18,69 +19,72 @@ import type {
   WorkItemComment,
 } from '@/types/azure';
 
-export const azure = {
-  getProjects: () => invoke<Project[]>(TauriCommand.GetProjects),
+const isDemo = import.meta.env.VITE_DEMO_MODE === 'true';
+const safeInvoke = isDemo ? demoInvoke : invoke;
 
-  getTeams: (project: string) => invoke<Team[]>(TauriCommand.GetTeams, { project }),
+export const azure = {
+  getProjects: () => safeInvoke<Project[]>(TauriCommand.GetProjects),
+
+  getTeams: (project: string) => safeInvoke<Team[]>(TauriCommand.GetTeams, { project }),
 
   getTasks: (project: string, team?: string, onlyMine?: boolean, iterationPath?: string) =>
-    invoke<WorkItem[]>(TauriCommand.GetTasks, { project, team: team ?? null, onlyMine: onlyMine ?? true, iterationPath: iterationPath ?? null }),
+    safeInvoke<WorkItem[]>(TauriCommand.GetTasks, { project, team: team ?? null, onlyMine: onlyMine ?? true, iterationPath: iterationPath ?? null }),
 
   getRecentPipelines: (project: string, teamId?: string) =>
-    invoke<PipelineRun[]>(TauriCommand.GetRecentPipelines, { project, teamId: teamId ?? null }),
+    safeInvoke<PipelineRun[]>(TauriCommand.GetRecentPipelines, { project, teamId: teamId ?? null }),
 
   getPipelineDefinitions: (project: string) =>
-    invoke<PipelineDefinition[]>(TauriCommand.GetPipelineDefinitions, { project }),
+    safeInvoke<PipelineDefinition[]>(TauriCommand.GetPipelineDefinitions, { project }),
 
-  getPullRequests: (project: string) => invoke<PullRequest[]>(TauriCommand.GetPullRequests, { project }),
+  getPullRequests: (project: string) => safeInvoke<PullRequest[]>(TauriCommand.GetPullRequests, { project }),
 
   getCurrentSprint: (project: string, team?: string) =>
-    invoke<SprintIteration | null>(TauriCommand.GetCurrentSprint, { project, team: team ?? null }),
+    safeInvoke<SprintIteration | null>(TauriCommand.GetCurrentSprint, { project, team: team ?? null }),
 
   getSprints: (project: string, team?: string) =>
-    invoke<SprintIteration[]>(TauriCommand.GetSprints, { project, team: team ?? null }),
+    safeInvoke<SprintIteration[]>(TauriCommand.GetSprints, { project, team: team ?? null }),
 
   getWorkItemDetail: (project: string, id: number) =>
-    invoke<WorkItemDetail>(TauriCommand.GetWorkItemDetail, { project, id }),
+    safeInvoke<WorkItemDetail>(TauriCommand.GetWorkItemDetail, { project, id }),
 
   getWorkItemTypeStates: (project: string, workItemType: string) =>
-    invoke<WorkItemTypeState[]>(TauriCommand.GetWorkItemTypeStates, { project, workItemType }),
+    safeInvoke<WorkItemTypeState[]>(TauriCommand.GetWorkItemTypeStates, { project, workItemType }),
 
   updateWorkItemState: (project: string, id: number, newState: string) =>
-    invoke<WorkItemDetail>(TauriCommand.UpdateWorkItemState, { project, id, newState }),
+    safeInvoke<WorkItemDetail>(TauriCommand.UpdateWorkItemState, { project, id, newState }),
 
   updateWorkItemTitle: (project: string, id: number, title: string) =>
-    invoke<WorkItemDetail>(TauriCommand.UpdateWorkItemTitle, { project, id, title }),
+    safeInvoke<WorkItemDetail>(TauriCommand.UpdateWorkItemTitle, { project, id, title }),
 
   updateWorkItemField: (project: string, id: number, fieldPath: string, value: string | number | null) =>
-    invoke<WorkItemDetail>(TauriCommand.UpdateWorkItemField, { project, id, fieldPath, value }),
+    safeInvoke<WorkItemDetail>(TauriCommand.UpdateWorkItemField, { project, id, fieldPath, value }),
 
   reviewPullRequest: (project: string, repoId: string, prId: number, vote: number) =>
-    invoke<void>(TauriCommand.ReviewPullRequest, { project, repoId, prId, vote }),
+    safeInvoke<void>(TauriCommand.ReviewPullRequest, { project, repoId, prId, vote }),
 
   getStandupData: (project: string, team?: string, lookbackDays?: number) =>
-    invoke<StandupData>(TauriCommand.GetStandupData, {
+    safeInvoke<StandupData>(TauriCommand.GetStandupData, {
       project,
       team: team ?? null,
       lookbackDays: lookbackDays ?? 1,
     }),
 
   getWorkItemSummaries: (project: string, ids: number[]) =>
-    invoke<RelatedWorkItem[]>(TauriCommand.GetWorkItemSummaries, { project, ids }),
+    safeInvoke<RelatedWorkItem[]>(TauriCommand.GetWorkItemSummaries, { project, ids }),
 
   getPbiIdsWithChildren: (project: string, pbiIds: number[]) =>
-    invoke<number[]>(TauriCommand.GetPbiIdsWithChildren, { project, pbiIds }),
+    safeInvoke<number[]>(TauriCommand.GetPbiIdsWithChildren, { project, pbiIds }),
 
-  getMyUniqueName: () => invoke<string>(TauriCommand.GetMyUniqueName),
+  getMyUniqueName: () => safeInvoke<string>(TauriCommand.GetMyUniqueName),
 
   getReleaseDefinitions: (project: string) =>
-    invoke<ReleaseDefinition[]>(TauriCommand.GetReleaseDefinitions, { project }),
+    safeInvoke<ReleaseDefinition[]>(TauriCommand.GetReleaseDefinitions, { project }),
 
   getReleases: (project: string, definitionIds: number[]) =>
-    invoke<Release[]>(TauriCommand.GetReleases, { project, definitionIds }),
+    safeInvoke<Release[]>(TauriCommand.GetReleases, { project, definitionIds }),
 
   updateReleaseApproval: (project: string, approvalId: number, status: string, comments?: string) =>
-    invoke<void>(TauriCommand.UpdateReleaseApproval, {
+    safeInvoke<void>(TauriCommand.UpdateReleaseApproval, {
       project,
       approvalId,
       status,
@@ -88,16 +92,16 @@ export const azure = {
     }),
 
   getUserActivityDates: (project: string, team?: string, lookbackDays?: number) =>
-    invoke<UserActivitySummary>(TauriCommand.GetUserActivityDates, {
+    safeInvoke<UserActivitySummary>(TauriCommand.GetUserActivityDates, {
       project,
       team: team ?? null,
       lookbackDays: lookbackDays ?? null,
     }),
 
   getWorkItemRecentComments: (project: string, sinceTimestamp: string) =>
-    invoke<WorkItemComment[]>(TauriCommand.GetWorkItemRecentComments, { project, sinceTimestamp }),
+    safeInvoke<WorkItemComment[]>(TauriCommand.GetWorkItemRecentComments, { project, sinceTimestamp }),
 
-  proxyImage: (url: string) => invoke<string>(TauriCommand.ProxyImage, { url }),
+  proxyImage: (url: string) => safeInvoke<string>(TauriCommand.ProxyImage, { url }),
 
-  saveImage: (dataUri: string) => invoke<void>(TauriCommand.SaveImage, { dataUri }),
+  saveImage: (dataUri: string) => safeInvoke<void>(TauriCommand.SaveImage, { dataUri }),
 };
