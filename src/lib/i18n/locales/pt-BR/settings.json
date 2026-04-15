@@ -36,6 +36,16 @@
     "searchReleases": "Buscar releases…",
     "noMatchingReleases": "Nenhuma release encontrada"
   },
+  "mcp": {
+    "title": "Integrações MCP",
+    "description": "Exponha as ferramentas do Azure DevOps do Riva para agentes de IA via Model Context Protocol. Configure sua CLI para conversar com o servidor MCP local do Riva.",
+    "install": "Instalar",
+    "uninstall": "Remover",
+    "installed": "Instalado",
+    "notInstalled": "Não instalado",
+    "copySnippet": "Copiar snippet",
+    "configPath": "Arquivo de config"
+  },
   "language": {
     "title": "Idioma",
     "description": "Escolha o idioma de exibição do app",

@@ -46,7 +46,8 @@
     "getStarted": "Começar",
     "viewAll": "Ver tudo",
     "viewInDevOps": "Ver no DevOps",
-    "signingOut": "Saindo..."
+    "signingOut": "Saindo...",
+    "loading": "Carregando…"
   },
   "filters": {
     "all": "Todos",

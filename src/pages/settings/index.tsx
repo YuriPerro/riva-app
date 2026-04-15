@@ -16,6 +16,7 @@ import { ProjectSwitcher } from '@/components/layout/project-switcher';
 import { useSessionStore } from '@/store/session';
 import { ThemePicker } from '@/components/ui/theme-picker';
 import { AiSettings } from './components/ai-settings';
+import { McpSettings } from './components/mcp-settings';
 import { NotificationsSettings } from '@/components/ui/notifications-settings';
 import { LanguageSelector } from './components/language-selector';
 import { useSettings } from './use-settings';
@@ -47,6 +48,8 @@ export function SettingsPage() {
         </div>
 
         <AiSettings />
+
+        <McpSettings />
 
         <div className="grid grid-cols-4 gap-4">
           <NotificationsSettings />

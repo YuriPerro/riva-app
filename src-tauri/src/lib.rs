@@ -1,5 +1,12 @@
 mod azure;
+mod mcp;
+mod mcp_config;
 mod openai;
+
+use mcp::{McpCredentialStore, McpCredentials};
+use mcp_config::{McpClient, McpClientStatus, McpSnippet};
+
+const MCP_SERVER_ADDR: &str = "127.0.0.1:7821";
 
 use azure::{PipelineDefinition, PipelineRun, Project, PullRequest, Release, ReleaseDefinition, RelatedWorkItem, SprintIteration, StandupData, Team, UserActivitySummary, WorkItem, WorkItemComment, WorkItemDetail, WorkItemTypeState};
 use base64::Engine;
@@ -18,6 +25,7 @@ struct Credentials {
 
 pub struct AppState {
     credentials: Mutex<Option<Credentials>>,
+    mcp_credentials: McpCredentialStore,
 }
 
 // ============================================================
@@ -88,14 +96,62 @@ async fn validate_credentials(org_url: String, pat: String) -> Result<(), String
 
 /// Load credentials into the in-memory session.
 #[tauri::command]
-fn init_session(
+async fn init_session(
     state: State<'_, AppState>,
     org_url: String,
     pat: String,
 ) -> Result<(), String> {
-    let mut creds = state.credentials.lock().map_err(|e| e.to_string())?;
-    *creds = Some(Credentials { org_url, pat });
+    {
+        let mut creds = state.credentials.lock().map_err(|e| e.to_string())?;
+        *creds = Some(Credentials {
+            org_url: org_url.clone(),
+            pat: pat.clone(),
+        });
+    }
+    state
+        .mcp_credentials
+        .set(McpCredentials { org_url, pat })
+        .await;
     Ok(())
+}
+
+#[tauri::command]
+fn get_mcp_server_url() -> String {
+    format!("http://{}/mcp", MCP_SERVER_ADDR)
+}
+
+#[tauri::command]
+async fn set_mcp_context(
+    state: State<'_, AppState>,
+    project: Option<String>,
+    team: Option<String>,
+) -> Result<(), String> {
+    state.mcp_credentials.set_selection(project, team).await;
+    Ok(())
+}
+
+#[tauri::command]
+fn get_mcp_client_status(client: McpClient) -> Result<McpClientStatus, String> {
+    let url = format!("http://{}/mcp", MCP_SERVER_ADDR);
+    mcp_config::get_status(client, &url)
+}
+
+#[tauri::command]
+fn install_mcp_client(client: McpClient) -> Result<McpClientStatus, String> {
+    let url = format!("http://{}/mcp", MCP_SERVER_ADDR);
+    mcp_config::install(client, &url)
+}
+
+#[tauri::command]
+fn uninstall_mcp_client(client: McpClient) -> Result<McpClientStatus, String> {
+    let url = format!("http://{}/mcp", MCP_SERVER_ADDR);
+    mcp_config::uninstall(client, &url)
+}
+
+#[tauri::command]
+fn get_mcp_client_snippet(client: McpClient) -> McpSnippet {
+    let url = format!("http://{}/mcp", MCP_SERVER_ADDR);
+    mcp_config::snippet(client, &url)
 }
 
 #[tauri::command]
@@ -104,9 +160,12 @@ fn has_session(state: State<'_, AppState>) -> bool {
 }
 
 #[tauri::command]
-fn clear_session(state: State<'_, AppState>) -> Result<(), String> {
-    let mut creds = state.credentials.lock().map_err(|e| e.to_string())?;
-    *creds = None;
+async fn clear_session(state: State<'_, AppState>) -> Result<(), String> {
+    {
+        let mut creds = state.credentials.lock().map_err(|e| e.to_string())?;
+        *creds = None;
+    }
+    state.mcp_credentials.clear().await;
     Ok(())
 }
 
@@ -437,11 +496,33 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(AppState {
             credentials: Mutex::new(None),
+            mcp_credentials: McpCredentialStore::new(),
         })
         .setup(|app| {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.center();
             }
+
+            let store = app.state::<AppState>().mcp_credentials.clone();
+
+            tauri::async_runtime::spawn(async move {
+                if let Ok(Some(stored)) = load_stored_credentials() {
+                    store
+                        .set(McpCredentials {
+                            org_url: stored.org_url,
+                            pat: stored.pat,
+                        })
+                        .await;
+                }
+            });
+
+            let server_store = app.state::<AppState>().mcp_credentials.clone();
+            tauri::async_runtime::spawn(async move {
+                if let Err(e) = mcp::run_server(server_store, MCP_SERVER_ADDR).await {
+                    eprintln!("[riva-mcp] server exited: {e}");
+                }
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -452,6 +533,12 @@ pub fn run() {
             init_session,
             has_session,
             clear_session,
+            get_mcp_server_url,
+            set_mcp_context,
+            get_mcp_client_status,
+            install_mcp_client,
+            uninstall_mcp_client,
+            get_mcp_client_snippet,
             get_projects,
             get_teams,
             get_my_work_items,

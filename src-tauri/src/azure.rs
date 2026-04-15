@@ -2153,6 +2153,92 @@ pub async fn get_pbi_ids_with_children(
     Ok(results.into_iter().flatten().collect())
 }
 
+pub async fn create_work_item(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    work_item_type: &str,
+    title: &str,
+    description: Option<&str>,
+    assigned_to: Option<&str>,
+    iteration_path: Option<&str>,
+    area_path: Option<&str>,
+    parent_id: Option<u64>,
+) -> Result<WorkItemDetail, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let enc_project = encode_path_segment(project);
+    let enc_type = encode_path_segment(&format!("${}", work_item_type));
+    let url = format!(
+        "{}/{}/_apis/wit/workitems/{}?api-version=7.1",
+        base, enc_project, enc_type
+    );
+
+    let mut ops: Vec<serde_json::Value> = vec![
+        serde_json::json!({
+            "op": "add",
+            "path": "/fields/System.Title",
+            "value": title
+        }),
+    ];
+
+    if let Some(desc) = description {
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/fields/System.Description",
+            "value": desc
+        }));
+    }
+    if let Some(assignee) = assigned_to {
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/fields/System.AssignedTo",
+            "value": assignee
+        }));
+    }
+    if let Some(iter) = iteration_path {
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/fields/System.IterationPath",
+            "value": iter
+        }));
+    }
+    if let Some(area) = area_path {
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/fields/System.AreaPath",
+            "value": area
+        }));
+    }
+    if let Some(parent) = parent_id {
+        let parent_url = format!("{}/_apis/wit/workItems/{}", base, parent);
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/relations/-",
+            "value": {
+                "rel": "System.LinkTypes.Hierarchy-Reverse",
+                "url": parent_url
+            }
+        }));
+    }
+
+    let resp = client
+        .post(&url)
+        .header("Content-Type", "application/json-patch+json")
+        .json(&ops)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+
+    let mut item: WorkItemDetail = resp.json().await.map_err(|e| e.to_string())?;
+    item.web_url = format!("{}/{}/_workitems/edit/{}", base, enc_project, item.id);
+    Ok(item)
+}
+
 pub async fn proxy_image(_org_url: &str, pat: &str, url: &str) -> Result<String, String> {
     let client = Client::builder()
         .build()
