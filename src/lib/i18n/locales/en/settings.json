@@ -36,6 +36,24 @@
     "searchReleases": "Search releases…",
     "noMatchingReleases": "No matching releases"
   },
+  "mcp": {
+    "title": "MCP integrations",
+    "description": "Expose Riva's Azure DevOps tools to AI agents via the Model Context Protocol. Configure your CLI to talk to the local Riva MCP server.",
+    "install": "Install",
+    "uninstall": "Remove",
+    "installed": "Installed",
+    "notInstalled": "Not installed",
+    "copySnippet": "Copy snippet",
+    "configPath": "Config file",
+    "viewTools": "View tools",
+    "toolsDialog": {
+      "title": "Available MCP tools",
+      "description": "Tools exposed by the local Riva MCP server. This list is pulled directly from the running server.",
+      "empty": "No tools registered.",
+      "argsLabel": "args",
+      "required": "required"
+    }
+  },
   "language": {
     "title": "Language",
     "description": "Choose the display language for the app",

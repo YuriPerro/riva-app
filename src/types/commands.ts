@@ -38,4 +38,12 @@ export enum TauriCommand {
   GenerateStandupSummary = 'generate_standup_summary',
   ProxyImage = 'proxy_image',
   SaveImage = 'save_image',
+
+  GetMcpServerUrl = 'get_mcp_server_url',
+  SetMcpContext = 'set_mcp_context',
+  GetMcpClientStatus = 'get_mcp_client_status',
+  InstallMcpClient = 'install_mcp_client',
+  UninstallMcpClient = 'uninstall_mcp_client',
+  GetMcpClientSnippet = 'get_mcp_client_snippet',
+  ListMcpTools = 'list_mcp_tools',
 }

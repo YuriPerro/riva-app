@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { useGlobalShortcuts } from '@/hooks/use-global-shortcuts';
 import { useAzureNotificationPolling } from '@/hooks/use-azure-notification-polling';
+import { useMcpContextSync } from '@/hooks/use-mcp-context-sync';
 import { AppUpdater } from '@/components/app-updater';
 import { Sidebar } from './sidebar';
 
@@ -8,6 +9,7 @@ export function AppLayout() {
   const location = useLocation();
   useGlobalShortcuts();
   useAzureNotificationPolling();
+  useMcpContextSync();
 
   return (
     <div data-tauri-drag-region className="flex h-full flex-col bg-base">
