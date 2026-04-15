@@ -284,6 +284,27 @@ impl ServerHandler for RivaMcpServer {
     }
 }
 
+#[derive(Debug, serde::Serialize)]
+pub struct McpToolInfo {
+    pub name: String,
+    pub description: Option<String>,
+    pub input_schema: serde_json::Value,
+}
+
+pub fn list_tools() -> Vec<McpToolInfo> {
+    let server = RivaMcpServer::new(McpCredentialStore::new());
+    server
+        .tool_router
+        .list_all()
+        .into_iter()
+        .map(|tool| McpToolInfo {
+            name: tool.name.into_owned(),
+            description: tool.description.map(|d| d.into_owned()),
+            input_schema: serde_json::Value::Object((*tool.input_schema).clone()),
+        })
+        .collect()
+}
+
 pub async fn run_server(creds: McpCredentialStore, addr: &str) -> anyhow::Result<()> {
     let server = RivaMcpServer::new(creds);
     let service = StreamableHttpService::new(

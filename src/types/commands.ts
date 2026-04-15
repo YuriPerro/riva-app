@@ -45,4 +45,5 @@ export enum TauriCommand {
   InstallMcpClient = 'install_mcp_client',
   UninstallMcpClient = 'uninstall_mcp_client',
   GetMcpClientSnippet = 'get_mcp_client_snippet',
+  ListMcpTools = 'list_mcp_tools',
 }

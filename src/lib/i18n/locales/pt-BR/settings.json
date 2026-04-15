@@ -44,7 +44,15 @@
     "installed": "Instalado",
     "notInstalled": "Não instalado",
     "copySnippet": "Copiar snippet",
-    "configPath": "Arquivo de config"
+    "configPath": "Arquivo de config",
+    "viewTools": "Ver tools",
+    "toolsDialog": {
+      "title": "Tools MCP disponíveis",
+      "description": "Tools expostas pelo servidor MCP local do Riva. A lista é puxada diretamente do servidor em execução.",
+      "empty": "Nenhuma tool registrada.",
+      "argsLabel": "args",
+      "required": "obrigatório"
+    }
   },
   "language": {
     "title": "Idioma",

@@ -3,7 +3,7 @@ mod mcp;
 mod mcp_config;
 mod openai;
 
-use mcp::{McpCredentialStore, McpCredentials};
+use mcp::{McpCredentialStore, McpCredentials, McpToolInfo};
 use mcp_config::{McpClient, McpClientStatus, McpSnippet};
 
 const MCP_SERVER_ADDR: &str = "127.0.0.1:7821";
@@ -146,6 +146,11 @@ fn install_mcp_client(client: McpClient) -> Result<McpClientStatus, String> {
 fn uninstall_mcp_client(client: McpClient) -> Result<McpClientStatus, String> {
     let url = format!("http://{}/mcp", MCP_SERVER_ADDR);
     mcp_config::uninstall(client, &url)
+}
+
+#[tauri::command]
+fn list_mcp_tools() -> Vec<McpToolInfo> {
+    mcp::list_tools()
 }
 
 #[tauri::command]
@@ -539,6 +544,7 @@ pub fn run() {
             install_mcp_client,
             uninstall_mcp_client,
             get_mcp_client_snippet,
+            list_mcp_tools,
             get_projects,
             get_teams,
             get_my_work_items,

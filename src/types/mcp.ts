@@ -12,3 +12,9 @@ export type McpSnippet = {
   language: 'json' | 'toml';
   content: string;
 };
+
+export type McpToolInfo = {
+  name: string;
+  description: string | null;
+  input_schema: Record<string, unknown>;
+};

@@ -44,7 +44,15 @@
     "installed": "Installed",
     "notInstalled": "Not installed",
     "copySnippet": "Copy snippet",
-    "configPath": "Config file"
+    "configPath": "Config file",
+    "viewTools": "View tools",
+    "toolsDialog": {
+      "title": "Available MCP tools",
+      "description": "Tools exposed by the local Riva MCP server. This list is pulled directly from the running server.",
+      "empty": "No tools registered.",
+      "argsLabel": "args",
+      "required": "required"
+    }
   },
   "language": {
     "title": "Language",

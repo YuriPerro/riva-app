@@ -7,7 +7,6 @@ import type { McpClientCardProps } from './types';
 export function McpClientCard(props: McpClientCardProps) {
   const {
     client,
-    icon,
     installed,
     configPath,
     isBusy,
@@ -22,10 +21,7 @@ export function McpClientCard(props: McpClientCardProps) {
   return (
     <div className="flex flex-col gap-3 rounded-md border border-border-subtle bg-base p-3">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          {icon}
-          <span className="text-sm font-medium text-fg">{client.name}</span>
-        </div>
+        <span className="text-sm font-medium text-fg">{client.name}</span>
         {isLoading && (
           <Badge variant="outline" className="text-xs">
             {t('common:actions.loading')}
