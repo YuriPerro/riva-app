@@ -105,6 +105,40 @@ pub struct GetWorkItemArgs {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct UpdateWorkItemArgs {
+    #[schemars(description = "Work item id to update")]
+    pub id: u64,
+    #[schemars(description = "Azure DevOps project id or name. Omit to use the project currently selected in the Riva app")]
+    pub project: Option<String>,
+    #[schemars(description = "New title. Optional")]
+    pub title: Option<String>,
+    #[schemars(description = "New HTML or plain text description. Optional")]
+    pub description: Option<String>,
+    #[schemars(description = "New state (e.g. 'New', 'Active', 'Done'). Optional")]
+    pub state: Option<String>,
+    #[schemars(description = "New assignee unique name or email. Optional")]
+    pub assigned_to: Option<String>,
+    #[schemars(description = "New iteration path. Optional")]
+    pub iteration_path: Option<String>,
+    #[schemars(description = "New area path. Optional")]
+    pub area_path: Option<String>,
+    #[schemars(description = "Parent work item id to link as child. Optional — note: this adds a parent link, it does not replace an existing one")]
+    pub parent_id: Option<u64>,
+    #[schemars(description = "Replace tags. Accepts comma or semicolon-separated list. Optional")]
+    pub tags: Option<String>,
+    #[schemars(description = "Custom field values to update, keyed by field reference name. Example: {\"Custom.ProductAssignedto\": \"luiza.rosa@levesaude.com.br\", \"Microsoft.VSTS.Scheduling.OriginalEstimate\": 2}. Optional")]
+    pub custom_fields: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct DeleteWorkItemArgs {
+    #[schemars(description = "Work item id to delete (moves to recycle bin)")]
+    pub id: u64,
+    #[schemars(description = "Azure DevOps project id or name. Omit to use the project currently selected in the Riva app")]
+    pub project: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
 pub struct CreateWorkItemArgs {
     #[schemars(description = "Work item type. Common values: 'Task', 'Product Backlog Item', 'Bug', 'User Story', 'Feature'")]
     pub work_item_type: String,
@@ -122,6 +156,10 @@ pub struct CreateWorkItemArgs {
     pub area_path: Option<String>,
     #[schemars(description = "Parent work item id to link as child. Optional")]
     pub parent_id: Option<u64>,
+    #[schemars(description = "Tags to apply. Accepts comma or semicolon-separated list (e.g. 'LAB, Urgent'). Optional")]
+    pub tags: Option<String>,
+    #[schemars(description = "Custom field values keyed by field reference name. Example: {\"Custom.ProjectName\": \"Levinho IA\", \"Custom.DevArea\": \"AI\"}. Values can be strings, numbers, booleans, or null. Optional")]
+    pub custom_fields: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 #[derive(Clone)]
@@ -242,6 +280,46 @@ impl RivaMcpServer {
         json_result(&item)
     }
 
+    #[tool(description = "Update an existing work item by id. Only fields provided are changed; others are left untouched. Falls back to the project selected in the Riva app")]
+    async fn update_work_item(
+        &self,
+        Parameters(args): Parameters<UpdateWorkItemArgs>,
+    ) -> Result<CallToolResult, McpError> {
+        let c = self.creds.get().await?;
+        let project = resolve_project(&self.creds, args.project).await?;
+        let item = azure::update_work_item(
+            &c.org_url,
+            &c.pat,
+            &project,
+            args.id,
+            args.title.as_deref(),
+            args.description.as_deref(),
+            args.state.as_deref(),
+            args.assigned_to.as_deref(),
+            args.iteration_path.as_deref(),
+            args.area_path.as_deref(),
+            args.parent_id,
+            args.tags.as_deref(),
+            args.custom_fields.as_ref(),
+        )
+        .await
+        .map_err(azure_error)?;
+        json_result(&item)
+    }
+
+    #[tool(description = "Delete a work item by id (moves it to the Azure DevOps recycle bin). Falls back to the project selected in the Riva app")]
+    async fn delete_work_item(
+        &self,
+        Parameters(args): Parameters<DeleteWorkItemArgs>,
+    ) -> Result<CallToolResult, McpError> {
+        let c = self.creds.get().await?;
+        let project = resolve_project(&self.creds, args.project).await?;
+        azure::delete_work_item(&c.org_url, &c.pat, &project, args.id)
+            .await
+            .map_err(azure_error)?;
+        json_result(&serde_json::json!({ "ok": true, "id": args.id }))
+    }
+
     #[tool(description = "Create a new work item (Task, PBI, Bug, etc.) in an Azure DevOps project. Falls back to the project selected in the Riva app")]
     async fn create_work_item(
         &self,
@@ -260,6 +338,8 @@ impl RivaMcpServer {
             args.iteration_path.as_deref(),
             args.area_path.as_deref(),
             args.parent_id,
+            args.tags.as_deref(),
+            args.custom_fields.as_ref(),
         )
         .await
         .map_err(azure_error)?;
@@ -277,7 +357,7 @@ impl ServerHandler for RivaMcpServer {
         info.instructions = Some(
             "Riva MCP — exposes Azure DevOps project, board, and work item operations \
              using credentials configured inside the Riva desktop app. \
-             Available tools: list_projects, list_teams, list_boards, list_work_items, create_work_item."
+             Available tools: list_projects, list_teams, list_boards, list_work_items, get_work_item, create_work_item, update_work_item, delete_work_item."
                 .to_string(),
         );
         info
