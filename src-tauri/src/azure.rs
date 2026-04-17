@@ -2164,6 +2164,8 @@ pub async fn create_work_item(
     iteration_path: Option<&str>,
     area_path: Option<&str>,
     parent_id: Option<u64>,
+    tags: Option<&str>,
+    custom_fields: Option<&std::collections::HashMap<String, serde_json::Value>>,
 ) -> Result<WorkItemDetail, String> {
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
@@ -2222,6 +2224,32 @@ pub async fn create_work_item(
         }));
     }
 
+    if let Some(tags_input) = tags {
+        let normalized_tags: String = tags_input
+            .split(|c: char| c == ',' || c == ';')
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .collect::<Vec<_>>()
+            .join("; ");
+        if !normalized_tags.is_empty() {
+            ops.push(serde_json::json!({
+                "op": "add",
+                "path": "/fields/System.Tags",
+                "value": normalized_tags
+            }));
+        }
+    }
+
+    if let Some(customs) = custom_fields {
+        for (field_ref, field_value) in customs.iter() {
+            ops.push(serde_json::json!({
+                "op": "add",
+                "path": format!("/fields/{}", field_ref),
+                "value": field_value
+            }));
+        }
+    }
+
     let resp = client
         .post(&url)
         .header("Content-Type", "application/json-patch+json")
@@ -2237,6 +2265,150 @@ pub async fn create_work_item(
     let mut item: WorkItemDetail = resp.json().await.map_err(|e| e.to_string())?;
     item.web_url = format!("{}/{}/_workitems/edit/{}", base, enc_project, item.id);
     Ok(item)
+}
+
+pub async fn update_work_item(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    id: u64,
+    title: Option<&str>,
+    description: Option<&str>,
+    state: Option<&str>,
+    assigned_to: Option<&str>,
+    iteration_path: Option<&str>,
+    area_path: Option<&str>,
+    parent_id: Option<u64>,
+    tags: Option<&str>,
+    custom_fields: Option<&std::collections::HashMap<String, serde_json::Value>>,
+) -> Result<WorkItemDetail, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let enc_project = encode_path_segment(project);
+    let url = format!(
+        "{}/{}/_apis/wit/workitems/{}?api-version=7.1",
+        base, enc_project, id
+    );
+
+    let mut ops: Vec<serde_json::Value> = Vec::new();
+
+    if let Some(new_title) = title {
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/fields/System.Title",
+            "value": new_title
+        }));
+    }
+    if let Some(desc) = description {
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/fields/System.Description",
+            "value": desc
+        }));
+    }
+    if let Some(new_state) = state {
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/fields/System.State",
+            "value": new_state
+        }));
+    }
+    if let Some(assignee) = assigned_to {
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/fields/System.AssignedTo",
+            "value": assignee
+        }));
+    }
+    if let Some(iter) = iteration_path {
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/fields/System.IterationPath",
+            "value": iter
+        }));
+    }
+    if let Some(area) = area_path {
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/fields/System.AreaPath",
+            "value": area
+        }));
+    }
+    if let Some(parent) = parent_id {
+        let parent_url = format!("{}/_apis/wit/workItems/{}", base, parent);
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/relations/-",
+            "value": {
+                "rel": "System.LinkTypes.Hierarchy-Reverse",
+                "url": parent_url
+            }
+        }));
+    }
+    if let Some(tags_input) = tags {
+        let normalized_tags: String = tags_input
+            .split(|c: char| c == ',' || c == ';')
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .collect::<Vec<_>>()
+            .join("; ");
+        ops.push(serde_json::json!({
+            "op": "add",
+            "path": "/fields/System.Tags",
+            "value": normalized_tags
+        }));
+    }
+    if let Some(customs) = custom_fields {
+        for (field_ref, field_value) in customs.iter() {
+            ops.push(serde_json::json!({
+                "op": "add",
+                "path": format!("/fields/{}", field_ref),
+                "value": field_value
+            }));
+        }
+    }
+
+    if ops.is_empty() {
+        return Err("No fields provided to update".to_string());
+    }
+
+    let resp = client
+        .patch(&url)
+        .header("Content-Type", "application/json-patch+json")
+        .json(&ops)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+
+    let mut item: WorkItemDetail = resp.json().await.map_err(|e| e.to_string())?;
+    item.web_url = format!("{}/{}/_workitems/edit/{}", base, enc_project, item.id);
+    Ok(item)
+}
+
+pub async fn delete_work_item(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    id: u64,
+) -> Result<(), String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let enc_project = encode_path_segment(project);
+    let url = format!(
+        "{}/{}/_apis/wit/workitems/{}?api-version=7.1",
+        base, enc_project, id
+    );
+
+    let resp = client.delete(&url).send().await.map_err(|e| e.to_string())?;
+
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    Ok(())
 }
 
 pub async fn proxy_image(_org_url: &str, pat: &str, url: &str) -> Result<String, String> {
