@@ -759,6 +759,34 @@ pub async fn create_pull_request(
     Ok(pr)
 }
 
+pub async fn enable_pr_auto_complete(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repository: &str,
+    pr_id: u64,
+    set_by_id: &str,
+) -> Result<(), String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests/{}?api-version=7.1",
+        base, project, repository, pr_id
+    );
+    let body = serde_json::json!({
+        "autoCompleteSetBy": { "id": set_by_id },
+        "completionOptions": {
+            "mergeStrategy": "squash",
+            "deleteSourceBranch": true,
+        }
+    });
+    let resp = client.patch(&url).json(&body).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    Ok(())
+}
+
 /// Get pull requests for a project, optionally filtered.
 pub async fn get_pull_requests(
     org_url: &str,
