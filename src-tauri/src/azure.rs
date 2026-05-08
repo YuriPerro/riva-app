@@ -1119,11 +1119,11 @@ pub async fn resolve_identity_by_email(
     parse_identity_response(&body, email).ok_or_else(|| format!("Reviewer not found: {}", email))
 }
 
-pub async fn review_pull_request(
+pub async fn set_pr_vote(
     org_url: &str,
     pat: &str,
     project: &str,
-    repo_id: &str,
+    repository: &str,
     pr_id: u64,
     vote: i32,
 ) -> Result<(), String> {
@@ -1132,22 +1132,17 @@ pub async fn review_pull_request(
     let base = org_url.trim_end_matches('/');
     let url = format!(
         "{}/{}/_apis/git/repositories/{}/pullrequests/{}/reviewers/{}?api-version=7.1",
-        base, project, repo_id, pr_id, user_id
+        base, project, repository, pr_id, user_id
     );
-
-    let body = serde_json::json!({ "vote": vote });
-
     let resp = client
         .put(&url)
-        .json(&body)
+        .json(&serde_json::json!({ "vote": vote }))
         .send()
         .await
         .map_err(|e| e.to_string())?;
-
     if !resp.status().is_success() {
         return Err(api_error(resp).await);
     }
-
     Ok(())
 }
 

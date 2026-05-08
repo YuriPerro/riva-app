@@ -322,7 +322,7 @@ async fn review_pull_request(
     vote: i32,
 ) -> Result<(), String> {
     let (org_url, pat) = session_creds(&state)?;
-    azure::review_pull_request(&org_url, &pat, &project, &repo_id, pr_id, vote).await
+    azure::set_pr_vote(&org_url, &pat, &project, &repo_id, pr_id, vote).await
 }
 
 #[tauri::command]
