@@ -759,6 +759,54 @@ pub async fn create_pull_request(
     Ok(pr)
 }
 
+pub async fn create_pr_thread(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repository: &str,
+    pr_id: u64,
+    content: &str,
+) -> Result<PrThread, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests/{}/threads?api-version=7.1",
+        base, project, repository, pr_id
+    );
+    let body = serde_json::json!({
+        "comments": [{ "content": content, "commentType": "text" }],
+        "status": "active",
+    });
+    let resp = client.post(&url).json(&body).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    resp.json::<PrThread>().await.map_err(|e| e.to_string())
+}
+
+pub async fn add_pr_thread_comment(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repository: &str,
+    pr_id: u64,
+    thread_id: u64,
+    content: &str,
+) -> Result<PrThreadComment, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests/{}/threads/{}/comments?api-version=7.1",
+        base, project, repository, pr_id, thread_id
+    );
+    let body = serde_json::json!({ "content": content, "commentType": "text" });
+    let resp = client.post(&url).json(&body).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    resp.json::<PrThreadComment>().await.map_err(|e| e.to_string())
+}
+
 pub async fn enable_pr_auto_complete(
     org_url: &str,
     pat: &str,
