@@ -246,7 +246,7 @@ async fn get_pull_requests(
     project: String,
 ) -> Result<Vec<PullRequest>, String> {
     let (org_url, pat) = session_creds(&state)?;
-    azure::get_pull_requests(&org_url, &pat, &project).await
+    azure::get_pull_requests(&org_url, &pat, &project, azure::PullRequestFilters::default()).await
 }
 
 #[tauri::command]

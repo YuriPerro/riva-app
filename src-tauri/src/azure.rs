@@ -609,19 +609,41 @@ pub async fn get_pipeline_definitions(
         .map_err(|e| e.to_string())
 }
 
-/// Get active pull requests for a project.
-/// PRs are repo-scoped, not team-scoped — returns all active PRs in the project.
+#[derive(Debug, Default, Clone)]
+pub struct PullRequestFilters {
+    pub status: Option<String>,
+    pub creator_id: Option<String>,
+    pub reviewer_id: Option<String>,
+    pub repository_id: Option<String>,
+    pub top: Option<u32>,
+}
+
+/// Get pull requests for a project, optionally filtered.
 pub async fn get_pull_requests(
     org_url: &str,
     pat: &str,
     project: &str,
+    filters: PullRequestFilters,
 ) -> Result<Vec<PullRequest>, String> {
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
-    let url = format!(
-        "{}/{}/_apis/git/pullrequests?searchCriteria.status=active&$top=50&api-version=7.1",
-        base, project
-    );
+
+    let mut params = vec![format!("api-version=7.1")];
+    let status = filters.status.as_deref().unwrap_or("active");
+    params.push(format!("searchCriteria.status={}", status));
+    if let Some(id) = &filters.creator_id {
+        params.push(format!("searchCriteria.creatorId={}", id));
+    }
+    if let Some(id) = &filters.reviewer_id {
+        params.push(format!("searchCriteria.reviewerId={}", id));
+    }
+    if let Some(id) = &filters.repository_id {
+        params.push(format!("searchCriteria.repositoryId={}", id));
+    }
+    let top = filters.top.unwrap_or(50).min(200);
+    params.push(format!("$top={}", top));
+
+    let url = format!("{}/{}/_apis/git/pullrequests?{}", base, project, params.join("&"));
 
     let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
 
@@ -635,7 +657,6 @@ pub async fn get_pull_requests(
         .map(|r| r.value)
         .map_err(|e| e.to_string())?;
 
-    // Attach web URLs
     for pr in &mut prs {
         pr.web_url = format!(
             "{}/{}/_git/{}/pullrequest/{}",
@@ -1699,7 +1720,7 @@ pub async fn get_standup_data(
         .collect();
 
     let my_name = get_my_display_name(&client, base).await.unwrap_or_default();
-    let prs = get_pull_requests(org_url, pat, project).await.unwrap_or_default();
+    let prs = get_pull_requests(org_url, pat, project, PullRequestFilters::default()).await.unwrap_or_default();
 
     let mut today_prs = Vec::new();
     for pr in &prs {
