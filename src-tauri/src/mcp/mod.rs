@@ -150,9 +150,13 @@ impl ServerHandler for RivaMcpServer {
         info.capabilities = ServerCapabilities::builder().enable_tools().build();
         info.server_info = Implementation::new("riva-mcp", env!("CARGO_PKG_VERSION"));
         info.instructions = Some(
-            "Riva MCP — exposes Azure DevOps project, board, and work item operations \
-             using credentials configured inside the Riva desktop app. \
-             Available tools: list_projects, list_teams, list_boards, list_work_items, get_work_item, create_work_item, update_work_item, delete_work_item."
+            "Riva MCP — exposes Azure DevOps project, board, work item, and pull request \
+             operations using credentials configured inside the Riva desktop app. \
+             Available tools: list_projects, list_teams, list_boards, list_work_items, \
+             get_work_item, create_work_item, update_work_item, delete_work_item, \
+             list_repositories, list_pull_requests, get_pull_request, create_pull_request, \
+             add_pr_comment, approve_pull_request, approve_with_suggestions, request_changes, \
+             reject_pull_request, reset_vote."
                 .to_string(),
         );
         info
@@ -199,7 +203,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn list_tools_returns_expected_names() {
+    fn list_tools_returns_all_18_names() {
         let names: Vec<String> = list_tools().into_iter().map(|t| t.name).collect();
         let expected = [
             "list_projects",
@@ -210,6 +214,16 @@ mod tests {
             "create_work_item",
             "update_work_item",
             "delete_work_item",
+            "list_repositories",
+            "list_pull_requests",
+            "get_pull_request",
+            "create_pull_request",
+            "add_pr_comment",
+            "approve_pull_request",
+            "approve_with_suggestions",
+            "request_changes",
+            "reject_pull_request",
+            "reset_vote",
         ];
         for name in expected {
             assert!(names.contains(&name.to_string()), "missing tool: {}", name);
