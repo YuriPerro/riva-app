@@ -13,6 +13,7 @@ use rmcp::{
 use tokio::sync::RwLock;
 
 mod work_items;
+mod pull_requests;
 
 #[derive(Clone)]
 pub struct McpCredentials {
@@ -134,7 +135,9 @@ impl RivaMcpServer {
     pub fn new(creds: McpCredentialStore) -> Self {
         Self {
             creds,
-            tool_router: Self::core_router() + Self::work_items_router(),
+            tool_router: Self::core_router()
+                + Self::work_items_router()
+                + Self::pull_requests_router(),
         }
     }
 }
