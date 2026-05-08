@@ -733,6 +733,32 @@ pub struct PullRequestFilters {
     pub top: Option<u32>,
 }
 
+pub async fn create_pull_request(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repository: &str,
+    args: &CreatePullRequestArgs,
+) -> Result<PullRequest, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests?api-version=7.1",
+        base, project, repository
+    );
+    let body = build_create_pr_body(args);
+    let resp = client.post(&url).json(&body).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    let mut pr: PullRequest = resp.json().await.map_err(|e| e.to_string())?;
+    pr.web_url = format!(
+        "{}/{}/_git/{}/pullrequest/{}",
+        base, project, pr.repository.name, pr.pull_request_id
+    );
+    Ok(pr)
+}
+
 /// Get pull requests for a project, optionally filtered.
 pub async fn get_pull_requests(
     org_url: &str,
