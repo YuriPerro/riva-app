@@ -398,3 +398,27 @@ pub async fn run_server(creds: McpCredentialStore, addr: &str) -> anyhow::Result
     axum::serve(listener, router).await?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn list_tools_returns_expected_names() {
+        let names: Vec<String> = list_tools().into_iter().map(|t| t.name).collect();
+        let expected = [
+            "list_projects",
+            "list_teams",
+            "list_boards",
+            "list_work_items",
+            "get_work_item",
+            "create_work_item",
+            "update_work_item",
+            "delete_work_item",
+        ];
+        for name in expected {
+            assert!(names.contains(&name.to_string()), "missing tool: {}", name);
+        }
+        assert_eq!(names.len(), expected.len(), "unexpected tool count: {:?}", names);
+    }
+}
