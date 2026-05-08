@@ -1047,7 +1047,20 @@ pub async fn update_work_item_field(
 // Pull Request review
 // ============================================================
 
-async fn get_my_user_id(org_url: &str, pat: &str) -> Result<String, String> {
+fn parse_identity_response(body: &serde_json::Value, email: &str) -> Option<String> {
+    let needle = email.to_ascii_lowercase();
+    let entries = body.get("value")?.as_array()?;
+
+    let exact = entries.iter().find(|e| {
+        let mail = e.pointer("/properties/Mail/$value").and_then(|v| v.as_str()).unwrap_or("");
+        mail.eq_ignore_ascii_case(&needle)
+    });
+
+    let chosen = exact.or_else(|| entries.first());
+    chosen?.get("id")?.as_str().map(String::from)
+}
+
+pub async fn get_my_user_id(org_url: &str, pat: &str) -> Result<String, String> {
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
     let url = format!("{}/_apis/connectionData?api-version=7.1-preview.1", base);
@@ -1063,6 +1076,26 @@ async fn get_my_user_id(org_url: &str, pat: &str) -> Result<String, String> {
         .as_str()
         .map(String::from)
         .ok_or_else(|| "Could not resolve your user ID".into())
+}
+
+/// Resolve an Azure DevOps identity id from an email address.
+pub async fn resolve_identity_by_email(
+    org_url: &str,
+    pat: &str,
+    email: &str,
+) -> Result<String, String> {
+    let client = build_client(pat)?;
+    let url = format!(
+        "{}/_apis/identities?searchFilter=General&filterValue={}&api-version=7.1",
+        org_url.trim_end_matches('/'),
+        encode_path_segment(email)
+    );
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    let body: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+    parse_identity_response(&body, email).ok_or_else(|| format!("Reviewer not found: {}", email))
 }
 
 pub async fn review_pull_request(
@@ -2449,6 +2482,39 @@ pub async fn delete_work_item(
         return Err(api_error(resp).await);
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn parse_identity_response_no_match() {
+        let body = json!({ "value": [] });
+        assert_eq!(parse_identity_response(&body, "x@example.com"), None);
+    }
+
+    #[test]
+    fn parse_identity_response_single_match() {
+        let body = json!({
+            "value": [
+                { "id": "abc-123", "properties": { "Mail": { "$value": "alice@example.com" } } }
+            ]
+        });
+        assert_eq!(parse_identity_response(&body, "alice@example.com").as_deref(), Some("abc-123"));
+    }
+
+    #[test]
+    fn parse_identity_response_multi_match_picks_exact_email_case_insensitive() {
+        let body = json!({
+            "value": [
+                { "id": "wrong", "properties": { "Mail": { "$value": "alice.fan@example.com" } } },
+                { "id": "right", "properties": { "Mail": { "$value": "ALICE@example.com" } } }
+            ]
+        });
+        assert_eq!(parse_identity_response(&body, "alice@example.com").as_deref(), Some("right"));
+    }
 }
 
 pub async fn proxy_image(_org_url: &str, pat: &str, url: &str) -> Result<String, String> {
