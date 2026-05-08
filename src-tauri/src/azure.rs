@@ -215,6 +215,42 @@ struct PullRequestsResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct PullRequestDetail {
+    #[serde(flatten)]
+    pub base: PullRequest,
+    #[serde(rename = "mergeStatus", default)]
+    pub merge_status: Option<String>,
+    #[serde(rename = "completionOptions", default)]
+    pub completion_options: Option<serde_json::Value>,
+    #[serde(rename = "workItemRefs", default)]
+    pub work_item_refs: Vec<serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PrThreadComment {
+    #[serde(default)]
+    pub id: u64,
+    #[serde(default)]
+    pub content: String,
+    #[serde(default)]
+    pub author: serde_json::Value,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PrThread {
+    pub id: u64,
+    #[serde(default)]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub comments: Vec<PrThreadComment>,
+}
+
+#[derive(Debug, Deserialize)]
+struct PrThreadsResponse {
+    pub value: Vec<PrThread>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PipelineDefinition {
     pub id: u64,
     pub name: String,
@@ -607,6 +643,51 @@ pub async fn get_pipeline_definitions(
         .await
         .map(|r| r.value)
         .map_err(|e| e.to_string())
+}
+
+pub async fn get_pull_request_detail(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repository: &str,
+    pr_id: u64,
+) -> Result<PullRequestDetail, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests/{}?$expand=all&api-version=7.1",
+        base, project, repository, pr_id
+    );
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    let mut detail: PullRequestDetail = resp.json().await.map_err(|e| e.to_string())?;
+    detail.base.web_url = format!(
+        "{}/{}/_git/{}/pullrequest/{}",
+        base, project, detail.base.repository.name, detail.base.pull_request_id
+    );
+    Ok(detail)
+}
+
+pub async fn get_pull_request_threads(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repository: &str,
+    pr_id: u64,
+) -> Result<Vec<PrThread>, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests/{}/threads?api-version=7.1",
+        base, project, repository, pr_id
+    );
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    resp.json::<PrThreadsResponse>().await.map(|r| r.value).map_err(|e| e.to_string())
 }
 
 #[derive(Debug, Default, Clone)]
