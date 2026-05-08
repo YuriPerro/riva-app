@@ -30,6 +30,7 @@ pub struct McpSelection {
 pub struct McpCredentialStore {
     credentials: Arc<RwLock<Option<McpCredentials>>>,
     selection: Arc<RwLock<McpSelection>>,
+    current_user_id: Arc<RwLock<Option<String>>>,
 }
 
 impl McpCredentialStore {
@@ -37,16 +38,31 @@ impl McpCredentialStore {
         Self {
             credentials: Arc::new(RwLock::new(None)),
             selection: Arc::new(RwLock::new(McpSelection::default())),
+            current_user_id: Arc::new(RwLock::new(None)),
         }
     }
 
     pub async fn set(&self, creds: McpCredentials) {
         *self.credentials.write().await = Some(creds);
+        *self.current_user_id.write().await = None;
     }
 
     pub async fn clear(&self) {
         *self.credentials.write().await = None;
         *self.selection.write().await = McpSelection::default();
+        *self.current_user_id.write().await = None;
+    }
+
+    pub async fn get_or_fetch_user_id(&self) -> Result<String, McpError> {
+        if let Some(id) = self.current_user_id.read().await.clone() {
+            return Ok(id);
+        }
+        let c = self.get().await?;
+        let id = crate::azure::get_my_user_id(&c.org_url, &c.pat)
+            .await
+            .map_err(azure_error)?;
+        *self.current_user_id.write().await = Some(id.clone());
+        Ok(id)
     }
 
     pub async fn set_selection(&self, project: Option<String>, team: Option<String>) {
