@@ -169,6 +169,23 @@ pub struct PullRequestRepository {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct Repository {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "defaultBranch", default)]
+    pub default_branch: Option<String>,
+    #[serde(rename = "webUrl", default)]
+    pub web_url: String,
+    #[serde(default)]
+    pub project: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RepositoriesResponse {
+    pub value: Vec<Repository>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PullRequest {
     #[serde(rename = "pullRequestId")]
     pub pull_request_id: u64,
@@ -627,6 +644,29 @@ pub async fn get_pull_requests(
     }
 
     Ok(prs)
+}
+
+/// List Git repositories for a project.
+pub async fn get_repositories(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+) -> Result<Vec<Repository>, String> {
+    let client = build_client(pat)?;
+    let url = format!(
+        "{}/{}/_apis/git/repositories?api-version=7.1",
+        org_url.trim_end_matches('/'),
+        encode_path_segment(project)
+    );
+
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    resp.json::<RepositoriesResponse>()
+        .await
+        .map(|r| r.value)
+        .map_err(|e| e.to_string())
 }
 
 /// Get all teams for a project.
