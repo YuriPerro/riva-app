@@ -250,6 +250,17 @@ struct PrThreadsResponse {
     pub value: Vec<PrThread>,
 }
 
+#[derive(Debug, Default, Clone)]
+pub struct CreatePullRequestArgs {
+    pub source_branch: String,
+    pub target_branch: String,
+    pub title: String,
+    pub description: Option<String>,
+    pub draft: bool,
+    pub reviewer_ids: Vec<String>,
+    pub work_item_ids: Vec<u64>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PipelineDefinition {
     pub id: u64,
@@ -688,6 +699,29 @@ pub async fn get_pull_request_threads(
         return Err(api_error(resp).await);
     }
     resp.json::<PrThreadsResponse>().await.map(|r| r.value).map_err(|e| e.to_string())
+}
+
+pub fn build_create_pr_body(args: &CreatePullRequestArgs) -> serde_json::Value {
+    let mut body = serde_json::json!({
+        "sourceRefName": format!("refs/heads/{}", args.source_branch),
+        "targetRefName": format!("refs/heads/{}", args.target_branch),
+        "title": args.title,
+        "isDraft": args.draft,
+    });
+    if let Some(d) = &args.description {
+        body["description"] = serde_json::Value::String(d.clone());
+    }
+    if !args.reviewer_ids.is_empty() {
+        body["reviewers"] = args.reviewer_ids.iter()
+            .map(|id| serde_json::json!({ "id": id }))
+            .collect();
+    }
+    if !args.work_item_ids.is_empty() {
+        body["workItemRefs"] = args.work_item_ids.iter()
+            .map(|id| serde_json::json!({ "id": id.to_string(), "name": "ArtifactLink" }))
+            .collect();
+    }
+    body
 }
 
 #[derive(Debug, Default, Clone)]
@@ -2585,6 +2619,46 @@ pub async fn delete_work_item(
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn build_create_pr_body_minimal() {
+        let args = CreatePullRequestArgs {
+            source_branch: "feature/x".into(),
+            target_branch: "main".into(),
+            title: "T".into(),
+            ..Default::default()
+        };
+        let body = build_create_pr_body(&args);
+        assert_eq!(body["sourceRefName"], "refs/heads/feature/x");
+        assert_eq!(body["targetRefName"], "refs/heads/main");
+        assert_eq!(body["title"], "T");
+        assert_eq!(body["isDraft"], false);
+        assert!(body.get("reviewers").is_none() || body["reviewers"].as_array().unwrap().is_empty());
+        assert!(body.get("workItemRefs").is_none() || body["workItemRefs"].as_array().unwrap().is_empty());
+    }
+
+    #[test]
+    fn build_create_pr_body_full() {
+        let args = CreatePullRequestArgs {
+            source_branch: "feature/x".into(),
+            target_branch: "main".into(),
+            title: "T".into(),
+            description: Some("body".into()),
+            draft: true,
+            reviewer_ids: vec!["id-1".into(), "id-2".into()],
+            work_item_ids: vec![123, 456],
+        };
+        let body = build_create_pr_body(&args);
+        assert_eq!(body["isDraft"], true);
+        assert_eq!(body["description"], "body");
+        let reviewers = body["reviewers"].as_array().unwrap();
+        assert_eq!(reviewers.len(), 2);
+        assert_eq!(reviewers[0]["id"], "id-1");
+        let refs = body["workItemRefs"].as_array().unwrap();
+        assert_eq!(refs.len(), 2);
+        assert_eq!(refs[0]["id"], "123");
+        assert_eq!(refs[0]["name"], "ArtifactLink");
+    }
 
     #[test]
     fn parse_identity_response_no_match() {
