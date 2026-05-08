@@ -169,6 +169,23 @@ pub struct PullRequestRepository {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct Repository {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "defaultBranch", default)]
+    pub default_branch: Option<String>,
+    #[serde(rename = "webUrl", default)]
+    pub web_url: String,
+    #[serde(default)]
+    pub project: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RepositoriesResponse {
+    pub value: Vec<Repository>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PullRequest {
     #[serde(rename = "pullRequestId")]
     pub pull_request_id: u64,
@@ -195,6 +212,53 @@ pub struct PullRequest {
 #[derive(Debug, Deserialize)]
 struct PullRequestsResponse {
     pub value: Vec<PullRequest>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PullRequestDetail {
+    #[serde(flatten)]
+    pub base: PullRequest,
+    #[serde(rename = "mergeStatus", default)]
+    pub merge_status: Option<String>,
+    #[serde(rename = "completionOptions", default)]
+    pub completion_options: Option<serde_json::Value>,
+    #[serde(rename = "workItemRefs", default)]
+    pub work_item_refs: Vec<serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PrThreadComment {
+    #[serde(default)]
+    pub id: u64,
+    #[serde(default)]
+    pub content: String,
+    #[serde(default)]
+    pub author: serde_json::Value,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PrThread {
+    pub id: u64,
+    #[serde(default)]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub comments: Vec<PrThreadComment>,
+}
+
+#[derive(Debug, Deserialize)]
+struct PrThreadsResponse {
+    pub value: Vec<PrThread>,
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct CreatePullRequestArgs {
+    pub source_branch: String,
+    pub target_branch: String,
+    pub title: String,
+    pub description: Option<String>,
+    pub draft: bool,
+    pub reviewer_ids: Vec<String>,
+    pub work_item_ids: Vec<u64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -592,19 +656,211 @@ pub async fn get_pipeline_definitions(
         .map_err(|e| e.to_string())
 }
 
-/// Get active pull requests for a project.
-/// PRs are repo-scoped, not team-scoped — returns all active PRs in the project.
+pub async fn get_pull_request_detail(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repository: &str,
+    pr_id: u64,
+) -> Result<PullRequestDetail, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests/{}?$expand=all&api-version=7.1",
+        base, project, repository, pr_id
+    );
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    let mut detail: PullRequestDetail = resp.json().await.map_err(|e| e.to_string())?;
+    detail.base.web_url = format!(
+        "{}/{}/_git/{}/pullrequest/{}",
+        base, project, detail.base.repository.name, detail.base.pull_request_id
+    );
+    Ok(detail)
+}
+
+pub async fn get_pull_request_threads(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repository: &str,
+    pr_id: u64,
+) -> Result<Vec<PrThread>, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests/{}/threads?api-version=7.1",
+        base, project, repository, pr_id
+    );
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    resp.json::<PrThreadsResponse>().await.map(|r| r.value).map_err(|e| e.to_string())
+}
+
+pub fn build_create_pr_body(args: &CreatePullRequestArgs) -> serde_json::Value {
+    let mut body = serde_json::json!({
+        "sourceRefName": format!("refs/heads/{}", args.source_branch),
+        "targetRefName": format!("refs/heads/{}", args.target_branch),
+        "title": args.title,
+        "isDraft": args.draft,
+    });
+    if let Some(d) = &args.description {
+        body["description"] = serde_json::Value::String(d.clone());
+    }
+    if !args.reviewer_ids.is_empty() {
+        body["reviewers"] = args.reviewer_ids.iter()
+            .map(|id| serde_json::json!({ "id": id }))
+            .collect();
+    }
+    if !args.work_item_ids.is_empty() {
+        body["workItemRefs"] = args.work_item_ids.iter()
+            .map(|id| serde_json::json!({ "id": id.to_string(), "name": "ArtifactLink" }))
+            .collect();
+    }
+    body
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct PullRequestFilters {
+    pub status: Option<String>,
+    pub creator_id: Option<String>,
+    pub reviewer_id: Option<String>,
+    pub repository_id: Option<String>,
+    pub top: Option<u32>,
+}
+
+pub async fn create_pull_request(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repository: &str,
+    args: &CreatePullRequestArgs,
+) -> Result<PullRequest, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests?api-version=7.1",
+        base, project, repository
+    );
+    let body = build_create_pr_body(args);
+    let resp = client.post(&url).json(&body).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    let mut pr: PullRequest = resp.json().await.map_err(|e| e.to_string())?;
+    pr.web_url = format!(
+        "{}/{}/_git/{}/pullrequest/{}",
+        base, project, pr.repository.name, pr.pull_request_id
+    );
+    Ok(pr)
+}
+
+pub async fn create_pr_thread(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repository: &str,
+    pr_id: u64,
+    content: &str,
+) -> Result<PrThread, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests/{}/threads?api-version=7.1",
+        base, project, repository, pr_id
+    );
+    let body = serde_json::json!({
+        "comments": [{ "content": content, "commentType": "text" }],
+        "status": "active",
+    });
+    let resp = client.post(&url).json(&body).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    resp.json::<PrThread>().await.map_err(|e| e.to_string())
+}
+
+pub async fn add_pr_thread_comment(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repository: &str,
+    pr_id: u64,
+    thread_id: u64,
+    content: &str,
+) -> Result<PrThreadComment, String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests/{}/threads/{}/comments?api-version=7.1",
+        base, project, repository, pr_id, thread_id
+    );
+    let body = serde_json::json!({ "content": content, "commentType": "text" });
+    let resp = client.post(&url).json(&body).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    resp.json::<PrThreadComment>().await.map_err(|e| e.to_string())
+}
+
+pub async fn enable_pr_auto_complete(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+    repository: &str,
+    pr_id: u64,
+    set_by_id: &str,
+) -> Result<(), String> {
+    let client = build_client(pat)?;
+    let base = org_url.trim_end_matches('/');
+    let url = format!(
+        "{}/{}/_apis/git/repositories/{}/pullrequests/{}?api-version=7.1",
+        base, project, repository, pr_id
+    );
+    let body = serde_json::json!({
+        "autoCompleteSetBy": { "id": set_by_id },
+        "completionOptions": {
+            "mergeStrategy": "squash",
+            "deleteSourceBranch": true,
+        }
+    });
+    let resp = client.patch(&url).json(&body).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    Ok(())
+}
+
+/// Get pull requests for a project, optionally filtered.
 pub async fn get_pull_requests(
     org_url: &str,
     pat: &str,
     project: &str,
+    filters: PullRequestFilters,
 ) -> Result<Vec<PullRequest>, String> {
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
-    let url = format!(
-        "{}/{}/_apis/git/pullrequests?searchCriteria.status=active&$top=50&api-version=7.1",
-        base, project
-    );
+
+    let mut params = vec![format!("api-version=7.1")];
+    let status = filters.status.as_deref().unwrap_or("active");
+    params.push(format!("searchCriteria.status={}", status));
+    if let Some(id) = &filters.creator_id {
+        params.push(format!("searchCriteria.creatorId={}", id));
+    }
+    if let Some(id) = &filters.reviewer_id {
+        params.push(format!("searchCriteria.reviewerId={}", id));
+    }
+    if let Some(id) = &filters.repository_id {
+        params.push(format!("searchCriteria.repositoryId={}", id));
+    }
+    let top = filters.top.unwrap_or(50).min(200);
+    params.push(format!("$top={}", top));
+
+    let url = format!("{}/{}/_apis/git/pullrequests?{}", base, project, params.join("&"));
 
     let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
 
@@ -618,7 +874,6 @@ pub async fn get_pull_requests(
         .map(|r| r.value)
         .map_err(|e| e.to_string())?;
 
-    // Attach web URLs
     for pr in &mut prs {
         pr.web_url = format!(
             "{}/{}/_git/{}/pullrequest/{}",
@@ -627,6 +882,29 @@ pub async fn get_pull_requests(
     }
 
     Ok(prs)
+}
+
+/// List Git repositories for a project.
+pub async fn get_repositories(
+    org_url: &str,
+    pat: &str,
+    project: &str,
+) -> Result<Vec<Repository>, String> {
+    let client = build_client(pat)?;
+    let url = format!(
+        "{}/{}/_apis/git/repositories?api-version=7.1",
+        org_url.trim_end_matches('/'),
+        encode_path_segment(project)
+    );
+
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    resp.json::<RepositoriesResponse>()
+        .await
+        .map(|r| r.value)
+        .map_err(|e| e.to_string())
 }
 
 /// Get all teams for a project.
@@ -1007,7 +1285,20 @@ pub async fn update_work_item_field(
 // Pull Request review
 // ============================================================
 
-async fn get_my_user_id(org_url: &str, pat: &str) -> Result<String, String> {
+fn parse_identity_response(body: &serde_json::Value, email: &str) -> Option<String> {
+    let needle = email.to_ascii_lowercase();
+    let entries = body.get("value")?.as_array()?;
+
+    let exact = entries.iter().find(|e| {
+        let mail = e.pointer("/properties/Mail/$value").and_then(|v| v.as_str()).unwrap_or("");
+        mail.eq_ignore_ascii_case(&needle)
+    });
+
+    let chosen = exact.or_else(|| entries.first());
+    chosen?.get("id")?.as_str().map(String::from)
+}
+
+pub async fn get_my_user_id(org_url: &str, pat: &str) -> Result<String, String> {
     let client = build_client(pat)?;
     let base = org_url.trim_end_matches('/');
     let url = format!("{}/_apis/connectionData?api-version=7.1-preview.1", base);
@@ -1025,11 +1316,31 @@ async fn get_my_user_id(org_url: &str, pat: &str) -> Result<String, String> {
         .ok_or_else(|| "Could not resolve your user ID".into())
 }
 
-pub async fn review_pull_request(
+/// Resolve an Azure DevOps identity id from an email address.
+pub async fn resolve_identity_by_email(
+    org_url: &str,
+    pat: &str,
+    email: &str,
+) -> Result<String, String> {
+    let client = build_client(pat)?;
+    let url = format!(
+        "{}/_apis/identities?searchFilter=General&filterValue={}&api-version=7.1",
+        org_url.trim_end_matches('/'),
+        encode_path_segment(email)
+    );
+    let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(api_error(resp).await);
+    }
+    let body: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+    parse_identity_response(&body, email).ok_or_else(|| format!("Reviewer not found: {}", email))
+}
+
+pub async fn set_pr_vote(
     org_url: &str,
     pat: &str,
     project: &str,
-    repo_id: &str,
+    repository: &str,
     pr_id: u64,
     vote: i32,
 ) -> Result<(), String> {
@@ -1038,22 +1349,17 @@ pub async fn review_pull_request(
     let base = org_url.trim_end_matches('/');
     let url = format!(
         "{}/{}/_apis/git/repositories/{}/pullrequests/{}/reviewers/{}?api-version=7.1",
-        base, project, repo_id, pr_id, user_id
+        base, project, repository, pr_id, user_id
     );
-
-    let body = serde_json::json!({ "vote": vote });
-
     let resp = client
         .put(&url)
-        .json(&body)
+        .json(&serde_json::json!({ "vote": vote }))
         .send()
         .await
         .map_err(|e| e.to_string())?;
-
     if !resp.status().is_success() {
         return Err(api_error(resp).await);
     }
-
     Ok(())
 }
 
@@ -1626,7 +1932,7 @@ pub async fn get_standup_data(
         .collect();
 
     let my_name = get_my_display_name(&client, base).await.unwrap_or_default();
-    let prs = get_pull_requests(org_url, pat, project).await.unwrap_or_default();
+    let prs = get_pull_requests(org_url, pat, project, PullRequestFilters::default()).await.unwrap_or_default();
 
     let mut today_prs = Vec::new();
     for pr in &prs {
@@ -2409,6 +2715,79 @@ pub async fn delete_work_item(
         return Err(api_error(resp).await);
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn build_create_pr_body_minimal() {
+        let args = CreatePullRequestArgs {
+            source_branch: "feature/x".into(),
+            target_branch: "main".into(),
+            title: "T".into(),
+            ..Default::default()
+        };
+        let body = build_create_pr_body(&args);
+        assert_eq!(body["sourceRefName"], "refs/heads/feature/x");
+        assert_eq!(body["targetRefName"], "refs/heads/main");
+        assert_eq!(body["title"], "T");
+        assert_eq!(body["isDraft"], false);
+        assert!(body.get("reviewers").is_none() || body["reviewers"].as_array().unwrap().is_empty());
+        assert!(body.get("workItemRefs").is_none() || body["workItemRefs"].as_array().unwrap().is_empty());
+    }
+
+    #[test]
+    fn build_create_pr_body_full() {
+        let args = CreatePullRequestArgs {
+            source_branch: "feature/x".into(),
+            target_branch: "main".into(),
+            title: "T".into(),
+            description: Some("body".into()),
+            draft: true,
+            reviewer_ids: vec!["id-1".into(), "id-2".into()],
+            work_item_ids: vec![123, 456],
+        };
+        let body = build_create_pr_body(&args);
+        assert_eq!(body["isDraft"], true);
+        assert_eq!(body["description"], "body");
+        let reviewers = body["reviewers"].as_array().unwrap();
+        assert_eq!(reviewers.len(), 2);
+        assert_eq!(reviewers[0]["id"], "id-1");
+        let refs = body["workItemRefs"].as_array().unwrap();
+        assert_eq!(refs.len(), 2);
+        assert_eq!(refs[0]["id"], "123");
+        assert_eq!(refs[0]["name"], "ArtifactLink");
+    }
+
+    #[test]
+    fn parse_identity_response_no_match() {
+        let body = json!({ "value": [] });
+        assert_eq!(parse_identity_response(&body, "x@example.com"), None);
+    }
+
+    #[test]
+    fn parse_identity_response_single_match() {
+        let body = json!({
+            "value": [
+                { "id": "abc-123", "properties": { "Mail": { "$value": "alice@example.com" } } }
+            ]
+        });
+        assert_eq!(parse_identity_response(&body, "alice@example.com").as_deref(), Some("abc-123"));
+    }
+
+    #[test]
+    fn parse_identity_response_multi_match_picks_exact_email_case_insensitive() {
+        let body = json!({
+            "value": [
+                { "id": "wrong", "properties": { "Mail": { "$value": "alice.fan@example.com" } } },
+                { "id": "right", "properties": { "Mail": { "$value": "ALICE@example.com" } } }
+            ]
+        });
+        assert_eq!(parse_identity_response(&body, "alice@example.com").as_deref(), Some("right"));
+    }
 }
 
 pub async fn proxy_image(_org_url: &str, pat: &str, url: &str) -> Result<String, String> {
